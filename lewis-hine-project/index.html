@@ -79,6 +79,21 @@ body {
 .choice:hover, .choice:focus-visible { border-color: var(--accent); background: #fff8ef; }
 .choice.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 
+/* ----- Footnotes ----- */
+.fn-ref { font: 700 .65em/0 system-ui, sans-serif; color: var(--accent); padding: 0 1px; }
+.nodal-body .fn-ref, .top .fn-ref, footer .fn-ref { cursor: pointer; }
+.nodal-body .fn-ref:hover, .top .fn-ref:hover, footer .fn-ref:hover { text-decoration: underline; }
+.choice .fn-ref { color: inherit; }
+.notes-btn {
+  margin-left: auto; font: 600 13px/1 system-ui, sans-serif; cursor: pointer;
+  padding: 6px 10px; border-radius: 6px; border: 1px solid var(--rule); background: #fff; color: var(--accent);
+}
+.notes-btn:hover { border-color: var(--accent); }
+.notes-list { margin: 0; padding: 0 0 0 1.6em; font-size: 16px; }
+.notes-list li { margin: 0 0 .7em; padding: 4px 8px; border-radius: 4px; white-space: pre-line; overflow-wrap: anywhere; }
+.notes-list li.current { background: #fff1dd; }
+.notes-list a { color: var(--accent); }
+
 footer { padding: 16px 16px 40px; color: var(--muted); font: 14px/1.4 system-ui, sans-serif; display: flex; justify-content: space-between; gap: 16px; }
 .local-note { color: #9a6700; }
 .edit-link { color: var(--muted); opacity: .45; text-decoration: none; }
@@ -148,6 +163,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
 
 <footer class="wrap">
   <span data-text="footer"></span>
+  <button type="button" class="notes-btn" id="page-notes" hidden></button>
   <span class="local-note" id="local-note" hidden>Showing changes auto-saved in this browser that aren&rsquo;t in the uploaded file yet.</span>
   <a href="#edit" class="edit-link" id="edit-link">Edit</a>
 </footer>
@@ -156,10 +172,22 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
   <div class="nodal-inner">
     <div class="nodal-head">
       <p class="nodal-place" id="nodal-place"></p>
+      <button type="button" class="notes-btn" id="nodal-notes" hidden></button>
       <button type="button" class="nodal-close" id="nodal-close" aria-label="Close">&times;</button>
     </div>
     <div class="nodal-body" id="nodal-body"></div>
     <div class="choices" id="nodal-choices"></div>
+  </div>
+</dialog>
+
+<dialog class="nodal" id="notes">
+  <div class="nodal-inner">
+    <div class="nodal-head">
+      <p class="nodal-place" id="notes-title"></p>
+      <button type="button" class="nodal-close" id="notes-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="nodal-body"><ol class="notes-list" id="notes-list"></ol></div>
+    <div class="choices"><button type="button" class="choice primary" id="notes-back"></button></div>
   </div>
 </dialog>
 
@@ -178,6 +206,10 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     - Each choice's "target" is the id of another section, or one of the endings:
         "fail"    -> the "failed to take a picture" screen
         "reward"  -> the reward screen with the photograph
+
+  Footnotes: in ANY text, type {{fn: your citation}} right where the note
+  belongs. The game shows a small number there, and a "Footnotes" button
+  on that screen lists the citations in order. Web addresses become links.
   =====================================================================
 -->
 <script type="application/json" id="game-data">
@@ -190,6 +222,9 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     "rewardTitle": "You took the picture!",
     "tryAgain": "Try again",
     "backToMap": "Back to the map",
+    "footnotesButton": "Footnotes",
+    "footnotesTitle": "Footnotes",
+    "footnotesBack": "Back",
     "footer": "[Your name and class]"
   },
   "mapImage": "",
@@ -291,7 +326,10 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     '<text x="200" y="156" font-family="sans-serif" font-size="18" fill="#8c8270" text-anchor="middle">No photograph yet</text></svg>');
 
   const $ = sel => document.querySelector(sel);
-  let data = JSON.parse($('#game-data').textContent);
+  // Wording added in later versions of the game, so older saved files still work.
+  const DEFAULT_TEXT = { footnotesButton: 'Footnotes', footnotesTitle: 'Footnotes', footnotesBack: 'Back' };
+  function withDefaults(d) { d.text = { ...DEFAULT_TEXT, ...d.text }; return d; }
+  let data = withDefaults(JSON.parse($('#game-data').textContent));
   let editing = false;
   let dirty = false;
   let currentNode = null;
@@ -307,11 +345,78 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     try { localStorage.setItem(PROGRESS_KEY, JSON.stringify([...set])); } catch {}
   }
 
-  function renderText() {
-    document.querySelectorAll('[data-text]').forEach(el => {
-      if (el !== document.activeElement) el.textContent = data.text[el.dataset.text] ?? '';
+  /* ----- Footnotes -----
+     Anywhere in the text, {{fn: citation}} becomes a small number, and the
+     citation is added to the list for that screen. */
+  const NOTE_RE = /\{\{\s*fn\s*:\s*([\s\S]*?)\s*\}\}/gi;
+  let screenNotes = []; // footnotes on the pop-up screen that is open now
+  let pageNotes = [];   // footnotes in the page header and footer
+
+  // Turns text into page content, swapping each {{fn: ...}} for a numbered marker.
+  function withNotes(text, notes) {
+    const frag = document.createDocumentFragment();
+    const str = String(text ?? '');
+    let last = 0;
+    for (const m of str.matchAll(NOTE_RE)) {
+      frag.append(str.slice(last, m.index));
+      notes.push(m[1]);
+      const sup = document.createElement('sup');
+      sup.className = 'fn-ref';
+      sup.dataset.note = notes.length;
+      sup.textContent = notes.length;
+      sup.title = 'Footnote ' + notes.length;
+      frag.append(sup);
+      last = m.index + m[0].length;
+    }
+    frag.append(str.slice(last));
+    return frag;
+  }
+  function stripNotes(text) { return String(text ?? '').replace(NOTE_RE, '').trim(); }
+
+  // Citation text, with web addresses turned into links.
+  function citation(text) {
+    const frag = document.createDocumentFragment();
+    String(text).split(/(https?:\/\/[^\s<>"]+)/).forEach((part, i) => {
+      if (i % 2 === 0) { frag.append(part); return; }
+      const a = document.createElement('a');
+      a.href = part;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = part;
+      frag.append(a);
     });
-    document.title = data.text.title || 'Lewis Hine Project';
+    return frag;
+  }
+
+  function openNotes(notes, current) {
+    $('#notes-title').textContent = data.text.footnotesTitle;
+    $('#notes-back').textContent = data.text.footnotesBack;
+    const list = $('#notes-list');
+    list.replaceChildren(...notes.map((n, i) => {
+      const li = document.createElement('li');
+      li.append(citation(n));
+      if (i + 1 === Number(current)) li.className = 'current';
+      return li;
+    }));
+    const dlg = $('#notes');
+    if (!dlg.open) dlg.showModal();
+    const cur = list.querySelector('.current');
+    if (cur) cur.scrollIntoView({ block: 'center' });
+  }
+  function notesButton(btnEl, notes) {
+    btnEl.hidden = notes.length === 0;
+    btnEl.textContent = data.text.footnotesButton + ' (' + notes.length + ')';
+  }
+
+  function renderText() {
+    pageNotes = [];
+    document.querySelectorAll('[data-text]').forEach(el => {
+      const value = data.text[el.dataset.text] ?? '';
+      if (editing) { if (el !== document.activeElement) el.textContent = value; } // raw text, markers visible
+      else el.replaceChildren(withNotes(value, pageNotes));
+    });
+    notesButton($('#page-notes'), editing ? [] : pageNotes);
+    document.title = stripNotes(data.text.title) || 'Lewis Hine Project';
   }
 
   function renderMap() {
@@ -326,7 +431,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
       b.style.left = node.x + '%';
       b.style.top = node.y + '%';
       b.innerHTML = '<span class="dot"></span><span class="label"></span>';
-      b.querySelector('.label').textContent = node.label;
+      b.querySelector('.label').textContent = stripNotes(node.label);
       b.dataset.id = node.id;
       if (editing) enableDrag(b, node);
       else b.addEventListener('click', () => openNode(node));
@@ -335,30 +440,30 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     $('#progress-count').textContent = [...done].filter(id => data.nodes.some(n => n.id === id)).length + ' / ' + data.nodes.length;
   }
 
+  // These all add any footnotes they find to screenNotes, in reading order.
   function paragraphs(text) {
     return String(text || '').split(/\n\s*\n/).filter(t => t.trim()).map(t => {
       const p = document.createElement('p');
-      p.textContent = t.trim();
+      p.append(withNotes(t.trim(), screenNotes));
       return p;
     });
   }
   function heading(text) {
     const h = document.createElement('h2');
-    h.textContent = text;
+    h.append(withNotes(text, screenNotes));
     return h;
   }
   function choiceButton(label, onClick, primary) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'choice' + (primary ? ' primary' : '');
-    b.textContent = label;
+    b.append(withNotes(label, screenNotes));
     b.addEventListener('click', onClick);
     return b;
   }
 
   function openNode(node) {
     currentNode = node;
-    $('#nodal-place').textContent = node.label;
     showSection(node.start || (node.sections[0] && node.sections[0].id));
     const dlg = $('#nodal');
     if (!dlg.open) dlg.showModal();
@@ -368,6 +473,8 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     const node = currentNode;
     const body = $('#nodal-body');
     const choices = $('#nodal-choices');
+    screenNotes = [];
+    $('#nodal-place').replaceChildren(withNotes(node.label, screenNotes));
     body.className = 'nodal-body';
     body.replaceChildren();
     choices.replaceChildren();
@@ -387,15 +494,16 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
       fig.className = 'photo';
       const img = document.createElement('img');
       img.src = r.image || NO_PHOTO;
-      img.alt = r.caption || '';
+      img.alt = stripNotes(r.caption);
+      const title = heading(data.text.rewardTitle);
       const cap = document.createElement('figcaption');
-      cap.textContent = r.caption || '';
+      cap.append(withNotes(r.caption || '', screenNotes));
       const credit = document.createElement('span');
       credit.className = 'credit';
-      credit.textContent = r.credit || '';
+      credit.append(withNotes(r.credit || '', screenNotes));
       cap.append(credit);
       fig.append(img, cap);
-      body.append(heading(data.text.rewardTitle), fig, ...paragraphs(r.text));
+      body.append(title, fig, ...paragraphs(r.text));
       choices.append(choiceButton(data.text.backToMap, toMap, true));
       if (!editing) {
         const done = getProgress();
@@ -414,10 +522,25 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
         if (!s.choices || !s.choices.length) choices.append(choiceButton(data.text.backToMap, toMap));
       }
     }
+    notesButton($('#nodal-notes'), screenNotes);
     body.scrollTop = 0;
   }
 
   $('#nodal-close').addEventListener('click', () => $('#nodal').close());
+  $('#nodal-notes').addEventListener('click', () => openNotes(screenNotes));
+  $('#page-notes').addEventListener('click', () => openNotes(pageNotes));
+  $('#notes-close').addEventListener('click', () => $('#notes').close());
+  $('#notes-back').addEventListener('click', () => $('#notes').close());
+  // Clicking a footnote number opens the list with that note highlighted.
+  // (Numbers inside choice buttons don't, so the button still does its job.)
+  $('#nodal').addEventListener('click', e => {
+    const ref = e.target.closest('.fn-ref');
+    if (ref && !ref.closest('.choice')) openNotes(screenNotes, ref.dataset.note);
+  });
+  document.querySelectorAll('.top, footer').forEach(area => area.addEventListener('click', e => {
+    const ref = e.target.closest('.fn-ref');
+    if (ref && !editing) openNotes(pageNotes, ref.dataset.note);
+  }));
   $('#reset-progress').addEventListener('click', () => {
     if (confirm('Clear your progress and start over?')) { saveProgress(new Set()); renderMap(); }
   });
@@ -602,7 +725,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
   }
   function useSaved(saved) {
     saved.data.auth = data.auth; // the password always comes from the file itself
-    data = saved.data;
+    data = withDefaults(saved.data);
     dirty = true;
     renderText();
     renderMap();
@@ -723,6 +846,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
       const scroll = dlg.scrollTop;
       form.replaceChildren();
       form.append(el('h3', '', 'Edit location'));
+      form.append(el('p', '', 'Footnotes: in any box, type {{fn: your citation}} right where the note belongs. Example: A sentence that needs a source.{{fn: Author, Title, Year, page}}'));
       form.append(labelled('Location name (shown on the map)', input(w.label, v => { w.label = v; })));
 
       const startSel = el('select');
@@ -829,7 +953,8 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     const { dlg, form } = modal('ed-small');
     form.append(el('h3', '', 'Pop-up wording'));
     [['failTitle', 'Heading when the photo fails'], ['rewardTitle', 'Heading on the reward screen'],
-     ['tryAgain', '“Try again” button'], ['backToMap', '“Back to the map” button']]
+     ['tryAgain', '“Try again” button'], ['backToMap', '“Back to the map” button'],
+     ['footnotesButton', 'Footnotes button'], ['footnotesTitle', 'Heading on the footnotes screen'], ['footnotesBack', 'Button that closes the footnotes']]
       .forEach(([k, label]) => form.append(labelled(label, input(t[k], v => { t[k] = v; }))));
     const actions = el('div', 'ed-actions');
     actions.append(btn('Cancel', () => dlg.close()), btn('Apply', () => {
@@ -874,7 +999,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     bar = el('div', 'ed-ui ed-bar');
     statusEl = el('span', 'ed-status', dirty
       ? 'Your auto-saved changes are loaded. Every edit is saved in this browser automatically.'
-      : 'Click outlined text to edit it. Drag locations to move them, or click one to edit it. Edits auto-save in this browser.');
+      : 'Click outlined text to edit it. Drag locations to move them, or click one to edit it. Edits auto-save in this browser. Add a footnote anywhere by typing {{fn: your citation}}.');
     bar.append(
       el('span', 'ed-title', 'Editing'), statusEl,
       btn('+ Add location', addNode),
