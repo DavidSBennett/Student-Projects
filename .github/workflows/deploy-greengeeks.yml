@@ -1,0 +1,81 @@
+# Uploads each project's index.html to the live site on GreenGeeks.
+#
+#   repo:  <project-folder>/index.html
+#   live:  https://studentprojects.davidsbennett.com/<project-folder>/index.html
+#
+# On every push to main, only the projects whose index.html changed are uploaded.
+# Run it by hand (Actions tab -> "Deploy to GreenGeeks" -> Run workflow) to upload every project.
+#
+# Needs these repository secrets (Settings -> Secrets and variables -> Actions):
+#   GREENGEEKS_FTP_SERVER    FTP server hostname from cPanel (e.g. the server name in your GreenGeeks welcome email)
+#   GREENGEEKS_FTP_USERNAME  FTP account username (e.g. deploy@davidsbennett.com)
+#   GREENGEEKS_FTP_PASSWORD  FTP account password
+#   GREENGEEKS_FTP_DIR       Folder on the server that holds the studentprojects site, as the FTP account sees it.
+#                            Use / if the FTP account was created with that folder as its home.
+
+name: Deploy to GreenGeeks
+
+on:
+  push:
+    branches: [main]
+    paths: ['*/index.html']
+  workflow_dispatch:
+    inputs:
+      all:
+        description: Upload every project, not just the ones that changed
+        type: boolean
+        default: true
+
+concurrency:
+  group: deploy-greengeeks
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Choose which projects to upload
+        env:
+          BEFORE: ${{ github.event.before }}
+          ALL: ${{ github.event_name == 'workflow_dispatch' && inputs.all }}
+        run: |
+          if [ "$ALL" = "true" ] || [ -z "$BEFORE" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            git ls-files -- '*/index.html' > all.txt
+          else
+            git diff --name-only --diff-filter=AMR "$BEFORE" "$GITHUB_SHA" -- '*/index.html' > all.txt
+          fi
+          # Only top-level project folders (skip hidden folders like .github).
+          grep -E '^[^./][^/]*/index\.html$' all.txt > upload.txt || true
+          echo "Projects to upload:"
+          cat upload.txt
+          if [ ! -s upload.txt ]; then echo "Nothing to upload."; fi
+
+      - name: Upload to GreenGeeks
+        env:
+          FTP_SERVER: ${{ secrets.GREENGEEKS_FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.GREENGEEKS_FTP_USERNAME }}
+          LFTP_PASSWORD: ${{ secrets.GREENGEEKS_FTP_PASSWORD }}
+          FTP_DIR: ${{ secrets.GREENGEEKS_FTP_DIR }}
+        run: |
+          [ -s upload.txt ] || exit 0
+          for v in FTP_SERVER FTP_USERNAME LFTP_PASSWORD FTP_DIR; do
+            if [ -z "${!v}" ]; then echo "::error::Missing repository secret for $v. See the top of this workflow file."; exit 1; fi
+          done
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp >/dev/null
+
+          base="${FTP_DIR%/}"
+          cmds="set cmd:fail-exit true; set ftp:ssl-force true; set ftp:ssl-protect-data true; set net:max-retries 2; set net:timeout 30;"
+          while IFS= read -r file; do
+            folder="${file%/index.html}"
+            remote="$base/$folder"
+            cmds="$cmds mkdir -p -f \"$remote\"; put \"$file\" -o \"$remote/index.html\";"
+          done < upload.txt
+
+          lftp -u "$FTP_USERNAME" --env-password -e "$cmds bye" "ftp://$FTP_SERVER"
+
+          echo "Uploaded:"
+          sed 's#/index.html$#/#; s#^#  https://studentprojects.davidsbennett.com/#' upload.txt
