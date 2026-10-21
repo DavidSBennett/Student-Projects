@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sharecropping</title>
+<style>
+/* =====================================================================
+   STYLES
+   To restyle the page, change the colours and fonts in :root below.
+   ===================================================================== */
+:root {
+  --bg: #f4f1ea;            /* page background */
+  --panel: #fffdf8;         /* boxes and pop-ups */
+  --text: #24211d;          /* main text */
+  --muted: #6b655b;         /* quieter text (footer, captions) */
+  --rule: #d8d0c0;          /* lines and borders */
+  --accent: #7a4b22;        /* buttons, links, footnote numbers */
+  --accent-text: #ffffff;   /* text on accent buttons */
+  --highlight: #fbecd2;     /* the highlighted footnote */
+  --bar-good: #4f7a3a;      /* resource bars */
+  --bar-low: #a63d2a;       /* resource bars at 20 or less */
+  --font-body: Georgia, "Times New Roman", serif;
+  --font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --max-width: 960px;
+  --radius: 8px;
+
+  /* Editor colours (only seen in edit mode) */
+  --edit-outline: #2a6edc;
+  --edit-bar: #1d2330;
+  --edit-bar-text: #eef1f6;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 18px/1.6 var(--font-body);
+  overflow-wrap: break-word;
+}
+img { max-width: 100%; }
+
+/* ----- Page header ----- */
+.site-header, main, .site-footer { max-width: var(--max-width); margin: 0 auto; padding-left: 16px; padding-right: 16px; }
+.site-header { padding-top: 32px; padding-bottom: 8px; }
+.header-image { margin: 0 0 20px; }
+.header-image img { display: block; width: 100%; max-height: 420px; object-fit: cover; border-radius: var(--radius); }
+.site-header h1 { margin: 0 0 12px; font-size: clamp(28px, 6vw, 46px); line-height: 1.15; font-weight: normal; }
+.intro { margin: 0; max-width: 70ch; white-space: pre-line; }
+
+/* ----- Game area (the game is drawn into #game-root) ----- */
+.game-area {
+  margin: 24px 0;
+  padding: 20px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.game-area > h2 { margin: 0 0 8px; font-size: 22px; font-weight: normal; }
+.g-top { display: flex; justify-content: flex-end; }
+
+/* Resources: the numbers with bars */
+.g-resources { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin: 8px 0 14px; }
+.g-res { background: #fff; border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; font-family: var(--font-ui); }
+.g-res-name { display: block; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.g-res-value { display: block; font-size: 22px; font-weight: 700; }
+.g-bar { height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.g-bar span { display: block; height: 100%; background: var(--bar-good); }
+.g-res.low .g-bar span { background: var(--bar-low); }
+
+/* Timeline of turns (scrolls sideways on its own if there are many) */
+.g-timeline { display: flex; gap: 4px; overflow-x: auto; list-style: none; padding: 0 0 6px; margin: 0 0 14px; font: 12px/1.4 var(--font-ui); }
+.g-timeline li { flex: none; padding: 3px 8px; border: 1px solid var(--rule); border-radius: 4px; background: #fff; color: var(--muted); white-space: nowrap; }
+.g-timeline li.done { background: var(--rule); }
+.g-timeline li.current { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+
+/* The card for the current step */
+.g-card { background: #fff; border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px; }
+.g-card h3 { margin: 0 0 8px; font-size: 22px; font-weight: normal; }
+.g-card p { margin: 0 0 12px; white-space: pre-line; }
+.g-card .g-turn-label { margin: 0 0 4px; font: 600 12px/1.4 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.g-card .g-prompt { font: 14px/1.4 var(--font-ui); color: var(--muted); }
+.g-card .g-chosen { font-weight: 700; }
+.g-card .g-effects-line { font: 14px/1.4 var(--font-ui); color: var(--muted); }
+.g-image { margin: 0 0 12px; }
+.g-image img { display: block; width: 100%; max-height: 50vh; object-fit: contain; background: var(--bg); border-radius: 4px; }
+.g-choices { display: grid; gap: 8px; }
+.g-choice, .g-btn {
+  cursor: pointer; border: 1px solid var(--rule); border-radius: 6px;
+  background: var(--panel); color: var(--text); padding: 10px 14px; font: 15px/1.4 var(--font-ui);
+}
+.g-choice:hover, .g-choice:focus-visible, .g-btn:hover, .g-btn:focus-visible { border-color: var(--accent); outline: none; }
+.g-effects { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.g-btn { display: inline-block; font-weight: 600; }
+.g-btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.g-btn.link { background: none; border: none; padding: 4px 0; font-size: 13px; font-weight: 400; color: var(--muted); text-decoration: underline; }
+.g-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+
+/* The log of choices made */
+.g-log { margin-top: 16px; font: 14px/1.4 var(--font-ui); }
+.g-log h4 { margin: 0 0 6px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+.g-log ol { margin: 0; padding-left: 1.4em; color: var(--muted); }
+
+/* ----- Page footer ----- */
+.site-footer {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+  padding-top: 16px; padding-bottom: 40px;
+  color: var(--muted); font: 14px/1.4 var(--font-ui);
+}
+.site-footer p { margin: 0; }
+.author { flex: 1 1 auto; }
+.local-note { flex-basis: 100%; color: #8a5a00; }
+.edit-link { color: var(--muted); opacity: .4; text-decoration: none; }
+.edit-link:hover, .edit-link:focus-visible { opacity: 1; text-decoration: underline; }
+
+/* ----- Buttons players can see ----- */
+.btn {
+  font: 600 14px/1.2 var(--font-ui); cursor: pointer;
+  padding: 8px 14px; border-radius: 6px;
+  border: 1px solid var(--rule); background: #fff; color: var(--accent);
+}
+.btn:hover, .btn:focus-visible { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+
+/* ----- Footnotes ----- */
+.fn-ref { font: 700 .65em/0 var(--font-ui); color: var(--accent); padding: 0 1px; cursor: pointer; }
+.fn-ref:hover { text-decoration: underline; }
+button .fn-ref, a .fn-ref { color: inherit; cursor: inherit; }
+.notes-dialog {
+  border: none; border-radius: 10px; padding: 0;
+  width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
+  background: var(--panel); color: var(--text); box-shadow: 0 12px 48px rgba(0,0,0,.4);
+}
+.notes-dialog::backdrop { background: rgba(20, 16, 10, .55); }
+.notes-inner { display: flex; flex-direction: column; max-height: calc(100vh - 48px); }
+.notes-inner h2 { margin: 0; padding: 16px 20px; font-size: 22px; font-weight: normal; border-bottom: 1px solid var(--rule); }
+.notes-list { margin: 0; padding: 16px 20px 16px 2.6em; overflow-y: auto; font-size: 16px; }
+.notes-list li { margin: 0 0 .6em; padding: 4px 8px; border-radius: 4px; white-space: pre-line; overflow-wrap: anywhere; }
+.notes-list li.current { background: var(--highlight); }
+.notes-list a { color: var(--accent); }
+.notes-actions { padding: 12px 20px 16px; border-top: 1px solid var(--rule); text-align: right; }
+
+/* =====================================================================
+   EDITOR STYLES (only seen after entering the password)
+   ===================================================================== */
+body.is-editing { padding-bottom: 120px; }
+body.is-editing [data-text] { outline: 1px dotted var(--edit-outline); outline-offset: 3px; cursor: text; min-height: 1em; }
+body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); background: rgba(42,110,220,.05); }
+body.is-editing .header-image { position: relative; outline: 2px dotted var(--edit-outline); outline-offset: 3px; cursor: pointer; border-radius: var(--radius); }
+.ed-image-empty { display: flex; align-items: center; justify-content: center; min-height: 110px; padding: 16px; text-align: center; color: var(--muted); font: 14px/1.4 var(--font-ui); background: var(--panel); border-radius: var(--radius); }
+.ed-image-remove { position: absolute; top: 8px; right: 8px; }
+
+.ed-ui, .ed-ui * { font: 14px/1.4 var(--font-ui); box-sizing: border-box; }
+.edit-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  padding: 10px 16px; background: var(--edit-bar); color: var(--edit-bar-text);
+  box-shadow: 0 -2px 12px rgba(0,0,0,.25);
+}
+.edit-bar .ed-status { flex: 1 1 220px; color: #b7c0cf; font-size: 13px; }
+.ed-btn { appearance: none; border: 1px solid #c9ced8; background: #fff; color: #1d2330; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.ed-btn:hover { background: #eef2f9; }
+.ed-btn.ed-primary { background: var(--edit-outline); border-color: var(--edit-outline); color: #fff; }
+.edit-bar .ed-btn { border-color: #3a4357; background: #2a3242; color: var(--edit-bar-text); }
+.edit-bar .ed-btn:hover { background: #343e52; }
+.edit-bar .ed-btn.ed-primary { background: var(--edit-outline); border-color: var(--edit-outline); }
+
+.ed-dialog { border: none; border-radius: 10px; padding: 0; width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 32px); color: #1d2330; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+.ed-dialog::backdrop { background: rgba(15,20,30,.5); }
+.ed-dialog form { padding: 20px; display: grid; gap: 10px; }
+.ed-dialog h2 { margin: 0 0 4px; font-size: 18px; font-weight: 600; outline: none; }
+.ed-dialog p { margin: 0; color: #4c5566; }
+.ed-dialog label { font-weight: 600; margin-top: 4px; }
+.ed-dialog input, .ed-dialog textarea { width: 100%; padding: 7px 9px; border: 1px solid #c9ced8; border-radius: 6px; background: #fff; color: #1d2330; }
+.ed-dialog textarea { resize: vertical; min-height: 2.6em; }
+.ed-dialog .ed-group { margin-top: 10px; padding-top: 8px; border-top: 1px solid #e1e4ea; font-weight: 700; color: #1d2330; }
+.ed-dialog .ed-hint { color: #1d2330; background: #eef4ff; border-left: 3px solid var(--edit-outline); padding: 6px 10px; }
+.ed-dialog .ed-error { color: #b42318; }
+.ed-dialog .ed-error:empty { display: none; }
+.ed-dialog .ed-buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.ed-link { justify-self: start; border: 0; background: none; padding: 4px 0; color: var(--edit-outline); text-decoration: underline; cursor: pointer; }
+
+/* The Game editor panel (under the game, edit mode only) */
+.game-editor { margin: 0 0 24px; padding: 16px; background: #fff; color: #1d2330; border: 2px solid var(--edit-outline); border-radius: var(--radius); }
+.game-editor h2 { margin: 0 0 6px; font-size: 18px; font-weight: 700; }
+.game-editor p { margin: 4px 0; color: #4c5566; }
+.game-editor .ed-hint { color: #1d2330; background: #eef4ff; border-left: 3px solid var(--edit-outline); padding: 6px 10px; }
+.game-editor details { border: 1px solid #e1e4ea; border-radius: 6px; margin: 8px 0; padding: 0 12px; background: #fafbfd; }
+.game-editor details[open] { padding-bottom: 12px; }
+.game-editor summary { cursor: pointer; padding: 9px 0; font-weight: 700; }
+.game-editor details details { background: #fff; }
+.game-editor fieldset { border: 1px solid #e1e4ea; border-radius: 6px; margin: 10px 0 0; padding: 8px 10px 10px; min-width: 0; }
+.game-editor legend { font-weight: 700; padding: 0 4px; }
+.game-editor label { display: block; font-weight: 600; margin-top: 8px; }
+.game-editor input[type=text], .game-editor input[type=number], .game-editor textarea { width: 100%; padding: 6px 8px; border: 1px solid #c9ced8; border-radius: 6px; background: #fff; color: #1d2330; }
+.game-editor textarea { resize: vertical; min-height: 4.2em; }
+.game-editor .ge-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.game-editor .ge-effects { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0 10px; }
+.game-editor .ge-resource { display: grid; grid-template-columns: 1fr 9rem auto; gap: 0 10px; align-items: end; }
+.game-editor .ge-thumb { display: block; max-width: 12rem; max-height: 8rem; border-radius: 4px; margin-top: 8px; }
+.game-editor .ed-btn.ed-danger { color: #b42318; border-color: #e7b4ae; }
+@media (max-width: 520px) { .game-editor .ge-resource { grid-template-columns: 1fr; } }
+
+.ed-help h3 { margin: 12px 0 4px; font-size: 15px; font-weight: 700; }
+.ed-help ol, .ed-help ul { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }
+.ed-help li { color: #2c3443; }
+.ed-help b { font-weight: 700; }
+.ed-help code { font: 13px/1.4 ui-monospace, Consolas, monospace; background: #f1f3f7; border: 1px solid #e1e4ea; border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+.ed-help .ed-example { display: block; margin: 4px 0; padding: 6px 8px; }
+</style>
+</head>
+<body>
+
+<!-- =====================================================================
+     PAGE SHELL
+     The words are NOT written here. They are filled in from the game data
+     further down:
+       data-text="page.title"   text that is edited by clicking on it
+       data-label="ui.editLink" text that is edited in the "Other text…" window
+       data-image="header"      a picture from the "images" section
+     ===================================================================== -->
+<header class="site-header">
+  <!-- Optional header image. Hidden until one is uploaded in edit mode. -->
+  <figure class="header-image" data-image-box="header" hidden><img data-image="header" alt=""></figure>
+  <h1 data-text="page.title"></h1>
+  <p class="intro" data-text="page.introduction" data-multiline></p>
+</header>
+
+<main>
+  <!-- GAME AREA: the game is drawn inside #game-root by the script below. -->
+  <section class="game-area" id="game-area" aria-labelledby="game-area-heading">
+    <h2 id="game-area-heading" data-text="page.gameAreaHeading"></h2>
+    <div id="game-root"></div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p class="author" data-text="page.author"></p>
+  <button type="button" class="btn" id="page-notes" data-notes-button hidden></button>
+  <a href="#edit" class="edit-link" id="edit-link" data-label="ui.editLink"></a>
+  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden></p>
+</footer>
+
+<!-- The footnotes pop-up. Opens on top of whatever screen the player is on. -->
+<dialog class="notes-dialog" id="notes-dialog">
+  <div class="notes-inner">
+    <h2 id="notes-title"></h2>
+    <ol class="notes-list" id="notes-list"></ol>
+    <div class="notes-actions"><button type="button" class="btn primary" id="notes-back" autofocus></button></div>
+  </div>
+</dialog>
+
+<!-- =====================================================================
+     GAME DATA: every word and picture the player sees lives here.
+
+     How it is organized:
+       schemaVersion  A number. It goes up if the layout of this data changes.
+       auth           The editor password check: a random "salt" and a
+                      scrambled "hash". The real password is NOT stored anywhere.
+       page           Text shown on the page itself: title, introduction,
+                      game area heading, author line.
+                      Edited by clicking on it in edit mode.
+       ui             Buttons, headings and messages, including the footnote
+                      wording and the browser tab title. Edited by clicking on
+                      them, or in the editor's "Other text…" window when they
+                      aren't on screen. Words in {curly brackets} are filled in
+                      by the game, e.g. {resource}.
+       images         Pictures. Each one is { "src": the picture stored as a
+                      data URL, "alt": a description for screen readers }.
+       game           The game itself, edited in the editor's "Game editor":
+         resources      the numbers with bars, from 0 to 100. Each has an
+                        "id", a "name" and a "start" value. If any reaches 0,
+                        the game is over.
+         start          the screen before the first turn (title, text)
+         turns          played in order. Each turn has a "label" (shown in
+                        the timeline), "title", "text", an "image", and 3 or 4
+                        "choices". Each choice has a "label" (button text), a
+                        "result" (what happens next) and "effects": how much
+                        each resource changes, by resource id, e.g. { "r1": -5 }.
+         endings        "lose" (a resource reached 0) and "win" (every turn
+                        survived), each with a title and text.
+
+     Footnotes: in ANY text, type {{fn: your citation}} right where the note
+     belongs, e.g.  A sentence that needs a source.{{fn: Author, Title, Year, page}}
+
+     You don't need to edit this by hand: click the faint "Edit" link at the
+     bottom of the page, make changes, then click "Save file".
+     ===================================================================== -->
+<script type="application/json" id="game-data">
+{
+  "schemaVersion": 1,
+  "auth": {
+    "salt": "c1f7bcafd2993fad442053a3a8f096d4",
+    "hash": "6e357599761656169ba78a27ce25685de49ca7dc75dce91e1dbb47f7aa355390"
+  },
+  "page": {
+    "title": "[Game title]",
+    "introduction": "[Introduction]",
+    "gameAreaHeading": "[Game area]",
+    "author": "[Your name and class]"
+  },
+  "ui": {
+    "browserTabTitle": "Sharecropping",
+    "editLink": "[Edit]",
+    "localChangesNote": "[This page is showing changes that aren't in the uploaded file yet.]",
+    "footnotesButton": "[Footnotes]",
+    "footnotesTitle": "[Footnotes]",
+    "footnotesBack": "[Back]",
+    "begin": "[Begin]",
+    "choosePrompt": "[Choose what to do:]",
+    "continue": "[Continue]",
+    "restart": "[Start over]",
+    "logHeading": "[Log]",
+    "resourceZero": "[{resource} reached 0.]",
+    "playAgain": "[Play again]"
+  },
+  "images": {
+    "header": { "src": "", "alt": "[Header image description]" }
+  },
+  "game": {
+    "resources": [
+      { "id": "r1", "name": "[Resource 1]", "start": 50 },
+      { "id": "r2", "name": "[Resource 2]", "start": 50 },
+      { "id": "r3", "name": "[Resource 3]", "start": 50 }
+    ],
+    "start": {
+      "title": "[Start title]",
+      "text": "[Starting situation]"
+    },
+    "turns": [
+      {
+        "id": "t1",
+        "label": "[Turn 1]",
+        "title": "[Event title]",
+        "text": "[What happens]",
+        "image": { "src": "", "alt": "[Image description]" },
+        "choices": [
+          { "id": "c1", "label": "[Choice 1]", "result": "[What happens after choice 1]", "effects": { "r1": 0, "r2": 0, "r3": 0 } },
+          { "id": "c2", "label": "[Choice 2]", "result": "[What happens after choice 2]", "effects": { "r1": 0, "r2": 0, "r3": 0 } },
+          { "id": "c3", "label": "[Choice 3]", "result": "[What happens after choice 3]", "effects": { "r1": 0, "r2": 0, "r3": 0 } }
+        ]
+      },
+      {
+        "id": "t2",
+        "label": "[Turn 2]",
+        "title": "[Event title]",
+        "text": "[What happens]",
+        "image": { "src": "", "alt": "[Image description]" },
+        "choices": [
+          { "id": "c4", "label": "[Choice 1]", "result": "[What happens after choice 1]", "effects": { "r1": 0, "r2": 0, "r3": 0 } },
+          { "id": "c5", "label": "[Choice 2]", "result": "[What happens after choice 2]", "effects": { "r1": 0, "r2": 0, "r3": 0 } },
+          { "id": "c6", "label": "[Choice 3]", "result": "[What happens after choice 3]", "effects": { "r1": 0, "r2": 0, "r3": 0 } }
+        ]
+      },
+      {
+        "id": "t3",
+        "label": "[Turn 3]",
+        "title": "[Event title]",
+        "text": "[What happens]",
+        "image": { "src": "", "alt": "[Image description]" },
+        "choices": [
+          { "id": "c7", "label": "[Choice 1]", "result": "[What happens after choice 1]", "effects": { "r1": 0, "r2": 0, "r3": 0 } },
+          { "id": "c8", "label": "[Choice 2]", "result": "[What happens after choice 2]", "effects": { "r1": 0, "r2": 0, "r3": 0 } },
+          { "id": "c9", "label": "[Choice 3]", "result": "[What happens after choice 3]", "effects": { "r1": 0, "r2": 0, "r3": 0 } }
+        ]
+      }
+    ],
+    "endings": {
+      "lose": { "title": "[Game over title]", "text": "[Game over text]" },
+      "win": { "title": "[Survived title]", "text": "[Survived text]" }
+    }
+  }
+}
+</script>
+
+<script>
+/* =====================================================================
+   PAGE SCRIPT
+
+   Sections:
+     1. Start-up: remember the original page and read the game data
+     2. Editor wording (plain English, not game content)
+     3. Small helpers
+     4. SHA-256 (password check and file fingerprints)
+     5. Footnotes
+     6. Drawing the page from the game data
+     7. Browser storage (unlock + auto-save), all wrapped in try/catch
+     8. The editor
+     9. Getting everything going
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  /* -------------------------------------------------------------------
+     1. START-UP
+     Copy the page exactly as it was loaded, before anything is drawn.
+     "Save file" builds the new file from this copy and only swaps in the
+     new game data, so no editor bits or rendered footnotes can leak into it.
+     ------------------------------------------------------------------- */
+  const ORIGINAL_PAGE = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+  // Values added in later versions. They are merged in when loading, so
+  // older saved files that don't have these keys still work. Add new
+  // defaults here whenever a new key is added to the game data.
+  const DEFAULTS = {
+    schemaVersion: 1,
+    page: {
+      title: '[Game title]',
+      introduction: '[Introduction]',
+      gameAreaHeading: '[Game area]',
+      author: '[Your name and class]'
+    },
+    ui: {
+      browserTabTitle: 'Sharecropping',
+      editLink: '[Edit]',
+      localChangesNote: '[This page is showing changes that aren\'t in the uploaded file yet.]',
+      footnotesButton: '[Footnotes]',
+      footnotesTitle: '[Footnotes]',
+      footnotesBack: '[Back]',
+      begin: '[Begin]',
+      choosePrompt: '[Choose what to do:]',
+      continue: '[Continue]',
+      restart: '[Start over]',
+      logHeading: '[Log]',
+      resourceZero: '[{resource} reached 0.]',
+      playAgain: '[Play again]'
+    },
+    images: {
+      header: { src: '', alt: '[Header image description]' }
+    },
+    game: {
+      resources: [
+        { id: 'r1', name: '[Resource 1]', start: 50 },
+        { id: 'r2', name: '[Resource 2]', start: 50 },
+        { id: 'r3', name: '[Resource 3]', start: 50 }
+      ],
+      start: { title: '[Start title]', text: '[Starting situation]' },
+      turns: [1, 2, 3].map(n => ({
+        id: 't' + n, label: '[Turn ' + n + ']', title: '[Event title]', text: '[What happens]',
+        image: { src: '', alt: '[Image description]' },
+        choices: [1, 2, 3].map(c => ({
+          id: 'c' + ((n - 1) * 3 + c), label: '[Choice ' + c + ']', result: '[What happens after choice ' + c + ']',
+          effects: { r1: 0, r2: 0, r3: 0 }
+        }))
+      })),
+      endings: {
+        lose: { title: '[Game over title]', text: '[Game over text]' },
+        win: { title: '[Survived title]', text: '[Survived text]' }
+      }
+    }
+  };
+
+  // Fill in any missing keys from DEFAULTS, without changing keys that exist.
+  // (Lists, like the turns, are only filled in if they are missing completely.)
+  function withDefaults(d) {
+    (function fill(target, defaults) {
+      Object.keys(defaults).forEach(k => {
+        const def = defaults[k];
+        if (!(k in target)) target[k] = clone(def);
+        else if (def && typeof def === 'object' && !Array.isArray(def) && target[k] && typeof target[k] === 'object') fill(target[k], def);
+      });
+    })(d, DEFAULTS);
+    // Every turn needs an image box and a list of choices, and every choice a list of effects.
+    d.game.turns.forEach(t => {
+      t.image = Object.assign({ src: '', alt: '' }, t.image);
+      if (!Array.isArray(t.choices)) t.choices = [];
+      t.choices.forEach(c => { if (!c.effects || typeof c.effects !== 'object') c.effects = {}; });
+    });
+    return d;
+  }
+
+  // The data exactly as it is in the uploaded file (with defaults merged in
+  // BEFORE the fingerprint is taken, so an older file isn't mistaken for
+  // having unsaved changes).
+  const FILE_DATA = withDefaults(JSON.parse(document.getElementById('game-data').textContent));
+  let data = clone(FILE_DATA);   // the data currently shown (may include edits)
+  let editing = false;
+
+  // Storage is keyed by this page's own path, so other projects on the same
+  // website, and copies in different folders, never share auto-saves.
+  // ("/folder/" and "/folder/index.html" are the same page.)
+  const PAGE_KEY = location.pathname.replace(/index\.html?$/i, '');
+
+  /* -------------------------------------------------------------------
+     2. EDITOR WORDING
+     Words used by the editor itself (password screen, edit bar, dialogs).
+     This is editor UI, not game content, so it is NOT in the game data.
+     ------------------------------------------------------------------- */
+  const EDITOR_TEXT = {
+    passwordTitle: 'Edit this game',
+    passwordLabel: 'Password',
+    passwordWrong: 'That password is not right.',
+    unlock: 'Unlock',
+    cancel: 'Cancel',
+    apply: 'Apply',
+    close: 'Close',
+    howToEdit: 'How to edit',
+    howToEditLink: 'How to edit this game',
+    helpTitle: 'How to edit this game',
+    otherText: 'Other text…',
+    otherTextTitle: 'Other text',
+    otherTextHelp: 'Text that isn\'t on the screen right now: buttons, headings, messages and image descriptions. Change a box, then click Apply.',
+    otherTextNone: 'All the text is on the screen right now. Click it to edit it.',
+    discard: 'Discard changes',
+    discardTitle: 'Discard changes?',
+    discardBody: 'This removes every change that is not in the uploaded file, and clears the auto-save in this browser. It cannot be undone.',
+    saveFile: 'Save file',
+    done: 'Done',
+    conflictTitle: 'Auto-saved changes found',
+    conflictBody: 'This browser has auto-saved changes from {time}. A different version of the file has been uploaded since then. Which one do you want to work on?',
+    keepSaved: 'Keep auto-saved changes',
+    useUploaded: 'Use uploaded version',
+    statusClean: 'Editing. Click outlined text to change it. No changes from the uploaded file yet.',
+    statusHasChanges: 'Editing. Your changes are auto-saved in this browser. Click "Save file" to download them.',
+    statusSaving: 'Saving…',
+    statusSaved: 'Auto-saved in this browser at {time}. Click "Save file" to download your changes.',
+    statusNoStorage: 'This browser can\'t auto-save here, so changes are NOT kept if you leave. Click "Save file" before you go.',
+    statusDownloaded: 'Downloaded index.html. Turn it in the way your teacher tells you.',
+    statusDiscarded: 'Back to the uploaded version.',
+    statusImageError: 'That file could not be read as an image.',
+    imageEmpty: 'Optional header image: click here to upload one.',
+    imageRemove: 'Remove image',
+    fnHint: 'Footnotes: in any box, type {{fn: your citation}} right where the note belongs. Example: A sentence that needs a source.{{fn: Author, Title, Year, page}}',
+
+    // Friendly names for boxes in the "Other text" window. Any text without
+    // a name here gets one made from its key.
+    groups: { page: 'Page', ui: 'Buttons and messages', images: 'Images' },
+    fields: {
+      'page.title': 'Title',
+      'page.introduction': 'Introduction',
+      'page.gameAreaHeading': 'Game area heading',
+      'page.author': 'Author line',
+      'ui.begin': 'Button that starts the game',
+      'ui.choosePrompt': 'Words above the choices',
+      'ui.continue': 'Button after a choice',
+      'ui.restart': '"Start over" link under the game',
+      'ui.logHeading': 'Heading of the log of choices',
+      'ui.resourceZero': 'Game over message ({resource} is filled in with the resource that reached 0)',
+      'ui.playAgain': 'Button at the end of the game',
+      'ui.browserTabTitle': 'Browser tab title',
+      'ui.editLink': 'Edit link in the footer',
+      'ui.localChangesNote': 'Note shown when the page has auto-saved changes',
+      'ui.footnotesButton': 'Footnotes button',
+      'ui.footnotesTitle': 'Heading of the footnotes pop-up',
+      'ui.footnotesBack': 'Button that closes the footnotes pop-up',
+      'images.header.alt': 'Header image description (for screen readers)'
+    },
+
+    // The Game editor panel under the game
+    game: {
+      heading: 'Game editor',
+      intro: 'Everything in the game. While you are editing, the game above is a test run. Click a section name to open it.',
+      resources: 'Resources',
+      resourcesHelp: 'The numbers with bars, from 0 to 100. If any of them reaches 0, the game is over.',
+      resourceName: 'Name',
+      resourceStart: 'Starting value (0–100)',
+      addResource: 'Add resource',
+      deleteResource: 'Delete',
+      start: 'Start screen',
+      startHelp: 'What the player sees before the first turn.',
+      title: 'Title',
+      text: 'Text',
+      turns: 'Turns',
+      turnsHelp: 'The game goes through the turns in this order. Each turn has 3 choices, and you can add a 4th.',
+      turn: 'Turn {n}',
+      turnLabel: 'Label (the short name shown in the timeline)',
+      turnText: 'What happens',
+      uploadImage: 'Upload image',
+      removeImage: 'Remove image',
+      imageAlt: 'Image description (for screen readers)',
+      choice: 'Choice {n}',
+      choiceLabel: 'Button text',
+      choiceResult: 'What happens after this choice',
+      effects: 'How much each resource changes (for example 5, or -5 to lower it)',
+      addChoice: 'Add a 4th choice',
+      removeChoice: 'Remove choice 4',
+      playTurn: 'Play this turn',
+      moveUp: '↑',
+      moveDown: '↓',
+      moveUpLabel: 'Move this turn up',
+      moveDownLabel: 'Move this turn down',
+      deleteTurn: 'Delete turn',
+      addTurn: 'Add turn',
+      endings: 'Endings',
+      endingsHelp: '"Game over" is shown as soon as any resource reaches 0. "Survived" is shown after the last turn.',
+      lose: 'Game over',
+      win: 'Survived',
+      restartTest: 'Restart test run',
+      deleteTitle: 'Delete this?',
+      deleteTurnBody: 'This turn and its choices will be removed.',
+      deleteResourceBody: 'This resource, and every choice\'s change to it, will be removed.',
+      deleteButton: 'Delete'
+    }
+  };
+
+  /* -------------------------------------------------------------------
+     3. SMALL HELPERS
+     ------------------------------------------------------------------- */
+  function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
+  const $ = sel => document.querySelector(sel);
+
+  // Read or write a value using a dotted path such as "page.title".
+  function getPath(obj, path) {
+    return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
+  }
+  function setPath(obj, path, value) {
+    const keys = path.split('.');
+    const last = keys.pop();
+    const target = keys.reduce((o, k) => (o[k] = o[k] || {}), obj);
+    target[last] = value;
+  }
+
+  // The data without the password check (auto-saves never store it).
+  function withoutAuth(d) { const c = clone(d); delete c.auth; return c; }
+  // True if some data is the same as the uploaded file's data.
+  function sameAsFile(d) { return JSON.stringify(withoutAuth(d)) === JSON.stringify(withoutAuth(FILE_DATA)); }
+  // Put the file's own password check back in (it never comes from an auto-save).
+  function withFileAuth(d) {
+    const out = { schemaVersion: d.schemaVersion, auth: clone(FILE_DATA.auth) };
+    Object.keys(d).forEach(k => { if (k !== 'auth' && k !== 'schemaVersion') out[k] = d[k]; });
+    return out;
+  }
+
+  // Make an element. `attrs` is an object of attributes; `text` is set as textContent.
+  function el(tag, attrs, text) {
+    const e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(k => e.setAttribute(k, attrs[k]));
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  // A short random id for new items, e.g. "t4k2x9".
+  function newId(prefix) { return prefix + Math.random().toString(36).slice(2, 8); }
+
+  // Fill in {words} in a piece of text, e.g. fill('At {time}', { time: '3:00' }).
+  function fill(text, values) {
+    return String(text || '').replace(/\{(\w+)\}/g, (m, k) => (k in values ? values[k] : m));
+  }
+
+  /* -------------------------------------------------------------------
+     4. SHA-256
+     Written out in plain JavaScript (not crypto.subtle) so it works however
+     the page is opened: from disk (file://), plain http, or https.
+     Used for the password check and to fingerprint the file's content.
+     ------------------------------------------------------------------- */
+  function sha256(text) {
+    const K = [];
+    const H = [];
+    // The constants are the fractional parts of the square and cube roots of the first primes.
+    for (let n = 2, found = 0; found < 64; n++) {
+      let prime = true;
+      for (let d = 2; d * d <= n; d++) if (n % d === 0) { prime = false; break; }
+      if (!prime) continue;
+      if (found < 8) H[found] = (Math.pow(n, 1 / 2) * 2 ** 32) | 0;
+      K[found++] = (Math.pow(n, 1 / 3) * 2 ** 32) | 0;
+    }
+    const bytes = Array.from(new TextEncoder().encode(text));
+    const bitLen = bytes.length * 8;
+    bytes.push(0x80);
+    while (bytes.length % 64 !== 56) bytes.push(0);
+    for (let i = 7; i >= 0; i--) bytes.push(i > 3 ? Math.floor(bitLen / 2 ** 32 / 2 ** ((i - 4) * 8)) & 0xff : (bitLen >>> (i * 8)) & 0xff);
+    const rot = (x, n) => (x >>> n) | (x << (32 - n));
+    const W = new Array(64);
+    for (let off = 0; off < bytes.length; off += 64) {
+      for (let i = 0; i < 16; i++) W[i] = (bytes[off + i * 4] << 24) | (bytes[off + i * 4 + 1] << 16) | (bytes[off + i * 4 + 2] << 8) | bytes[off + i * 4 + 3];
+      for (let i = 16; i < 64; i++) {
+        const s0 = rot(W[i - 15], 7) ^ rot(W[i - 15], 18) ^ (W[i - 15] >>> 3);
+        const s1 = rot(W[i - 2], 17) ^ rot(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+        W[i] = (W[i - 16] + s0 + W[i - 7] + s1) | 0;
+      }
+      let [a, b, c, d, e, f, g, h] = H;
+      for (let i = 0; i < 64; i++) {
+        const t1 = (h + (rot(e, 6) ^ rot(e, 11) ^ rot(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + W[i]) | 0;
+        const t2 = ((rot(a, 2) ^ rot(a, 13) ^ rot(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      [a, b, c, d, e, f, g, h].forEach((v, i) => { H[i] = (H[i] + v) | 0; });
+    }
+    return H.map(v => (v >>> 0).toString(16).padStart(8, '0')).join('');
+  }
+
+  // A fingerprint of the uploaded file's content, stored with every auto-save.
+  const FILE_FINGERPRINT = sha256(JSON.stringify(withoutAuth(FILE_DATA)));
+
+  /* -------------------------------------------------------------------
+     5. FOOTNOTES
+     In ANY text, {{fn: citation}} becomes a small superscript number, and
+     the citation is added to the footnote list of the "screen" it is on.
+
+     A screen is whatever the player sees at one time: the page header and
+     footer are one screen, and every pop-up or step of the game will be its
+     own. To give a new screen footnotes:
+        const screen = newScreen();
+        someEl.replaceChildren(withNotes(text, screen));   // for each text, in reading order
+        updateNotesButton(itsFootnotesButton, screen);     // shows "Footnotes (n)" or hides it
+     Clicking a number in body text opens that screen's list automatically.
+     ------------------------------------------------------------------- */
+  const NOTE_RE = /\{\{\s*fn\s*:\s*([\s\S]*?)\s*\}\}/gi;
+  const SCREEN_OF = new WeakMap();   // footnote number element -> its screen
+
+  function newScreen() { return { notes: [] }; }
+
+  // Text as page content, with each {{fn: ...}} swapped for a numbered marker.
+  // Built from text nodes only: student text is never inserted as HTML.
+  function withNotes(text, screen) {
+    const frag = document.createDocumentFragment();
+    const str = String(text == null ? '' : text);
+    let last = 0;
+    for (const m of str.matchAll(NOTE_RE)) {
+      frag.append(str.slice(last, m.index));
+      screen.notes.push(m[1]);
+      const n = screen.notes.length;
+      const sup = el('sup', { class: 'fn-ref', 'data-note': n, title: 'Footnote ' + n }, String(n));
+      SCREEN_OF.set(sup, screen);
+      frag.append(sup);
+      last = m.index + m[0].length;
+    }
+    frag.append(str.slice(last));
+    return frag;
+  }
+
+  // Where markup can't appear (tab title, alt text, screen-reader labels): remove the markers.
+  function stripNotes(text) { return String(text == null ? '' : text).replace(NOTE_RE, '').replace(/\s{2,}/g, ' ').trim(); }
+
+  // A citation, with web addresses turned into links that open in a new tab.
+  function citation(text) {
+    const frag = document.createDocumentFragment();
+    String(text).split(/(https?:\/\/[^\s<>"]+)/).forEach((part, i) => {
+      if (i % 2 === 0) { frag.append(part); return; }
+      const a = el('a', { href: part, target: '_blank', rel: 'noopener noreferrer' }, part);
+      frag.append(a);
+    });
+    return frag;
+  }
+
+  // Show "Footnotes (n)" on a screen's button, or hide it if there are none.
+  function updateNotesButton(button, screen) {
+    const count = screen.notes.length;
+    if (!count || editing) { button.hidden = true; return; }
+    // The button's own label may contain a footnote too; it joins the same list.
+    button.replaceChildren(withNotes(data.ui.footnotesButton, screen), ' (' + screen.notes.length + ')');
+    button.setAttribute('aria-label', stripNotes(data.ui.footnotesButton) + ' (' + screen.notes.length + ')');
+    button.onclick = () => openNotes(screen);
+    button.hidden = false;
+  }
+
+  // Open the footnotes pop-up for a screen, optionally highlighting one note.
+  function openNotes(screen, highlight) {
+    // The pop-up's own heading and button can hold footnotes as well; they
+    // are numbered after the screen's notes, on a copy of its list.
+    const shown = { notes: screen.notes.slice() };
+    $('#notes-title').replaceChildren(withNotes(data.ui.footnotesTitle, shown));
+    $('#notes-back').replaceChildren(withNotes(data.ui.footnotesBack, shown));
+    const list = $('#notes-list');
+    list.replaceChildren(...shown.notes.map((n, i) => {
+      const li = el('li', { id: 'note-' + (i + 1) });
+      li.append(citation(n));
+      if (i + 1 === Number(highlight)) li.className = 'current';
+      return li;
+    }));
+    const dlg = $('#notes-dialog');
+    if (!dlg.open) dlg.showModal();
+    const cur = list.querySelector('.current');
+    if (cur) cur.scrollIntoView({ block: 'center' });
+    else list.scrollTop = 0;
+  }
+  $('#notes-back').addEventListener('click', () => $('#notes-dialog').close());
+
+  // Clicking a footnote number in body text opens its list with that note
+  // highlighted. Numbers inside buttons and links don't, so they still work.
+  document.addEventListener('click', e => {
+    const ref = e.target.closest && e.target.closest('.fn-ref');
+    if (!ref || editing || ref.closest('button, a, [role="button"]')) return;
+    const screen = SCREEN_OF.get(ref);
+    if (screen) openNotes(screen, ref.dataset.note);
+  });
+
+  /* -------------------------------------------------------------------
+     6. DRAWING THE PAGE
+     The page header, game area text and footer are one footnote screen,
+     numbered in reading order.
+     ------------------------------------------------------------------- */
+  let pageScreen = newScreen();
+
+  function renderPage() {
+    pageScreen = newScreen();
+    updateLocalNote();
+
+    // Every element with data-text or data-label, in reading order.
+    // (The game draws its own text; see renderGame.)
+    document.querySelectorAll('[data-text], [data-label]').forEach(node => {
+      if (node.closest('#game-root')) return;
+      const path = node.dataset.text || node.dataset.label;
+      const value = getPath(data, path);
+      if (node.hidden) {
+        node.textContent = stripNotes(value);   // hidden text doesn't add footnotes
+      } else if (editing && node.dataset.text) {
+        // Edit mode: show the raw text, footnote codes and all, so it can be edited.
+        if (node !== document.activeElement) node.textContent = value == null ? '' : String(value);
+      } else {
+        node.replaceChildren(withNotes(value, pageScreen));
+      }
+    });
+
+    // Images
+    document.querySelectorAll('[data-image]').forEach(img => {
+      const image = (data.images && data.images[img.dataset.image]) || {};
+      if (image.src) img.src = image.src; else img.removeAttribute('src');
+      img.alt = stripNotes(image.alt);
+      img.hidden = !image.src;
+      const box = img.closest('[data-image-box]');
+      if (box) box.hidden = !image.src && !editing;
+    });
+
+    document.title = stripNotes(data.ui.browserTabTitle) || stripNotes(data.page.title) || 'Game';
+    updateNotesButton($('#page-notes'), pageScreen);
+    if (editing) decorateImageBoxes();
+    renderGame();
+  }
+
+  // The footer note that says the page is showing auto-saved changes.
+  function updateLocalNote() {
+    $('#local-note').hidden = sameAsFile(data);
+  }
+
+  /* -------------------------------------------------------------------
+     6b. THE GAME
+     The player starts with each resource at its starting value, clicks
+     Begin, then plays the turns in order. Each turn shows an event and
+     3 or 4 choices. A choice changes the resources (kept between 0 and
+     100) and shows what happened. If any resource reaches 0, the game
+     is over; after the last turn, the player has survived.
+
+     Each step (start, turn, result, ending) is one footnote "screen":
+     the resource names, the card and the log are numbered together.
+     ------------------------------------------------------------------- */
+  let run = null;          // the game being played (not saved anywhere)
+  let gameScreen = newScreen();
+
+  // A fresh game: every resource at its starting value.
+  function newRun() {
+    const values = {};
+    data.game.resources.forEach(r => { values[r.id] = clampValue(r.start); });
+    return { phase: 'start', turn: 0, values: values, log: [], choice: 0, zeroId: null, ending: 'win' };
+  }
+  function clampValue(n) { return Math.min(100, Math.max(0, Math.round(Number(n) || 0))); }
+
+  // A piece of game text from the data at `path` (e.g. "game.turns.0.title").
+  // In edit mode it shows the raw text and can be edited in place;
+  // otherwise its footnotes become numbers on the game's screen.
+  function gameText(tag, path, cls, values) {
+    const node = el(tag, cls ? { class: cls } : {});
+    const value = getPath(data, path);
+    if (editing) {
+      node.dataset.text = path;
+      if (/\.text$|\.result$/.test(path)) node.setAttribute('data-multiline', '');
+      node.textContent = value == null ? '' : String(value);
+    } else {
+      node.append(withNotes(values ? fill(value, values) : value, gameScreen));
+    }
+    return node;
+  }
+
+  // A game button. It is a <div role="button"> so its words can be edited in
+  // place in edit mode; click the edge of the button (outside the outlined
+  // words) to press it while editing.
+  function gameButton(contents, onClick, cls) {
+    const b = el('div', { class: cls, role: 'button', tabindex: '0' });
+    b.append(...contents);
+    b.addEventListener('click', e => {
+      if (editing && e.target.closest('[data-text]')) return;
+      onClick();
+    });
+    b.addEventListener('keydown', e => {
+      if (e.target === b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onClick(); }
+    });
+    return b;
+  }
+
+  // "Resource 1 +5, Resource 2 −3", built from a choice's effects (nothing if they are all 0).
+  function effectsText(effects) {
+    return data.game.resources
+      .map(r => [r, Math.round(Number((effects || {})[r.id]) || 0)])
+      .filter(([, n]) => n !== 0)
+      .map(([r, n]) => stripNotes(r.name) + ' ' + (n > 0 ? '+' + n : '−' + Math.abs(n)))
+      .join(', ');
+  }
+
+  function choose(choiceIndex) {
+    const turn = data.game.turns[run.turn];
+    const choice = turn.choices[choiceIndex];
+    data.game.resources.forEach(r => {
+      run.values[r.id] = clampValue((run.values[r.id] ?? r.start) + (Number(choice.effects[r.id]) || 0));
+    });
+    run.log.push({ turn: run.turn, choice: choiceIndex });
+    run.choice = choiceIndex;
+    run.phase = 'result';
+    renderGame();
+  }
+
+  // After a result: game over if any resource is at 0, else the next turn or the end.
+  function next() {
+    const zero = data.game.resources.find(r => run.values[r.id] <= 0);
+    if (zero) { run.phase = 'end'; run.ending = 'lose'; run.zeroId = zero.id; }
+    else if (run.turn + 1 < data.game.turns.length) { run.turn++; run.phase = 'turn'; }
+    else { run.phase = 'end'; run.ending = 'win'; }
+    renderGame();
+  }
+
+  function restart() { run = newRun(); renderGame(); }
+
+  function renderGame() {
+    const root = $('#game-root');
+    const g = data.game;
+    gameScreen = newScreen();
+    if (!run || (run.phase !== 'start' && run.phase !== 'end' && !g.turns[run.turn])) run = newRun();
+
+    // Resources
+    const resources = el('div', { class: 'g-resources' });
+    g.resources.forEach((r, i) => {
+      if (!(r.id in run.values)) run.values[r.id] = clampValue(r.start);
+      const value = run.values[r.id];
+      const box = el('div', { class: 'g-res' + (value <= 20 ? ' low' : '') });
+      const bar = el('div', { class: 'g-bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(value), 'aria-label': stripNotes(r.name) });
+      const fillBar = el('span');
+      fillBar.style.width = value + '%';
+      bar.append(fillBar);
+      box.append(gameText('span', 'game.resources.' + i + '.name', 'g-res-name'), el('span', { class: 'g-res-value' }, String(value)), bar);
+      resources.append(box);
+    });
+
+    // Timeline (labels without footnote numbers; their footnotes show on the turn itself)
+    const timeline = el('ol', { class: 'g-timeline', 'aria-hidden': 'true' });
+    g.turns.forEach((t, i) => {
+      let cls = '';
+      if (run.phase === 'end' || (run.phase !== 'start' && i < run.turn)) cls = 'done';
+      if ((run.phase === 'turn' || run.phase === 'result') && i === run.turn) cls = 'current';
+      timeline.append(el('li', cls ? { class: cls } : {}, stripNotes(t.label)));
+    });
+
+    // The card for this step
+    const card = el('div', { class: 'g-card' });
+    const actions = el('div', { class: 'g-actions' });
+    const t = g.turns[run.turn];
+    const tPath = 'game.turns.' + run.turn;
+
+    if (run.phase === 'start') {
+      card.append(gameText('h3', 'game.start.title'), gameText('p', 'game.start.text'));
+      actions.append(gameButton([gameText('span', 'ui.begin')], () => {
+        if (g.turns.length) { run.phase = 'turn'; run.turn = 0; } else { run.phase = 'end'; run.ending = 'win'; }
+        renderGame();
+      }, 'g-btn primary'));
+      card.append(actions);
+    } else if (run.phase === 'turn') {
+      card.append(gameText('p', tPath + '.label', 'g-turn-label'), gameText('h3', tPath + '.title'));
+      if (t.image && t.image.src) {
+        const fig = el('figure', { class: 'g-image' });
+        fig.append(el('img', { src: t.image.src, alt: stripNotes(t.image.alt) }));
+        card.append(fig);
+      }
+      card.append(gameText('p', tPath + '.text'), gameText('p', 'ui.choosePrompt', 'g-prompt'));
+      const choices = el('div', { class: 'g-choices' });
+      t.choices.forEach((c, j) => {
+        const parts = [gameText('span', tPath + '.choices.' + j + '.label')];
+        const fx = effectsText(c.effects);
+        if (fx) parts.push(el('span', { class: 'g-effects' }, fx));
+        choices.append(gameButton(parts, () => choose(j), 'g-choice'));
+      });
+      card.append(choices);
+    } else if (run.phase === 'result') {
+      const cPath = tPath + '.choices.' + run.choice;
+      card.append(gameText('p', tPath + '.label', 'g-turn-label'), gameText('h3', tPath + '.title'),
+        gameText('p', cPath + '.label', 'g-chosen'), gameText('p', cPath + '.result'));
+      const fx = effectsText(t.choices[run.choice] && t.choices[run.choice].effects);
+      if (fx) card.append(el('p', { class: 'g-effects-line' }, fx));
+      actions.append(gameButton([gameText('span', 'ui.continue')], next, 'g-btn primary'));
+      card.append(actions);
+    } else {
+      const ePath = 'game.endings.' + run.ending;
+      card.append(gameText('h3', ePath + '.title'));
+      const zero = g.resources.find(r => r.id === run.zeroId);
+      if (run.ending === 'lose' && zero) card.append(gameText('p', 'ui.resourceZero', null, { resource: stripNotes(zero.name) }));
+      card.append(gameText('p', ePath + '.text'));
+      actions.append(gameButton([gameText('span', 'ui.playAgain')], restart, 'g-btn primary'));
+      card.append(actions);
+    }
+
+    // "Start over" link while a game is under way
+    const below = el('div', { class: 'g-actions' });
+    if (run.phase === 'turn' || run.phase === 'result') below.append(gameButton([gameText('span', 'ui.restart')], restart, 'g-btn link'));
+
+    // Log of choices made, newest first (plain copies of text already in the game)
+    const log = el('div', { class: 'g-log' });
+    if (run.log.length) {
+      const list = el('ol', { reversed: '' });
+      run.log.slice().reverse().forEach(entry => {
+        const turn = g.turns[entry.turn];
+        const choice = turn && turn.choices[entry.choice];
+        if (turn && choice) list.append(el('li', {}, stripNotes(turn.label) + ': ' + stripNotes(choice.label)));
+      });
+      log.append(gameText('h4', 'ui.logHeading'), list);
+    }
+
+    // This screen's footnotes button (its label is drawn last, so its own notes number last)
+    const top = el('div', { class: 'g-top' });
+    const notesBtn = el('button', { type: 'button', class: 'btn' });
+    top.append(notesBtn);
+
+    root.replaceChildren(top, resources, timeline, card, below, log);
+    updateNotesButton(notesBtn, gameScreen);
+    if (editing) makeEditable();
+  }
+
+  /* -------------------------------------------------------------------
+     7. BROWSER STORAGE
+     Every storage call is wrapped in try/catch: if the browser blocks
+     storage, the game still plays and the editor still works (it just
+     can't auto-save).
+     ------------------------------------------------------------------- */
+
+  // "Unlocked" lasts for this browser tab only (sessionStorage).
+  const unlockStore = {
+    key: 'unlocked:' + PAGE_KEY,
+    isUnlocked() { try { return sessionStorage.getItem(this.key) === FILE_DATA.auth.hash; } catch (e) { return false; } },
+    remember() { try { sessionStorage.setItem(this.key, FILE_DATA.auth.hash); } catch (e) { /* storage blocked */ } }
+  };
+
+  // Auto-saves live in IndexedDB (it has room for images), one per page path.
+  const autoSaveStore = (function () {
+    const DB_NAME = 'student-game-autosave';
+    const STORE = 'autosave';
+    let dbPromise = null;
+
+    function openDb() {
+      if (!dbPromise) {
+        dbPromise = new Promise(resolve => {
+          try {
+            const req = indexedDB.open(DB_NAME, 1);
+            req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+            req.onblocked = () => resolve(null);
+          } catch (e) { resolve(null); }
+        });
+      }
+      return dbPromise;
+    }
+
+    // Run one request; resolves with its result, or `fallback` if anything fails.
+    async function run(mode, makeRequest, fallback) {
+      const db = await openDb();
+      if (!db) return fallback;
+      return new Promise(resolve => {
+        try {
+          const req = makeRequest(db.transaction(STORE, mode).objectStore(STORE));
+          req.onsuccess = () => resolve(mode === 'readonly' ? (req.result || null) : true);
+          req.onerror = () => resolve(fallback);
+        } catch (e) { resolve(fallback); }
+      });
+    }
+
+    return {
+      get: () => run('readonly', s => s.get(PAGE_KEY), null),
+      put: value => run('readwrite', s => s.put(value, PAGE_KEY), false),
+      clear: () => run('readwrite', s => s.delete(PAGE_KEY), false),
+      works: async () => !!(await openDb())
+    };
+  })();
+
+  let saveTimer = null;
+  let unsaved = false;        // true when there are changes not yet auto-saved
+  let pendingConflict = null; // an auto-save made for a different version of the file
+
+  // Call after every change: auto-saves about half a second later.
+  function changed() {
+    unsaved = true;
+    setStatus(EDITOR_TEXT.statusSaving);
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(autoSaveNow, 500);
+  }
+
+  async function autoSaveNow() {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    if (!unsaved) return;
+    unsaved = false;
+    updateLocalNote();
+    if (sameAsFile(data)) {            // back to the uploaded version: nothing to keep
+      await autoSaveStore.clear();
+      setStatus(EDITOR_TEXT.statusClean);
+      return;
+    }
+    const ok = await autoSaveStore.put({ fingerprint: FILE_FINGERPRINT, savedAt: Date.now(), data: withoutAuth(data) });
+    const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    setStatus(ok ? fill(EDITOR_TEXT.statusSaved, { time }) : EDITOR_TEXT.statusNoStorage);
+  }
+
+  // Use an auto-save's data (the password check always comes from the file).
+  function useSaved(saved) {
+    data = withDefaults(withFileAuth(saved.data));
+    run = null;                        // start the game again with the loaded content
+    renderPage();
+    if (editing) { makeEditable(); buildGameEditor(); }
+  }
+
+  // On page load: bring back auto-saved changes, even outside edit mode.
+  async function loadAutoSave() {
+    const saved = await autoSaveStore.get();
+    if (!saved || !saved.data) return;
+    withDefaults(saved.data);
+    if (sameAsFile(saved.data)) {
+      await autoSaveStore.clear();     // the uploaded file already has these changes
+    } else if (saved.fingerprint === FILE_FINGERPRINT) {
+      useSaved(saved);                 // same file as when they were saved: load them
+    } else {
+      pendingConflict = saved;         // the file has changed since: show it, and ask when edit mode opens
+      if (editing) await resolveConflict();
+    }
+  }
+
+  // Save straight away if the page is closed or hidden.
+  window.addEventListener('pagehide', autoSaveNow);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') autoSaveNow(); });
+
+  /* -------------------------------------------------------------------
+     8. THE EDITOR
+     ------------------------------------------------------------------- */
+  let editBar = null;
+  let statusEl = null;
+  function setStatus(message) { if (statusEl) statusEl.textContent = message; }
+
+  // An editor pop-up. `buttons` is a list of { label, value, primary }.
+  // Resolves with the value of the button pressed, or null for Escape.
+  // It resolves straight from its own buttons and the Escape key, and only
+  // uses the dialog's "close" event as a backup (it doesn't always fire in
+  // background tabs).
+  function showDialog(title, bodyNodes, buttons, onSubmit) {
+    return new Promise(resolve => {
+      const dlg = el('dialog', { class: 'ed-ui ed-dialog' });
+      const form = el('form');
+      let finished = false;
+
+      function finish(value) {
+        if (finished) return;
+        finished = true;
+        try { if (dlg.open) dlg.close(); } catch (e) { /* already closed */ }
+        dlg.remove();
+        resolve(value);
+      }
+
+      const heading = el('h2', { tabindex: '-1' }, title);
+      form.append(heading, ...bodyNodes);
+      const row = el('div', { class: 'ed-buttons' });
+      buttons.forEach(b => {
+        const button = el('button', { type: b.primary ? 'submit' : 'button', class: 'ed-btn' + (b.primary ? ' ed-primary' : '') }, b.label);
+        if (!b.primary) button.addEventListener('click', () => finish(b.value));
+        row.append(button);
+      });
+      form.append(row);
+      // The primary button (or Enter) submits; onSubmit can return false to keep the dialog open.
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        if (onSubmit && onSubmit() === false) return;
+        const primary = buttons.find(b => b.primary);
+        finish(primary ? primary.value : null);
+      });
+      dlg.addEventListener('cancel', e => { e.preventDefault(); finish(null); });  // Escape key
+      dlg.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(null); } });
+      dlg.addEventListener('close', () => finish(null));                         // backup only
+      dlg.append(form);
+      document.body.append(dlg);
+      dlg.showModal();
+      // Start at the top: focus the heading, not the last button (long dialogs like the help).
+      heading.focus({ preventScroll: true });
+      dlg.scrollTop = 0;
+    });
+  }
+
+  /* --- "How to edit" instructions for students ---
+     This is editor help, not game content, so it lives here in the code.
+     IMPORTANT: whenever the editor changes (new buttons, fields or game
+     mechanics), update these steps IN THE SAME CHANGE, so they always match
+     what students see. Button names in <b> must match the real buttons.
+     <b data-fill="ui.editLink"></b> is filled in with the current wording
+     from the game data (as plain text), so it matches even after renaming. */
+  const HELP_HTML = `
+    <h3>1. Getting started</h3>
+    <ol>
+      <li>Click the faint <b data-fill="ui.editLink"></b> link at the very bottom of the page.</li>
+      <li>Type the password your teacher gives you and click <b>Unlock</b>.</li>
+      <li>A dark bar appears at the bottom of the screen. That means you're in edit mode.</li>
+    </ol>
+
+    <h3>2. Editing text on the page</h3>
+    <ol>
+      <li>Click any text with a dotted outline around it and type. Press Enter to finish a one-line
+        text like the title.</li>
+      <li>For text that isn't on the screen right now (button words, messages, image descriptions),
+        click <b>Other text…</b> in the dark bar, change the boxes, then click <b>Apply</b>.</li>
+      <li>Words in {curly brackets}, like <code>{resource}</code>, are filled in by the game. Leave them as they are.</li>
+      <li>To add a picture at the top of the page, click the dotted box above the title and pick an image.
+        Click the picture again to replace it, or click <b>Remove image</b> to take it away.
+        Describe the picture in <b>Other text…</b>.</li>
+    </ol>
+
+    <h3>3. Editing the game</h3>
+    <p>How the game works: the player starts with some <b>resources</b> (numbers from 0 to 100). Each <b>turn</b>
+      shows an event and 3 or 4 choices. Each choice raises or lowers the resources. If any resource reaches 0,
+      the game is over. If the player gets through every turn, they survived.</p>
+    <p>Scroll down to the blue <b>Game editor</b> box under the game. Click a section name to open it.</p>
+    <ol>
+      <li><b>Resources:</b> type a <b>Name</b> and a <b>Starting value (0–100)</b> for each one.
+        <b>Add resource</b> adds another, and <b>Delete</b> removes one.</li>
+      <li><b>Start screen:</b> the title and text the player sees before the first turn.</li>
+      <li><b>Turns:</b> click a turn to open it.
+        <ol>
+          <li>Type the <b>Label</b> (the short name in the timeline), the <b>Title</b> and <b>What happens</b>.</li>
+          <li>To add a picture, click <b>Upload image</b>, then describe it in <b>Image description</b>.
+            <b>Remove image</b> takes it away.</li>
+          <li>Each turn has 3 choices. For each one, type the <b>Button text</b> and <b>What happens after this choice</b>.
+            Then type how much each resource changes: for example <code>5</code> to raise it, or <code>-5</code> to lower it.
+            Leave it at <code>0</code> for no change. The changes are shown on the choice button automatically.</li>
+          <li>Want a fourth choice? Click <b>Add a 4th choice</b>. <b>Remove choice 4</b> takes it away again.</li>
+          <li><b>Play this turn</b> jumps the game to that turn so you can test it.</li>
+          <li><b>↑</b> and <b>↓</b> move the turn earlier or later. <b>Delete turn</b> removes it (it asks first).</li>
+        </ol></li>
+      <li><b>Add turn</b> (at the bottom of the turns) adds a new turn at the end.</li>
+      <li><b>Endings:</b> the <b>Game over</b> screen (a resource reached 0) and the <b>Survived</b> screen (every turn played).</li>
+    </ol>
+    <ul>
+      <li>While you edit, you can play the game as a test. <b>Restart test run</b> starts it again.</li>
+      <li>You can also click outlined words inside the game and type. To press a game button while editing,
+        click its edge, outside the outlined words.</li>
+      <li>Button words like <b data-fill="ui.begin"></b> and <b data-fill="ui.continue"></b> are changed by clicking them,
+        or in <b>Other text…</b> when they aren't on the screen.</li>
+    </ul>
+
+    <h3>4. Adding footnotes</h3>
+    <p>You can add a footnote to <b>any</b> text in the game.</p>
+    <ol>
+      <li>Click right after the sentence that needs a source.</li>
+      <li>Type two curly brackets, the letters <code>fn</code>, a colon, your citation, and two closing curly brackets:
+        <code class="ed-example">A sentence that needs a source.{{fn: Author, Title, Year, page}}</code></li>
+      <li>When you play the game, a small number appears there instead.</li>
+      <li>A <b data-fill="ui.footnotesButton"></b> button appears on that screen: at the top of the game for text in the game,
+        or at the bottom of the page for the title and introduction. Click it, or click the small number, to see all the citations.</li>
+    </ol>
+    <ul>
+      <li>In edit mode you'll see the <code>{{fn: ...}}</code> code. That's normal. It turns into a number when you click <b>Done</b>.</li>
+      <li>A web address that starts with <code>https://</code> or <code>http://</code> becomes a clickable link.</li>
+      <li>Every footnote needs <code>{{</code> at the start and <code>}}</code> at the end, or it won't work.</li>
+    </ul>
+
+    <h3>5. Saving your work</h3>
+    <ol>
+      <li>Your work saves automatically, but only in this browser on this computer.</li>
+      <li>When you're finished, click <b>Save file</b>. A file called <b>index.html</b> downloads.</li>
+      <li><b>Turn in that index.html file</b> the way your teacher tells you. That's the only way your work
+        gets onto the real website.</li>
+      <li>Click <b>Done</b> to leave edit mode.</li>
+    </ol>
+
+    <h3>6. Tips</h3>
+    <ul>
+      <li>Replace everything in <b>[square brackets]</b> with your own research.</li>
+      <li>Cite your sources with footnotes, and give the source for every image.</li>
+      <li>If you make a mistake you can't fix, ask your teacher before you click <b>Discard changes</b>.
+        It erases everything back to the last uploaded version.</li>
+    </ul>`;
+
+  function showHelp() {
+    const content = el('div', { class: 'ed-help' });
+    content.innerHTML = HELP_HTML;   // fixed text written above, never student text
+    // Current wording from the game data, inserted as plain text.
+    content.querySelectorAll('[data-fill]').forEach(b => { b.textContent = stripNotes(getPath(data, b.dataset.fill)); });
+    showDialog(EDITOR_TEXT.helpTitle, [content], [{ label: EDITOR_TEXT.close, value: 'close', primary: true }]);
+  }
+
+  // Ask for the password. Resolves true if it's right.
+  async function askPassword() {
+    const input = el('input', { type: 'password', id: 'ed-password', autocomplete: 'off' });
+    const error = el('p', { class: 'ed-error', role: 'alert' });
+    const label = el('label', { for: 'ed-password' }, EDITOR_TEXT.passwordLabel);
+    const help = el('button', { type: 'button', class: 'ed-link' }, EDITOR_TEXT.howToEditLink);
+    help.addEventListener('click', showHelp);
+    let ok = false;
+    const shown = showDialog(EDITOR_TEXT.passwordTitle, [label, input, error, help], [
+      { label: EDITOR_TEXT.cancel, value: 'cancel' },
+      { label: EDITOR_TEXT.unlock, value: 'unlock', primary: true }
+    ], () => {
+      ok = sha256(FILE_DATA.auth.salt + ':' + input.value) === FILE_DATA.auth.hash;
+      if (!ok) { error.textContent = EDITOR_TEXT.passwordWrong; input.select(); }
+      return ok;
+    });
+    input.focus();
+    await shown;
+    return ok;
+  }
+
+  // Ask whether to keep auto-saved changes made to a different version of the file.
+  async function resolveConflict() {
+    const saved = pendingConflict;
+    if (!saved) return;
+    pendingConflict = null;
+    const time = new Date(saved.savedAt).toLocaleString();
+    const choice = await showDialog(EDITOR_TEXT.conflictTitle, [el('p', {}, fill(EDITOR_TEXT.conflictBody, { time }))], [
+      { label: EDITOR_TEXT.useUploaded, value: 'uploaded' },
+      { label: EDITOR_TEXT.keepSaved, value: 'keep', primary: true }
+    ]);
+    if (choice === 'keep') {
+      useSaved(saved);
+      changed();                       // re-save, now linked to the current file
+    } else if (choice === 'uploaded') {
+      await autoSaveStore.clear();
+      setStatus(EDITOR_TEXT.statusClean);
+    } else {
+      pendingConflict = saved;         // closed without choosing: ask again next time
+    }
+  }
+
+  let asking = false;                  // true while the password window is open
+
+  async function startEditing() {
+    if (editing || asking) return;
+    if (!unlockStore.isUnlocked()) {
+      asking = true;
+      const ok = await askPassword();
+      asking = false;
+      clearEditHash();
+      if (!ok) return;
+      unlockStore.remember();
+    }
+    clearEditHash();
+    editing = true;
+    document.body.classList.add('is-editing');
+    buildEditBar();
+    renderPage();
+    makeEditable();
+    buildGameEditor();
+    const canSave = await autoSaveStore.works();
+    setStatus(!canSave ? EDITOR_TEXT.statusNoStorage : sameAsFile(data) ? EDITOR_TEXT.statusClean : EDITOR_TEXT.statusHasChanges);
+    if (pendingConflict) await resolveConflict();
+  }
+
+  async function stopEditing() {
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    await autoSaveNow();
+    editing = false;
+    document.body.classList.remove('is-editing');
+    document.querySelectorAll('[data-text]').forEach(n => { n.removeAttribute('contenteditable'); n.removeAttribute('spellcheck'); });
+    document.querySelectorAll('.ed-ui').forEach(n => n.remove());
+    editBar = statusEl = gameEditorEl = null;
+    panelInputs.clear();
+    renderPage();                      // footnotes render again
+  }
+
+  function clearEditHash() {
+    if (location.hash === '#edit') {
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* not allowed here */ }
+    }
+  }
+
+  function buildEditBar() {
+    editBar = el('div', { class: 'ed-ui edit-bar', role: 'region', 'aria-label': 'Editor' });
+    statusEl = el('span', { class: 'ed-status', 'aria-live': 'polite' });
+    editBar.append(statusEl);
+    [
+      [EDITOR_TEXT.howToEdit, showHelp],
+      [EDITOR_TEXT.otherText, editOtherText],
+      [EDITOR_TEXT.discard, discardChanges],
+      [EDITOR_TEXT.saveFile, saveFile, true],
+      [EDITOR_TEXT.done, stopEditing]
+    ].forEach(([label, action, primary]) => {
+      const b = el('button', { type: 'button', class: 'ed-btn' + (primary ? ' ed-primary' : '') }, label);
+      b.addEventListener('click', action);
+      editBar.append(b);
+    });
+    document.body.append(editBar);
+  }
+
+  // Can this browser do "plain text only" editing? (Most can.)
+  const PLAIN_ONLY = (function () {
+    try { const d = document.createElement('div'); d.contentEditable = 'plaintext-only'; return d.contentEditable === 'plaintext-only'; }
+    catch (e) { return false; }
+  })();
+
+  // Turn on click-and-type editing for every data-text element.
+  // Safe to call again after redrawing (listeners are only added once).
+  function makeEditable() {
+    document.querySelectorAll('[data-text]').forEach(node => {
+      node.setAttribute('contenteditable', PLAIN_ONLY ? 'plaintext-only' : 'true');
+      node.setAttribute('spellcheck', 'true');
+      if (node._editBound) return;
+      node._editBound = true;
+
+      node.addEventListener('input', () => {
+        if (!editing) return;
+        let value = node.innerText.replace(/ /g, ' ');
+        if (!node.hasAttribute('data-multiline')) value = value.replace(/\s*\n\s*/g, ' ');
+        const path = node.dataset.text;
+        setPath(data, path, value);
+        // Keep the matching Game editor box, and any other copy on the page, up to date.
+        const twin = panelInputs.get(path);
+        if (twin) twin.value = value;
+        document.querySelectorAll('[data-text]').forEach(n => { if (n !== node && n.dataset.text === path) n.textContent = value; });
+        changed();
+      });
+      // One-line text: Enter finishes editing instead of adding a line.
+      node.addEventListener('keydown', e => {
+        if (editing && e.key === 'Enter' && !node.hasAttribute('data-multiline')) { e.preventDefault(); node.blur(); }
+      });
+      // Pasting always pastes plain text (no fonts, colours or links).
+      node.addEventListener('paste', e => {
+        if (!editing) return;
+        e.preventDefault();
+        let text = (e.clipboardData || window.clipboardData).getData('text/plain') || '';
+        if (!node.hasAttribute('data-multiline')) text = text.replace(/\s*\n\s*/g, ' ');
+        document.execCommand('insertText', false, text);
+      });
+      // When leaving a box, tidy it to match the saved text.
+      node.addEventListener('blur', () => {
+        if (!editing) return;
+        const value = getPath(data, node.dataset.text);
+        node.textContent = value == null ? '' : String(value);
+      });
+    });
+  }
+
+  // In edit mode, image boxes get an upload message (when empty) and a remove button.
+  function decorateImageBoxes() {
+    document.querySelectorAll('[data-image-box]').forEach(box => {
+      box.querySelectorAll('.ed-ui').forEach(n => n.remove());
+      const image = data.images[box.dataset.imageBox] || {};
+      if (!image.src) {
+        box.append(el('div', { class: 'ed-ui ed-image-empty' }, EDITOR_TEXT.imageEmpty));
+      } else {
+        const remove = el('button', { type: 'button', class: 'ed-ui ed-btn ed-image-remove', 'data-remove-image': '' }, EDITOR_TEXT.imageRemove);
+        box.append(remove);
+      }
+    });
+  }
+
+  // Clicking an image box in edit mode uploads a replacement (or removes it).
+  document.addEventListener('click', async e => {
+    const box = editing && e.target.closest && e.target.closest('[data-image-box]');
+    if (!box) return;
+    const name = box.dataset.imageBox;
+    data.images[name] = Object.assign({ src: '', alt: '' }, data.images[name]);
+    if (e.target.closest('[data-remove-image]')) {
+      data.images[name].src = '';
+    } else {
+      const src = await uploadImage();
+      if (!src) return;
+      data.images[name].src = src;
+    }
+    renderPage();
+    changed();
+  });
+
+  // Ask for an image file and return it scaled down, as a data URL (or null).
+  async function uploadImage() {
+    const file = await pickFile();
+    if (!file) return null;
+    try { return await shrinkImage(file, 1600); }
+    catch (err) { setStatus(EDITOR_TEXT.statusImageError); return null; }
+  }
+
+  function pickFile() {
+    return new Promise(resolve => {
+      const input = el('input', { type: 'file', accept: 'image/*' });
+      input.addEventListener('change', () => resolve(input.files[0] || null));
+      input.click();
+    });
+  }
+
+  // Scale a photo down (longest side about `max` px) and store it as JPEG,
+  // so the single file stays a reasonable size.
+  function shrinkImage(file, max) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const w = Math.max(1, Math.round(img.naturalWidth * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';     // JPEG has no transparency
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Not an image')); };
+      img.src = url;
+    });
+  }
+
+  // Parts of the data that are not text: settings and pictures.
+  const NOT_TEXT_KEYS = ['auth', 'schemaVersion', 'src', 'id'];
+
+  // Every piece of text in the data that is NOT on screen right now (text on
+  // screen is edited in place). The game's own content is left out: all of it
+  // is always in the Game editor panel.
+  function hiddenTextFields() {
+    const visible = new Set();
+    document.querySelectorAll('[data-text]').forEach(n => { if (n.getClientRects().length) visible.add(n.dataset.text); });
+    const fields = [];
+    (function walk(obj, prefix) {
+      Object.keys(obj).forEach(k => {
+        if (NOT_TEXT_KEYS.includes(k) || (!prefix && k === 'game')) return;
+        const path = prefix ? prefix + '.' + k : k;
+        const v = obj[k];
+        if (typeof v === 'string') { if (!visible.has(path)) fields.push({ path, value: v }); }
+        else if (v && typeof v === 'object') walk(v, path);
+      });
+    })(data, '');
+    return fields;
+  }
+
+  // A label for a box: from EDITOR_TEXT.fields, or made from the key ("footnotesBack" -> "Footnotes back").
+  function fieldName(path) {
+    if (EDITOR_TEXT.fields[path]) return EDITOR_TEXT.fields[path];
+    return path.split('.').slice(1).map(part => {
+      const s = part.replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase();
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }).join(' › ') || path;
+  }
+
+  async function editOtherText() {
+    const fields = hiddenTextFields();
+    const body = [el('p', { class: 'ed-hint' }, EDITOR_TEXT.fnHint), el('p', {}, fields.length ? EDITOR_TEXT.otherTextHelp : EDITOR_TEXT.otherTextNone)];
+    const inputs = [];
+    let group = null;
+    fields.forEach((f, i) => {
+      const top = f.path.split('.')[0];
+      if (top !== group) { group = top; body.push(el('div', { class: 'ed-group' }, EDITOR_TEXT.groups[top] || fieldName('x.' + top))); }
+      const id = 'ed-field-' + i;
+      body.push(el('label', { for: id }, fieldName(f.path)));
+      const box = el('textarea', { id: id, rows: f.value.length > 60 ? '3' : '1' });
+      box.value = f.value;
+      body.push(box);
+      inputs.push([f.path, box]);
+    });
+    const choice = await showDialog(EDITOR_TEXT.otherTextTitle, body, [
+      { label: EDITOR_TEXT.cancel, value: 'cancel' },
+      { label: EDITOR_TEXT.apply, value: 'apply', primary: true }
+    ]);
+    if (choice !== 'apply') return;
+    let any = false;
+    inputs.forEach(([path, box]) => {
+      if (getPath(data, path) !== box.value) { setPath(data, path, box.value); any = true; }
+    });
+    if (any) { renderPage(); changed(); }
+  }
+
+  async function discardChanges() {
+    const choice = await showDialog(EDITOR_TEXT.discardTitle, [el('p', {}, EDITOR_TEXT.discardBody)], [
+      { label: EDITOR_TEXT.cancel, value: 'cancel' },
+      { label: EDITOR_TEXT.discard, value: 'discard', primary: true }
+    ]);
+    if (choice !== 'discard') return;
+    clearTimeout(saveTimer);
+    unsaved = false;
+    pendingConflict = null;
+    data = clone(FILE_DATA);
+    await autoSaveStore.clear();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    run = null;
+    renderPage();
+    makeEditable();
+    buildGameEditor();
+    setStatus(EDITOR_TEXT.statusDiscarded);
+  }
+
+  // Build a complete new index.html: the original page (copied before
+  // anything was drawn) with only the game-data block replaced.
+  function buildFile() {
+    const doc = new DOMParser().parseFromString(ORIGINAL_PAGE, 'text/html');
+    // "<" is written as < so the data can never close its <script> tag early.
+    const json = JSON.stringify(withFileAuth(data), null, 2).replace(/</g, '\\u003c');
+    doc.getElementById('game-data').textContent = '\n' + json + '\n';
+    return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML + '\n';
+  }
+
+  function saveFile() {
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    const blob = new Blob([buildFile()], { type: 'text/html' });
+    const a = el('a', { href: URL.createObjectURL(blob), download: 'index.html' });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    setStatus(EDITOR_TEXT.statusDownloaded);
+  }
+
+  /* -------------------------------------------------------------------
+     8b. THE GAME EDITOR
+     A panel under the game (edit mode only) with a box for every part of
+     data.game. Every box writes straight into the data, then the game is
+     redrawn and the change is auto-saved. Buttons that change the shape
+     of the game (add, delete, move) rebuild the whole panel.
+     ------------------------------------------------------------------- */
+  const GT = EDITOR_TEXT.game;
+  let gameEditorEl = null;
+  const openParts = new Set();         // which sections are open (kept across rebuilds)
+  const panelInputs = new Map();       // data path -> editor box, to mirror in-place edits
+  let fieldCount = 0;
+  let gameRenderTimer = null;
+
+  // Redraw the game shortly after typing stops in the panel.
+  function renderGameSoon() {
+    clearTimeout(gameRenderTimer);
+    gameRenderTimer = setTimeout(renderGame, 200);
+  }
+
+  // A labelled text box tied to a path in the data.
+  function textField(label, path, multiline) {
+    const id = 'ge-field-' + (++fieldCount);
+    const box = el(multiline ? 'textarea' : 'input', { id: id });
+    if (!multiline) box.type = 'text';
+    const value = getPath(data, path);
+    box.value = value == null ? '' : String(value);
+    box.addEventListener('input', () => { setPath(data, path, box.value); renderGameSoon(); changed(); });
+    panelInputs.set(path, box);
+    return [el('label', { for: id }, label), box];
+  }
+
+  // A labelled number box. `get` and `set` read and write the number.
+  function numberField(label, get, set, min, max) {
+    const id = 'ge-field-' + (++fieldCount);
+    const box = el('input', { id: id, type: 'number', step: '1' });
+    if (min != null) box.min = String(min);
+    if (max != null) box.max = String(max);
+    box.value = String(get());
+    box.addEventListener('input', () => { set(Math.round(Number(box.value) || 0)); renderGameSoon(); changed(); });
+    const wrap = el('div');
+    wrap.append(el('label', { for: id }, label), box);
+    return wrap;
+  }
+
+  function panelButton(label, onClick, cls, title) {
+    const b = el('button', { type: 'button', class: 'ed-btn' + (cls ? ' ' + cls : '') }, label);
+    if (title) { b.title = title; b.setAttribute('aria-label', title); }
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  // A section that opens and closes, and remembers whether it was open.
+  function part(key, title, fill) {
+    const d = el('details');
+    if (openParts.has(key)) d.open = true;
+    d.addEventListener('toggle', () => { if (d.open) openParts.add(key); else openParts.delete(key); });
+    d.append(el('summary', {}, title));
+    fill(d);
+    return d;
+  }
+
+  // After a change to the shape of the game: save, redraw the game and the panel.
+  function reshaped() {
+    changed();
+    renderGame();
+    buildGameEditor();
+  }
+
+  function confirmDelete(body) {
+    return showDialog(GT.deleteTitle, [el('p', {}, body)], [
+      { label: EDITOR_TEXT.cancel, value: 'cancel' },
+      { label: GT.deleteButton, value: 'delete', primary: true }
+    ]).then(v => v === 'delete');
+  }
+
+  function buildGameEditor() {
+    if (!editing) return;
+    const scrollY = window.scrollY;
+    const g = data.game;
+    panelInputs.clear();
+    const panel = el('section', { class: 'ed-ui game-editor', 'aria-label': GT.heading });
+    panel.append(el('h2', {}, GT.heading), el('p', {}, GT.intro), el('p', { class: 'ed-hint' }, EDITOR_TEXT.fnHint));
+    const top = el('div', { class: 'ge-row' });
+    top.append(panelButton(GT.restartTest, restart));
+    panel.append(top);
+
+    // Resources
+    panel.append(part('resources', GT.resources, d => {
+      d.append(el('p', {}, GT.resourcesHelp));
+      g.resources.forEach((r, i) => {
+        const row = el('div', { class: 'ge-resource' });
+        const name = el('div');
+        name.append(...textField(GT.resourceName, 'game.resources.' + i + '.name'));
+        row.append(name, numberField(GT.resourceStart, () => r.start, v => { r.start = clampValue(v); if (run && run.phase === 'start') run = null; }, 0, 100));
+        if (g.resources.length > 1) {
+          row.append(panelButton(GT.deleteResource, async () => {
+            if (!(await confirmDelete(GT.deleteResourceBody))) return;
+            g.resources.splice(i, 1);
+            g.turns.forEach(t => t.choices.forEach(c => { delete c.effects[r.id]; }));
+            run = null;
+            reshaped();
+          }, 'ed-danger'));
+        }
+        d.append(row);
+      });
+      const row = el('div', { class: 'ge-row' });
+      row.append(panelButton(GT.addResource, () => {
+        const id = newId('r');
+        g.resources.push({ id: id, name: '[Resource ' + (g.resources.length + 1) + ']', start: 50 });
+        g.turns.forEach(t => t.choices.forEach(c => { c.effects[id] = 0; }));
+        run = null;
+        reshaped();
+      }));
+      d.append(row);
+    }));
+
+    // Start screen
+    panel.append(part('start', GT.start, d => {
+      d.append(el('p', {}, GT.startHelp), ...textField(GT.title, 'game.start.title'), ...textField(GT.text, 'game.start.text', true));
+    }));
+
+    // Turns
+    panel.append(part('turns', GT.turns, d => {
+      d.append(el('p', {}, GT.turnsHelp));
+      g.turns.forEach((t, i) => d.append(turnPart(t, i)));
+      const row = el('div', { class: 'ge-row' });
+      row.append(panelButton(GT.addTurn, () => {
+        const n = g.turns.length + 1;
+        const turn = {
+          id: newId('t'), label: '[Turn ' + n + ']', title: '[Event title]', text: '[What happens]',
+          image: { src: '', alt: '[Image description]' },
+          choices: [1, 2, 3].map(c => newChoice(c))
+        };
+        g.turns.push(turn);
+        openParts.add('turn-' + turn.id);
+        reshaped();
+      }));
+      d.append(row);
+    }));
+
+    // Endings
+    panel.append(part('endings', GT.endings, d => {
+      d.append(el('p', {}, GT.endingsHelp));
+      [['lose', GT.lose], ['win', GT.win]].forEach(([key, name]) => {
+        const fs = el('fieldset');
+        fs.append(el('legend', {}, name), ...textField(GT.title, 'game.endings.' + key + '.title'), ...textField(GT.text, 'game.endings.' + key + '.text', true));
+        d.append(fs);
+      });
+    }));
+
+    if (gameEditorEl) gameEditorEl.replaceWith(panel); else $('#game-area').after(panel);
+    gameEditorEl = panel;
+    window.scrollTo(0, scrollY);
+  }
+
+  // A new choice, with no change to any resource yet.
+  function newChoice(n) {
+    const effects = {};
+    data.game.resources.forEach(r => { effects[r.id] = 0; });
+    return { id: newId('c'), label: '[Choice ' + n + ']', result: '[What happens after choice ' + n + ']', effects: effects };
+  }
+
+  // One turn's section in the panel.
+  function turnPart(t, i) {
+    const g = data.game;
+    const path = 'game.turns.' + i;
+    return part('turn-' + t.id, fill(GT.turn, { n: i + 1 }) + ': ' + stripNotes(t.label), d => {
+      d.append(...textField(GT.turnLabel, path + '.label'), ...textField(GT.title, path + '.title'), ...textField(GT.turnText, path + '.text', true));
+
+      // Image
+      if (t.image.src) d.append(el('img', { class: 'ge-thumb', src: t.image.src, alt: '' }));
+      const imgRow = el('div', { class: 'ge-row' });
+      imgRow.append(panelButton(GT.uploadImage, async () => {
+        const src = await uploadImage();
+        if (!src) return;
+        t.image.src = src;
+        reshaped();
+      }));
+      if (t.image.src) imgRow.append(panelButton(GT.removeImage, () => { t.image.src = ''; reshaped(); }, 'ed-danger'));
+      d.append(imgRow, ...textField(GT.imageAlt, path + '.image.alt'));
+
+      // Choices (3, plus an optional 4th)
+      t.choices.forEach((c, j) => {
+        const cPath = path + '.choices.' + j;
+        const fs = el('fieldset');
+        fs.append(el('legend', {}, fill(GT.choice, { n: j + 1 })),
+          ...textField(GT.choiceLabel, cPath + '.label'), ...textField(GT.choiceResult, cPath + '.result', true),
+          el('label', {}, GT.effects));
+        const fx = el('div', { class: 'ge-effects' });
+        g.resources.forEach(r => fx.append(numberField(stripNotes(r.name), () => Number(c.effects[r.id]) || 0, v => { c.effects[r.id] = v; }, -100, 100)));
+        fs.append(fx);
+        if (j === 3) {
+          const row = el('div', { class: 'ge-row' });
+          row.append(panelButton(GT.removeChoice, () => { t.choices.splice(3, 1); run = null; reshaped(); }, 'ed-danger'));
+          fs.append(row);
+        }
+        d.append(fs);
+      });
+      const row = el('div', { class: 'ge-row' });
+      if (t.choices.length < 4) row.append(panelButton(GT.addChoice, () => { t.choices.push(newChoice(4)); reshaped(); }));
+      row.append(panelButton(GT.playTurn, () => {
+        run = newRun();
+        run.phase = 'turn';
+        run.turn = i;
+        renderGame();
+        $('#game-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }));
+      if (i > 0) row.append(panelButton(GT.moveUp, () => { g.turns.splice(i - 1, 0, g.turns.splice(i, 1)[0]); run = null; reshaped(); }, '', GT.moveUpLabel));
+      if (i < g.turns.length - 1) row.append(panelButton(GT.moveDown, () => { g.turns.splice(i + 1, 0, g.turns.splice(i, 1)[0]); run = null; reshaped(); }, '', GT.moveDownLabel));
+      if (g.turns.length > 1) {
+        row.append(panelButton(GT.deleteTurn, async () => {
+          if (!(await confirmDelete(GT.deleteTurnBody))) return;
+          g.turns.splice(i, 1);
+          run = null;
+          reshaped();
+        }, 'ed-danger'));
+      }
+      d.append(row);
+    });
+  }
+
+  /* -------------------------------------------------------------------
+     9. GETTING EVERYTHING GOING
+     ------------------------------------------------------------------- */
+  renderPage();
+
+  // Three ways into edit mode: the footer link, Ctrl+Shift+E, or #edit in the address.
+  $('#edit-link').addEventListener('click', e => { e.preventDefault(); startEditing(); });
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'e') { e.preventDefault(); startEditing(); }
+  });
+  window.addEventListener('hashchange', () => { if (location.hash === '#edit') startEditing(); });
+
+  loadAutoSave().finally(() => { if (location.hash === '#edit') startEditing(); });
+})();
+</script>
+</body>
+</html>
