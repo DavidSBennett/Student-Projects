@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pulman Strike</title>
+<style>
+/* =====================================================================
+   PAGE STYLES
+   Change the colors and fonts here to restyle the whole page.
+   ===================================================================== */
+:root {
+  --bg: #f4f1ea;          /* page background */
+  --panel: #fffdf8;       /* boxes and pop-ups */
+  --ink: #1f1d1a;         /* main text */
+  --muted: #6b655c;       /* quieter text */
+  --rule: #d8d0c2;        /* lines and borders */
+  --accent: #7a3b2e;      /* links, footnote numbers, main buttons */
+  --accent-ink: #ffffff;  /* text on accent-colored buttons */
+  --highlight: #fbebd2;   /* the highlighted footnote */
+  --radius: 8px;
+  --font-body: Georgia, "Times New Roman", serif;
+  --font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --width: 960px;         /* widest the content gets */
+}
+* { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 18px/1.6 var(--font-body);
+  overflow-wrap: anywhere;
+}
+.wrap { max-width: var(--width); margin: 0 auto; padding: 0 16px; }
+
+/* ----- Header ----- */
+.top { padding-top: 32px; padding-bottom: 16px; }
+.header-image { margin: 0 0 20px; }
+.header-image img { display: block; width: 100%; max-height: 420px; object-fit: cover; border-radius: var(--radius); background: #e6e0d4; }
+.top h1 { font-size: clamp(28px, 6vw, 46px); line-height: 1.15; margin: 0 0 12px; font-weight: normal; }
+.top .intro { margin: 0; max-width: 70ch; white-space: pre-line; }
+
+/* ----- Game area: the story, one scene at a time ----- */
+.game-area {
+  margin: 16px auto 32px;
+  padding: 24px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  scroll-margin-top: 12px;
+}
+.game-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin: -8px 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--rule);
+  font: 14px/1.4 var(--font-ui); color: var(--muted);
+}
+.game-bar .progress { margin-right: auto; }
+.btn-small {
+  font: 600 13px/1 var(--font-ui); cursor: pointer;
+  padding: 7px 11px; border-radius: 6px; border: 1px solid var(--rule); background: #fff; color: var(--ink);
+}
+.btn-small:hover, .btn-small:focus-visible { border-color: var(--accent); }
+.btn-small:disabled { opacity: .45; cursor: default; border-color: var(--rule); }
+.game-bar .notes-btn { margin-left: 0; }
+.scene-title { margin: 0 0 12px; font-size: clamp(22px, 4vw, 30px); line-height: 1.2; font-weight: normal; }
+.scene-image { margin: 0 0 16px; }
+.scene-image img { display: block; width: 100%; max-height: 60vh; object-fit: contain; background: #e6e0d4; border-radius: 6px; }
+.scene-image figcaption { font-size: 15px; color: var(--muted); margin-top: 6px; }
+.scene-text { margin: 0 0 20px; white-space: pre-line; }
+.the-end { margin: 0 0 12px; font: 600 13px/1.2 var(--font-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.choices { display: grid; gap: 10px; }
+.choice {
+  display: block; width: 100%; text-align: left; font: 17px/1.4 var(--font-body); cursor: pointer;
+  padding: 11px 15px; border-radius: 6px; border: 1px solid var(--rule); background: #fff; color: var(--ink);
+}
+.choice:hover, .choice:focus-visible { border-color: var(--accent); background: #fff8ef; }
+.choice.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+/* ----- Footer ----- */
+footer {
+  padding-top: 16px; padding-bottom: 40px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+  color: var(--muted); font: 14px/1.4 var(--font-ui);
+}
+footer .author { flex: 1 1 auto; }
+.local-note { flex-basis: 100%; margin: 0; color: #8a5a00; font-style: italic; }
+.edit-link { color: var(--muted); opacity: .45; text-decoration: none; }
+.edit-link:hover, .edit-link:focus { opacity: 1; text-decoration: underline; }
+
+/* ----- Footnotes ----- */
+.fn-ref { font: 700 .65em/0 var(--font-ui); color: var(--accent); padding: 0 1px; cursor: pointer; }
+.fn-ref:hover { text-decoration: underline; }
+button .fn-ref, a .fn-ref { color: inherit; cursor: inherit; }
+.notes-btn {
+  margin-left: auto; font: 600 13px/1 var(--font-ui); cursor: pointer;
+  padding: 7px 11px; border-radius: 6px; border: 1px solid var(--rule); background: #fff; color: var(--accent);
+}
+.notes-btn:hover, .notes-btn:focus-visible { border-color: var(--accent); }
+
+/* ----- Pop-up windows (the footnotes list now; game pop-ups later) ----- */
+.popup {
+  border: none; border-radius: 10px; padding: 0;
+  width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
+  background: var(--panel); color: var(--ink); box-shadow: 0 12px 48px rgba(0,0,0,.4);
+}
+.popup::backdrop { background: rgba(20, 16, 10, .6); }
+.popup-inner { display: flex; flex-direction: column; max-height: calc(100vh - 48px); }
+.popup-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--rule); }
+.popup-head h2 { margin: 0; font-size: 20px; font-weight: normal; }
+.popup-close { background: none; border: none; font-size: 26px; line-height: 1; cursor: pointer; color: var(--muted); padding: 0 4px; }
+.popup-body { padding: 16px 20px; overflow-y: auto; }
+.popup-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--rule); }
+.btn-main {
+  font: 16px/1.3 var(--font-body); cursor: pointer; padding: 9px 16px; border-radius: 6px;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink);
+}
+.notes-list { margin: 0; padding: 0 0 0 1.6em; font-size: 16px; }
+.notes-list li { margin: 0 0 .6em; padding: 4px 8px; border-radius: 4px; white-space: pre-line; }
+.notes-list li.current { background: var(--highlight); }
+.notes-list a { color: var(--accent); }
+
+@media (max-width: 560px) {
+  body { font-size: 17px; }
+  .game-area { padding: 16px; }
+}
+
+/* =====================================================================
+   EDITOR STYLES (only used after someone clicks Edit)
+   ===================================================================== */
+body.ed-on [data-text] { outline: 1px dashed rgba(40,110,220,.6); outline-offset: 3px; cursor: text; min-height: 1.2em; }
+body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,110,220,.05); }
+body.ed-on .edit-link { display: none; }
+body.ed-on .choice { cursor: text; }
+.ed-scene-info { margin: 0 0 12px; padding: 8px 10px; border-radius: 6px; background: #eef3fc; color: #2c3443; }
+.ed-scene-info select { max-width: 100%; }
+.ed-choice-row { display: grid; gap: 6px; }
+.ed-choice-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: #4c5566; }
+.ed-choice-tools select { flex: 1 1 180px; min-width: 0; padding: 5px 6px; border: 1px solid #c9ced8; border-radius: 6px; background: #fff; color: #1d2330; }
+.ed-choice-tools select.ed-bad { border-color: #b42318; color: #b42318; }
+.ed-add-choice { justify-self: start; margin-top: 4px; }
+.ed-dialog .ed-scene-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; padding: 8px 0; border-top: 1px solid #e1e4ea; }
+.ed-dialog .ed-badges { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; }
+.ed-badge { font-size: 12px; padding: 1px 7px; border-radius: 10px; background: #eef1f6; color: #3a4357; }
+.ed-badge.ed-warn-badge { background: #fdecea; color: #b42318; }
+body.ed-on [data-image] img:not([src]) { display: none; }
+.ed-ui, .ed-ui * { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; box-sizing: border-box; }
+.ed-noimage { padding: 28px 12px; border: 2px dashed #9fb3d6; border-radius: 8px; color: #4c5566; text-align: center; background: #f4f7fc; }
+.ed-image-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.ed-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 16px;
+  background: #1d2330; color: #eef1f6; box-shadow: 0 -2px 12px rgba(0,0,0,.25);
+}
+.ed-bar .ed-status { flex: 1 1 220px; color: #aab3c2; font-size: 13px; }
+.ed-btn { appearance: none; border: 1px solid #c9ced8; background: #fff; color: #1d2330; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.ed-btn:hover { background: #eef2f9; }
+.ed-btn.ed-primary { background: #2a6edc; border-color: #2a6edc; color: #fff; }
+.ed-btn.ed-primary:hover { background: #1f5cbf; }
+.ed-bar .ed-btn { border-color: #3a4357; background: #2a3242; color: #eef1f6; }
+.ed-bar .ed-btn:hover { background: #343e52; }
+.ed-bar .ed-btn.ed-primary { background: #2a6edc; border-color: #2a6edc; }
+.ed-dialog {
+  border: none; border-radius: 10px; padding: 0;
+  width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 32px);
+  color: #1d2330; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,.3);
+}
+.ed-dialog.ed-small { width: min(420px, calc(100vw - 32px)); }
+.ed-dialog::backdrop { background: rgba(15,20,30,.5); }
+.ed-dialog form { padding: 20px; display: grid; gap: 12px; }
+.ed-dialog h3 { margin: 0; font-size: 18px; font-weight: 600; }
+.ed-dialog p { margin: 0; color: #4c5566; }
+.ed-dialog label { display: grid; gap: 4px; font-weight: 500; }
+.ed-dialog input, .ed-dialog textarea { width: 100%; padding: 7px 9px; border: 1px solid #c9ced8; border-radius: 6px; font-weight: 400; background: #fff; color: #1d2330; }
+.ed-dialog textarea { resize: vertical; }
+.ed-dialog .ed-group { margin-top: 6px; padding-top: 8px; border-top: 1px solid #e1e4ea; font-weight: 700; }
+.ed-dialog .ed-hint { font-size: 13px; background: #f4f7fc; border-radius: 6px; padding: 6px 8px; }
+.ed-dialog .ed-error { color: #b42318; }
+.ed-dialog .ed-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; position: sticky; bottom: -20px; background: #fff; padding: 12px 0 0; border-top: 1px solid #e1e4ea; }
+.ed-link { background: none; border: none; padding: 0; color: #2a6edc; cursor: pointer; text-decoration: underline; justify-self: start; }
+.ed-help h4 { margin: 10px 0 0; font-size: 16px; }
+.ed-help ol, .ed-help ul { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }
+.ed-help li { color: #2c3443; }
+.ed-help b { font-weight: 700; }
+.ed-help code { font: 13px/1.4 ui-monospace, Consolas, monospace; background: #f1f3f7; border: 1px solid #e1e4ea; border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+.ed-help .ed-example { display: block; margin: 4px 0; padding: 6px 8px; }
+</style>
+</head>
+<body>
+
+<!-- Header: optional image, title and introduction.
+     data-text="..."  = text from the content block, edited in place.
+     data-screen="..." = which footnote list the text belongs to. -->
+<header class="top wrap" data-screen="page">
+  <figure class="header-image" data-image="images.header" hidden><img alt=""></figure>
+  <h1 data-text="page.title"></h1>
+  <p class="intro" data-text="page.intro" data-multiline></p>
+</header>
+
+<!-- Game area: the story. The scene inside #scene is drawn by the code. -->
+<main class="wrap">
+  <section class="game-area" id="game-area" data-screen="game">
+    <div class="game-bar">
+      <span class="progress" id="progress" data-label="ui.progress"></span>
+      <button type="button" class="btn-small" id="back" data-label="ui.back"></button>
+      <button type="button" class="btn-small" id="start-over" data-label="ui.startOver"></button>
+      <button type="button" class="notes-btn" data-notes-button="game" hidden></button>
+    </div>
+    <div id="scene"></div>
+  </section>
+</main>
+
+<!-- Footer: author line, footnotes for the header and footer, and the Edit link.
+     data-label="..." = text that can't be edited in place; it's in "Other text…". -->
+<footer class="wrap" data-screen="page">
+  <span class="author" data-text="page.author"></span>
+  <button type="button" class="notes-btn" data-notes-button="page" hidden></button>
+  <a href="#edit" class="edit-link" id="edit-link" data-label="ui.editLink"></a>
+  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden></p>
+</footer>
+
+<!-- Footnotes pop-up: lists the citations for the screen the player is on. -->
+<dialog class="popup" id="notes">
+  <div class="popup-inner">
+    <div class="popup-head">
+      <h2 id="notes-title"></h2>
+      <button type="button" class="popup-close" id="notes-close">&times;</button>
+    </div>
+    <div class="popup-body"><ol class="notes-list" id="notes-list"></ol></div>
+    <div class="popup-actions"><button type="button" class="btn-main" id="notes-back"></button></div>
+  </div>
+</dialog>
+
+<!--
+  =====================================================================
+  GAME CONTENT
+  Everything the player reads lives in this block. The easiest way to
+  change it is in the browser: click "Edit" at the bottom of the page (or
+  press Ctrl+Shift+E), enter the password, edit, then click "Save file" to
+  download a new copy of this page with your changes inside it.
+
+  How the content is organized:
+    schemaVersion  Which version of this layout the file uses.
+    auth           The editor password's salt and SHA-256 hash (never the password).
+    page           Text shown on the page: title, introduction, game area, author line.
+    ui             Buttons, headings and messages, including the footnote wording.
+    images         Every image, as { "src": picture stored as a data URL, "alt": description }.
+    game           The story, told one scene at a time:
+                     "start"   the id of the first scene.
+                     "scenes"  every scene. Each has an "id", a "title", "text",
+                               an optional "image" (with a "caption") and "choices".
+                     Each choice has a "label" (the button words) and a "target"
+                     (the id of the scene it leads to). Many choices can lead to
+                     the same scene. A scene with no choices is an ending.
+                     In "ui", {n} in "progress" is replaced by the scene count.
+
+  Footnotes: in any text, type {{fn: your citation}} where the note belongs.
+    Example: A sentence that needs a source.{{fn: Author, Title, Year, page}}
+  =====================================================================
+-->
+<script type="application/json" id="game-data">
+{
+  "schemaVersion": 1,
+  "auth": {
+    "salt": "b417300c9250cbcd",
+    "hash": "ac02704b231fc56fff8617d847a1973ca532e51e2f10f089e5add01823ee5cd4"
+  },
+  "page": {
+    "title": "[Game title]",
+    "intro": "[Introduction]",
+    "author": "[Your name and class]"
+  },
+  "ui": {
+    "footnotesButton": "[Footnotes]",
+    "footnotesTitle": "[Footnotes]",
+    "footnotesBack": "[Back]",
+    "closeLabel": "[Close]",
+    "editLink": "[Edit]",
+    "localChangesNote": "[This page is showing changes saved in this browser that are not in the uploaded file yet.]",
+    "progress": "[Scene {n}]",
+    "back": "[Back]",
+    "startOver": "[Start over]",
+    "theEnd": "[The end]",
+    "playAgain": "[Play again]",
+    "missingScene": "[This choice does not lead anywhere yet.]"
+  },
+  "images": {
+    "header": { "src": "", "alt": "[Header image description]" }
+  },
+  "game": {
+    "start": "s1",
+    "scenes": [
+      {
+        "id": "s1",
+        "title": "[Scene 1 title]",
+        "text": "[Describe what happens in this scene.]",
+        "image": { "src": "", "alt": "[Image description]", "caption": "[Image caption and source]" },
+        "choices": [
+          { "label": "[Choice A]", "target": "s2" },
+          { "label": "[Choice B]", "target": "s3" }
+        ]
+      },
+      {
+        "id": "s2",
+        "title": "[Scene 2 title]",
+        "text": "[Describe what happens in this scene.]",
+        "image": { "src": "", "alt": "[Image description]", "caption": "[Image caption and source]" },
+        "choices": [
+          { "label": "[Choice C]", "target": "s4" },
+          { "label": "[Choice D]", "target": "s3" }
+        ]
+      },
+      {
+        "id": "s3",
+        "title": "[Ending 1 title]",
+        "text": "[Describe how the story ends.]",
+        "image": { "src": "", "alt": "[Image description]", "caption": "[Image caption and source]" },
+        "choices": []
+      },
+      {
+        "id": "s4",
+        "title": "[Ending 2 title]",
+        "text": "[Describe how the story ends.]",
+        "image": { "src": "", "alt": "[Image description]", "caption": "[Image caption and source]" },
+        "choices": []
+      }
+    ]
+  }
+}
+</script>
+
+<script>
+(() => {
+  'use strict';
+
+  /* =====================================================================
+     1. SNAPSHOT
+     A copy of the untouched page, taken before anything is drawn. "Save
+     file" starts from this copy and replaces only the content block, so
+     no editor parts or drawn footnotes can end up in the saved file.
+     ===================================================================== */
+  const SNAPSHOT = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+  /* =====================================================================
+     2. EDITOR WORDING
+     Everything the editor itself says (password screen, edit bar,
+     dialogs, help). This is editor UI, not game content, so it stays in
+     the code in plain English. Words in {curly brackets} are filled in
+     by the code.
+     ===================================================================== */
+  const EDITOR_TEXT = {
+    passwordTitle: 'Edit this game',
+    passwordLabel: 'Password',
+    passwordWrong: 'That password is not correct.',
+    unlock: 'Unlock',
+    cancel: 'Cancel',
+    howToEditLink: 'How to edit this game',
+    howToEdit: 'How to edit',
+    otherText: 'Other text…',
+    otherTextTitle: 'Other text',
+    otherTextHelp: 'This is text that isn’t on the screen right now: pop-up headings, button labels, messages and image descriptions. Change any box, then click Apply.',
+    otherTextNone: 'All the text is on the screen right now. Click outlined text to edit it.',
+    fnHint: 'Footnote: type {{fn: your citation}} where the note belongs. Example: A sentence that needs a source.{{fn: Author, Title, Year, page}}',
+    apply: 'Apply',
+    discard: 'Discard changes',
+    discardTitle: 'Discard changes?',
+    discardBody: 'This throws away every change that isn’t in the uploaded file and goes back to the uploaded version. It can’t be undone.',
+    saveFile: 'Save file',
+    done: 'Done',
+    close: 'Close',
+    helpTitle: 'How to edit this game',
+    uploadImage: 'Upload image',
+    removeImage: 'Remove image',
+    noImage: 'No image yet. This image is optional.',
+    conflictTitle: 'Which version do you want?',
+    conflictBody: 'A newer file was uploaded after your auto-saved changes from {time}.',
+    keepSaved: 'Keep auto-saved changes',
+    useUploaded: 'Use uploaded version',
+    localNoteFallback: 'Showing changes auto-saved in this browser that aren’t in the uploaded file yet.',
+    scenes: 'Scenes',
+    scenesTitle: 'Scenes',
+    scenesHelp: 'Every scene in the story. Rename a scene here, click Go to to open it and write it, or delete scenes you don’t need.',
+    firstScene: 'First scene',
+    newScene: '+ New scene',
+    goToScene: 'Go to',
+    deleteScene: 'Delete',
+    deleteSceneTitle: 'Delete this scene?',
+    deleteSceneBody: 'Delete “{title}”? Choices that lead to it will lead nowhere until you pick another scene.',
+    badgeFirst: 'First scene',
+    badgeEnding: 'Ending',
+    badgeUnreachable: 'No choice leads here',
+    badgeBroken: 'A choice leads nowhere',
+    editingScene: 'This scene:',
+    endingHint: 'This scene is an ending because it has no choices. Click “+ Add choice” to continue the story from here.',
+    missingHint: 'The choice you clicked doesn’t lead to a scene yet. Click Back, then pick a scene in its “Goes to” menu.',
+    goesTo: 'Goes to',
+    nowhere: '(nowhere yet: pick a scene)',
+    untitled: '(untitled scene)',
+    follow: 'Go ›',
+    followTip: 'Follow this choice to see or write the scene it leads to',
+    removeChoice: '✕',
+    removeChoiceTip: 'Remove this choice',
+    addChoice: '+ Add choice',
+    newChoice: '[New choice]',
+    statusNewScene: 'New scene added. Click “Go ›” next to the choice to write it.',
+    statusStart: 'Click outlined text to edit it. Use “Go ›” to follow a choice. Changes auto-save in this browser.',
+    statusHasChanges: 'Your auto-saved changes are loaded. Changes auto-save in this browser.',
+    statusSaved: 'Auto-saved in this browser at {time}. To update the website, click “Save file” and turn in the file.',
+    statusNoStorage: 'This browser can’t auto-save here. Click “Save file” often so nothing is lost.',
+    statusDiscarded: 'Back to the uploaded version.',
+    statusDownloaded: 'Downloaded index.html. Turn it in the way your teacher tells you to update the website.',
+    statusImage: 'Processing image…',
+    statusImageError: 'That file could not be read as an image.'
+  };
+
+  /* =====================================================================
+     3. CONTENT AND DEFAULTS
+     ===================================================================== */
+  const $ = sel => document.querySelector(sel);
+  const clone = obj => JSON.parse(JSON.stringify(obj));
+
+  // Keys added in later versions get these values when an older file
+  // (or older auto-save) doesn't have them yet. Add new keys here.
+  // A new, empty scene (also used by "+ New scene" in the editor).
+  function newScene(id, title, text, choices) {
+    return {
+      id, title: title || '[Scene title]', text: text || '[Describe what happens in this scene.]',
+      image: { src: '', alt: '[Image description]', caption: '[Image caption and source]' },
+      choices: choices || []
+    };
+  }
+  const DEFAULTS = {
+    schemaVersion: 1,
+    page: { title: '[Game title]', intro: '[Introduction]', author: '[Your name and class]' },
+    ui: {
+      footnotesButton: '[Footnotes]', footnotesTitle: '[Footnotes]', footnotesBack: '[Back]',
+      closeLabel: '[Close]', editLink: '[Edit]',
+      localChangesNote: '[This page is showing changes saved in this browser that are not in the uploaded file yet.]',
+      progress: '[Scene {n}]', back: '[Back]', startOver: '[Start over]',
+      theEnd: '[The end]', playAgain: '[Play again]', missingScene: '[This choice does not lead anywhere yet.]'
+    },
+    images: { header: { src: '', alt: '[Header image description]' } },
+    game: {
+      start: 's1',
+      scenes: [
+        newScene('s1', '[Scene 1 title]', '', [{ label: '[Choice A]', target: 's2' }, { label: '[Choice B]', target: 's3' }]),
+        newScene('s2', '[Scene 2 title]', '', [{ label: '[Choice C]', target: 's4' }, { label: '[Choice D]', target: 's3' }]),
+        newScene('s3', '[Ending 1 title]', '[Describe how the story ends.]'),
+        newScene('s4', '[Ending 2 title]', '[Describe how the story ends.]')
+      ]
+    }
+  };
+  // Scenes saved before a field existed get it too (for example "image").
+  function withDefaults(d) {
+    mergeDefaults(DEFAULTS, d);
+    d.game.scenes.forEach(s => mergeDefaults(newScene(s.id), s));
+    return d;
+  }
+  // Fill in anything missing, without changing what is already there.
+  function mergeDefaults(defaults, target) {
+    Object.keys(defaults).forEach(k => {
+      const d = defaults[k];
+      if (!(k in target)) target[k] = clone(d);
+      else if (d && typeof d === 'object' && !Array.isArray(d) && target[k] && typeof target[k] === 'object') mergeDefaults(d, target[k]);
+    });
+    return target;
+  }
+
+  // Same content always gives the same text, whatever order the keys are in.
+  function stableJSON(v) {
+    if (Array.isArray(v)) return '[' + v.map(stableJSON).join(',') + ']';
+    if (v && typeof v === 'object') return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + stableJSON(v[k])).join(',') + '}';
+    return JSON.stringify(v);
+  }
+
+  // "page.title" -> data.page.title
+  function getPath(obj, path) { return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj); }
+  function setPath(obj, path, value) {
+    const keys = path.split('.');
+    const last = keys.pop();
+    keys.reduce((o, k) => (o[k] ??= {}), obj)[last] = value;
+  }
+
+  // The content exactly as it is in the uploaded file (defaults merged in first).
+  const FILE_DATA = withDefaults(JSON.parse($('#game-data').textContent));
+  const FILE_JSON = stableJSON(FILE_DATA);
+  let data = clone(FILE_DATA);
+  let editing = false;
+
+  /* =====================================================================
+     4. FOOTNOTES
+     {{fn: citation}} in any text becomes a small number, and the citation
+     is added to that screen's footnote list.
+     ===================================================================== */
+  const NOTE_RE = /\{\{\s*fn\s*:\s*([\s\S]*?)\s*\}\}/gi;
+
+  // Turns text into page content (DOM nodes, never HTML), swapping each
+  // {{fn: ...}} for a numbered marker and adding its citation to `notes`.
+  function withNotes(text, notes) {
+    const frag = document.createDocumentFragment();
+    const str = String(text ?? '');
+    let last = 0;
+    for (const m of str.matchAll(NOTE_RE)) {
+      frag.append(str.slice(last, m.index));
+      notes.push(m[1]);
+      const sup = document.createElement('sup');
+      sup.className = 'fn-ref';
+      sup.dataset.note = notes.length;
+      sup.textContent = notes.length;
+      frag.append(sup);
+      last = m.index + m[0].length;
+    }
+    frag.append(str.slice(last));
+    return frag;
+  }
+  // For places that can't show a number (tab title, image descriptions, screen-reader labels).
+  function plain(text) { return String(text ?? '').replace(NOTE_RE, '').replace(/\s+/g, ' ').trim(); }
+
+  // Citation text, with web addresses turned into links that open in a new tab.
+  function citation(text) {
+    const frag = document.createDocumentFragment();
+    String(text).split(/(https?:\/\/[^\s<>"]+)/).forEach((part, i) => {
+      if (i % 2 === 0) { frag.append(part); return; }
+      const a = document.createElement('a');
+      a.href = part;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = part;
+      frag.append(a);
+    });
+    return frag;
+  }
+
+  /* A "screen" is whatever the player sees at one time: the page header
+     and footer together, the game area, and later each pop-up or step of
+     the game. Each screen keeps its own numbered list of footnotes.
+     To add a screen later:
+       const s = screen('my-screen');      // once
+       startScreen(s);                     // before drawing it
+       node.append(withNotes(text, s.notes));  // for every piece of text
+       finishScreen(s);                    // updates its Footnotes button
+     and put data-screen="my-screen" on its container, plus a
+     <button class="notes-btn" data-notes-button="my-screen" hidden>. */
+  const screens = {};
+  function screen(name) { return (screens[name] ||= { name, notes: [] }); }
+  function startScreen(s) { s.notes = []; }
+  function finishScreen(s) {
+    document.querySelectorAll('[data-notes-button="' + s.name + '"]').forEach(b => {
+      const count = s.notes.length;
+      b.hidden = editing || count === 0;
+      b.replaceChildren(withNotes(data.ui.footnotesButton, s.notes), ' (' + count + ')');
+    });
+  }
+
+  // Opens the footnotes pop-up for a screen, optionally highlighting one note.
+  function openNotes(s, current) {
+    const notes = s.notes.slice();
+    $('#notes-title').replaceChildren(withNotes(data.ui.footnotesTitle, notes));
+    $('#notes-back').replaceChildren(withNotes(data.ui.footnotesBack, notes));
+    $('#notes-close').setAttribute('aria-label', plain(data.ui.closeLabel));
+    const list = $('#notes-list');
+    list.replaceChildren(...notes.map((n, i) => {
+      const li = document.createElement('li');
+      li.append(citation(n));
+      if (i + 1 === Number(current)) li.className = 'current';
+      return li;
+    }));
+    const dlg = $('#notes');
+    if (!dlg.open) dlg.showModal();
+    const cur = list.querySelector('.current');
+    if (cur) cur.scrollIntoView({ block: 'center' });
+  }
+  $('#notes-close').addEventListener('click', () => $('#notes').close());
+  $('#notes-back').addEventListener('click', () => $('#notes').close());
+
+  // Clicking a footnote number opens the list with that note highlighted.
+  // Numbers inside buttons and links don't, so the button still does its job.
+  document.addEventListener('click', e => {
+    const nb = e.target.closest('[data-notes-button]');
+    if (nb) { openNotes(screen(nb.dataset.notesButton)); return; }
+    const ref = e.target.closest('.fn-ref');
+    if (!ref || editing || ref.closest('button, a')) return;
+    const host = ref.closest('[data-screen]');
+    if (host) openNotes(screen(host.dataset.screen), ref.dataset.note);
+  });
+
+  /* =====================================================================
+     5. DRAWING THE PAGE
+     ===================================================================== */
+  const ORIGINAL_TAB_TITLE = document.title;
+
+  function render() {
+    const page = screen('page');
+    const game = screen('game');
+    startScreen(page);
+    startScreen(game); // each scene is its own screen, so its footnotes start again at 1
+    renderScene();
+
+    // Every piece of text, in reading order, goes into its screen's list.
+    document.querySelectorAll('[data-text], [data-label]').forEach(node => {
+      let value = getPath(data, node.dataset.text || node.dataset.label) ?? '';
+      if (node.dataset.n) value = value.split('{n}').join(node.dataset.n); // fills in {n}
+      if (editing) { if (node !== document.activeElement) node.textContent = value; } // raw {{fn: ...}} visible
+      else node.replaceChildren(withNotes(value, screen(node.closest('[data-screen]').dataset.screen).notes));
+    });
+
+    // Images
+    document.querySelectorAll('[data-image]').forEach(fig => {
+      const img = getPath(data, fig.dataset.image) || {};
+      const tag = fig.querySelector('img');
+      if (img.src) tag.src = img.src; else tag.removeAttribute('src');
+      tag.alt = plain(img.alt);
+      fig.hidden = !img.src && !editing;
+      const empty = fig.querySelector('.ed-noimage');
+      if (empty) empty.hidden = !!img.src;
+    });
+
+    finishScreen(page);
+    finishScreen(game);
+    showLocalNote();
+    updateTabTitle();
+    if (editing) bindPageText(true); // the scene was redrawn, so its text needs editing turned on again
+  }
+
+  /* =====================================================================
+     5b. THE STORY
+     The player reads one scene at a time and clicks a choice to move on.
+     `trail` is the list of scene ids the player has visited; the last one
+     is the scene on screen. "Back" removes the last one.
+     ===================================================================== */
+  let trail = [];
+  const sceneIndex = id => data.game.scenes.findIndex(s => s.id === id);
+  const firstSceneId = () => (sceneIndex(data.game.start) >= 0 ? data.game.start : (data.game.scenes[0] || {}).id);
+
+  function goToScene(id) {
+    trail.push(id);
+    render();
+    const area = $('#game-area');
+    if (area.getBoundingClientRect().top < 0) area.scrollIntoView({ block: 'start' }); // phones: show the top of the new scene
+  }
+  function goBack() { if (trail.length > 1) { trail.pop(); render(); } }
+  function startOver() { trail = [firstSceneId()]; render(); }
+  $('#back').addEventListener('click', goBack);
+  $('#start-over').addEventListener('click', startOver);
+
+  // Small helper: a new element with a class and (optionally) a data-text path.
+  function part(tag, cls, path, multiline) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (path) n.dataset.text = path;
+    if (multiline) n.dataset.multiline = '';
+    return n;
+  }
+
+  // Builds the scene on screen. Its words are filled in by render(), using the
+  // data-text / data-label paths, so footnotes and editing work everywhere.
+  function renderScene() {
+    if (!trail.length) trail = [firstSceneId()];
+    const box = $('#scene');
+    box.replaceChildren();
+    const i = sceneIndex(trail[trail.length - 1]);
+    $('#progress').dataset.n = trail.length;
+    $('#back').disabled = trail.length < 2;
+
+    // A choice that doesn't lead to a scene yet.
+    if (i < 0) {
+      const msg = el('p', 'scene-text');
+      msg.dataset.label = 'ui.missingScene';
+      box.append(msg);
+      if (editing) box.prepend(el('p', 'ed-ui ed-scene-info', T.missingHint));
+      return;
+    }
+
+    const scene = data.game.scenes[i];
+    const path = 'game.scenes.' + i;
+    if (editing) box.append(sceneInfo(scene));
+    box.append(part('h2', 'scene-title', path + '.title'));
+
+    const fig = part('figure', 'scene-image');
+    fig.dataset.image = path + '.image';
+    fig.append(document.createElement('img'), part('figcaption', '', path + '.image.caption'));
+    if (editing) addImageTools(fig);
+    box.append(fig);
+
+    box.append(part('div', 'scene-text', path + '.text', true));
+
+    const choices = el('div', 'choices');
+    if (!scene.choices.length) {
+      // An ending: "The end" and "Play again".
+      const end = el('p', 'the-end');
+      end.dataset.label = 'ui.theEnd';
+      box.append(end);
+      const again = el('button', 'choice primary');
+      again.type = 'button';
+      again.dataset.label = 'ui.playAgain';
+      again.addEventListener('click', startOver);
+      choices.append(again);
+      if (editing) choices.append(el('p', 'ed-ui ed-scene-info', T.endingHint));
+    }
+    scene.choices.forEach((c, ci) => {
+      const label = part('span', '', path + '.choices.' + ci + '.label');
+      if (editing) { choices.append(choiceEditor(scene, c, ci, label)); return; }
+      const b = el('button', 'choice');
+      b.type = 'button';
+      b.append(label);
+      b.addEventListener('click', () => goToScene(c.target));
+      choices.append(b);
+    });
+    if (editing) choices.append(edButton(T.addChoice, () => {
+      scene.choices.push({ label: T.newChoice, target: '' });
+      render();
+      changed();
+    }, 'ed-ui ed-add-choice'));
+    box.append(choices);
+  }
+
+  // Browser tab: the game title, or the project name while the title is still a [placeholder].
+  function updateTabTitle() {
+    const t = plain(data.page.title);
+    document.title = t && !/^\[.*\]$/.test(t) ? t : ORIGINAL_TAB_TITLE;
+  }
+
+  // The footer note that appears when this browser shows auto-saved changes.
+  function showLocalNote() {
+    $('#local-note').hidden = stableJSON(data) === FILE_JSON;
+  }
+
+  /* =====================================================================
+     6. SHA-256
+     Used for the password check and for the file's fingerprint. Written
+     out in plain JavaScript so it works however the page is opened
+     (from a file, over http or over https).
+     ===================================================================== */
+  function sha256(text) {
+    const K = [];
+    const H = [];
+    for (let n = 2, found = 0; found < 64; n++) {
+      let prime = true;
+      for (let d = 2; d * d <= n; d++) if (n % d === 0) { prime = false; break; }
+      if (!prime) continue;
+      if (found < 8) H[found] = (Math.pow(n, 1 / 2) * 2 ** 32) | 0;
+      K[found++] = (Math.pow(n, 1 / 3) * 2 ** 32) | 0;
+    }
+    const bytes = [...new TextEncoder().encode(text)];
+    const bitLen = bytes.length * 8;
+    bytes.push(0x80);
+    while (bytes.length % 64 !== 56) bytes.push(0);
+    for (let i = 7; i >= 0; i--) bytes.push(i > 3 ? Math.floor(bitLen / 2 ** (i * 8)) & 0xff : (bitLen >>> (i * 8)) & 0xff);
+    const rot = (x, n) => (x >>> n) | (x << (32 - n));
+    const W = new Array(64);
+    for (let off = 0; off < bytes.length; off += 64) {
+      for (let i = 0; i < 16; i++) W[i] = (bytes[off + i * 4] << 24) | (bytes[off + i * 4 + 1] << 16) | (bytes[off + i * 4 + 2] << 8) | bytes[off + i * 4 + 3];
+      for (let i = 16; i < 64; i++) {
+        const s0 = rot(W[i - 15], 7) ^ rot(W[i - 15], 18) ^ (W[i - 15] >>> 3);
+        const s1 = rot(W[i - 2], 17) ^ rot(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+        W[i] = (W[i - 16] + s0 + W[i - 7] + s1) | 0;
+      }
+      let [a, b, c, d, e, f, g, h] = H;
+      for (let i = 0; i < 64; i++) {
+        const t1 = (h + (rot(e, 6) ^ rot(e, 11) ^ rot(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + W[i]) | 0;
+        const t2 = ((rot(a, 2) ^ rot(a, 13) ^ rot(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      [a, b, c, d, e, f, g, h].forEach((v, i) => { H[i] = (H[i] + v) | 0; });
+    }
+    return H.map(v => (v >>> 0).toString(16).padStart(8, '0')).join('');
+  }
+
+  // Fingerprint of the uploaded file's content, stored with each auto-save.
+  const FILE_FP = sha256(FILE_JSON);
+
+  /* =====================================================================
+     7. STORAGE
+     Everything is keyed by this page's own address (location.pathname),
+     so different projects, or copies in different folders, never share
+     auto-saves. Every access is wrapped in try/catch: if the browser
+     blocks storage, the game still plays.
+     ===================================================================== */
+  const KEY = location.pathname;
+  const session = {
+    get(name) { try { return sessionStorage.getItem(name + ':' + KEY); } catch { return null; } },
+    set(name, v) { try { v ? sessionStorage.setItem(name + ':' + KEY, v) : sessionStorage.removeItem(name + ':' + KEY); } catch {} }
+  };
+
+  // Auto-saves live in IndexedDB, which has room for images.
+  const store = {
+    db: null,
+    open() {
+      this.db ||= new Promise((res, rej) => {
+        try {
+          const r = indexedDB.open('student-game-autosave', 1);
+          r.onupgradeneeded = () => r.result.createObjectStore('autosave');
+          r.onsuccess = () => res(r.result);
+          r.onerror = () => rej(r.error);
+        } catch (err) { rej(err); }
+      });
+      return this.db;
+    },
+    async run(mode, fn) {
+      const db = await this.open();
+      return new Promise((res, rej) => {
+        try {
+          const tx = db.transaction('autosave', mode);
+          const req = fn(tx.objectStore('autosave'));
+          tx.oncomplete = () => res(req && req.result);
+          tx.onerror = () => rej(tx.error);
+        } catch (err) { rej(err); }
+      });
+    },
+    async get() { try { return await this.run('readonly', s => s.get(KEY)); } catch { return null; } },
+    async set(value) { try { await this.run('readwrite', s => { s.put(value, KEY); }); return true; } catch { return false; } },
+    async clear() { try { await this.run('readwrite', s => { s.delete(KEY); }); } catch {} }
+  };
+
+  // The password always comes from the file, never from an auto-save.
+  function withFileAuth(d) { d.auth = clone(FILE_DATA.auth); return d; }
+
+  let saveTimer = 0;
+  let olderSave = null; // auto-save made before the uploaded file changed; asked about when editing starts
+
+  function changed() {
+    showLocalNote();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(autoSaveNow, 500);
+  }
+  async function autoSaveNow() {
+    clearTimeout(saveTimer);
+    saveTimer = 0;
+    const record = { at: Date.now(), fingerprint: FILE_FP, data: clone(data) };
+    delete record.data.auth;
+    const ok = await store.set(record);
+    showLocalNote();
+    const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    setStatus(ok ? EDITOR_TEXT.statusSaved.replace('{time}', time) : EDITOR_TEXT.statusNoStorage);
+  }
+  // Save right away if the page is closed or hidden in the middle of an edit.
+  window.addEventListener('pagehide', () => { if (saveTimer) autoSaveNow(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && saveTimer) autoSaveNow(); });
+
+  async function loadAutoSave() {
+    const saved = await store.get();
+    if (!saved || !saved.data) return;
+    const savedData = withDefaults(withFileAuth(saved.data));
+    if (stableJSON(savedData) === FILE_JSON) { await store.clear(); return; } // the uploaded file already has these changes
+    if (saved.fingerprint !== FILE_FP) { olderSave = saved; return; }         // the file changed since; ask when editing starts
+    data = savedData;
+    trail = []; // start the story again with the loaded scenes
+    render();
+  }
+
+  /* =====================================================================
+     8. EDITOR (password protected)
+     ===================================================================== */
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function edButton(label, onClick, cls = '') {
+    const b = el('button', 'ed-btn ' + cls, label);
+    b.type = 'button';
+    b.addEventListener('click', e => { e.preventDefault(); onClick(); });
+    return b;
+  }
+  let statusEl = null;
+  function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
+
+  /* One dialog helper for every editor window. It resolves straight from
+     its own buttons and the Escape key (the dialog "close" event alone
+     doesn't always fire in background tabs).
+       bodyNodes: an array of elements, or a function (finish) => elements
+       buttons: [{ label, value, primary }]   resolves with the value, or null for Escape
+       onSubmit: optional; return false to keep the dialog open */
+  function showDialog(title, bodyNodes, buttons, onSubmit, cls) {
+    return new Promise(resolve => {
+      const dlg = el('dialog', 'ed-ui ed-dialog ' + (cls || ''));
+      const form = el('form');
+      let finished = false;
+      function finish(value) {
+        if (finished) return;
+        finished = true;
+        if (dlg.open) dlg.close();
+        dlg.remove();
+        resolve(value);
+      }
+      // bodyNodes can also be a function that gets `finish`, for buttons inside the body that close the dialog.
+      if (typeof bodyNodes === 'function') bodyNodes = bodyNodes(finish);
+      form.append(el('h3', '', title), ...bodyNodes);
+      const row = el('div', 'ed-actions');
+      buttons.forEach(b => {
+        const btn = el('button', 'ed-btn' + (b.primary ? ' ed-primary' : ''), b.label);
+        btn.type = b.primary ? 'submit' : 'button';
+        if (!b.primary) btn.addEventListener('click', () => finish(b.value));
+        row.append(btn);
+      });
+      form.append(row);
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        if (onSubmit && (await onSubmit()) === false) return;
+        const primary = buttons.find(b => b.primary);
+        finish(primary ? primary.value : null);
+      });
+      dlg.addEventListener('cancel', e => { e.preventDefault(); finish(null); });
+      dlg.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); finish(null); } });
+      dlg.addEventListener('close', () => finish(null));
+      dlg.append(form);
+      document.body.append(dlg);
+      dlg.showModal();
+      dlg.scrollTop = 0;
+    });
+  }
+
+  /* --- "How to edit" instructions for students ---
+     This is editor help, not game content, so it lives here in the code.
+     IMPORTANT: whenever the editor changes (new buttons, fields or game
+     mechanics), update these steps IN THE SAME CHANGE so they always match
+     what students see. Button names in <b> must match the real buttons. */
+  const T = EDITOR_TEXT;
+  const HELP_HTML = `
+    <h4>1. Getting started</h4>
+    <ol>
+      <li>Click <b data-help="editLink"></b> at the bottom of the page.</li>
+      <li>Type the password your teacher gives you.</li>
+      <li>Click <b>${T.unlock}</b>.</li>
+      <li>A dark bar appears at the bottom of the screen. That means you're editing.</li>
+    </ol>
+
+    <h4>2. Editing text on the page</h4>
+    <ol>
+      <li>Click any text with a dotted outline around it and type. Press Enter to finish a one-line box.</li>
+      <li>Some text can't be clicked to edit: the story's buttons (like <b data-help="back"></b> and <b data-help="playAgain"></b>),
+        pop-up headings, messages and image descriptions.
+        To change it, click <b>${T.otherText}</b> in the dark bar, change the boxes, then click <b>${T.apply}</b>.</li>
+      <li>If you see something in {curly brackets}, like <code>{n}</code>, leave it alone. The game fills in a number there.</li>
+      <li>To add a picture at the top of the page, click <b>${T.uploadImage}</b> and pick a picture.
+        Click <b>${T.removeImage}</b> to take it away. Describe the picture in <b>${T.otherText}</b>.</li>
+    </ol>
+
+    <h4>3. Editing the story</h4>
+    <p>The story is made of <b>scenes</b>. Each scene has a title, some text, an optional picture, and choices.
+      Each choice leads to another scene. A scene with no choices is an <b>ending</b>.</p>
+    <ol>
+      <li>Click the scene's title, text or a choice's words and type, just like other text.</li>
+      <li>Under each choice, use the <b>${T.goesTo}</b> menu to pick the scene it leads to.
+        Pick <b>${T.newScene}</b> to make a brand-new scene for it.</li>
+      <li>Click <b>${T.follow}</b> next to a choice to go to that scene and write it.
+        Click <b data-help="back"></b> or <b data-help="startOver"></b> at the top of the story to move around.</li>
+      <li>Click <b>${T.addChoice}</b> to give a scene another choice. Click <b>${T.removeChoice}</b> next to a choice to remove it.</li>
+      <li>To make an ending, remove all of a scene's choices. Players will see <b data-help="playAgain"></b>.</li>
+      <li>To add a picture to a scene, click <b>${T.uploadImage}</b> under the scene's title. Write its source in the caption.</li>
+    </ol>
+    <p>Click <b>${T.scenes}</b> in the dark bar to see every scene:</p>
+    <ul>
+      <li>Type in a box to rename a scene. Click <b>${T.goToScene}</b> to open it, or <b>${T.deleteScene}</b> to remove it.</li>
+      <li>Click <b>${T.newScene}</b> to add a scene, and pick the <b>${T.firstScene}</b> players start on.</li>
+      <li>A red <b>${T.badgeUnreachable}</b> label means players can never get to that scene.
+        A red <b>${T.badgeBroken}</b> label means one of its choices needs a scene picked in <b>${T.goesTo}</b>.</li>
+    </ul>
+
+    <h4>4. Adding footnotes</h4>
+    <p>You can add a footnote to <b>any</b> text.</p>
+    <ol>
+      <li>Click right after the sentence that needs a source.</li>
+      <li>Type two curly brackets, the letters <code>fn</code>, a colon, your citation, and two closing curly brackets:
+        <code class="ed-example">A sentence that needs a source.{{fn: Author, Title, Year, page}}</code></li>
+      <li>When you click <b>${T.done}</b>, a small number appears where you typed it.</li>
+      <li>A <b data-help="footnotesButton"></b> button appears on that part of the page. Click it, or click the small number, to see the sources.</li>
+    </ol>
+    <ul>
+      <li>While editing, you'll see the <code>{{fn: ...}}</code> code. That's normal. It turns into a number when you click <b>${T.done}</b>.</li>
+      <li>A web address that starts with <code>https://</code> becomes a link.</li>
+      <li>Every footnote needs <code>{{</code> at the start and <code>}}</code> at the end, or it won't work.</li>
+    </ul>
+
+    <h4>5. Saving your work</h4>
+    <ol>
+      <li>Your work saves by itself, but only in this browser on this computer.</li>
+      <li>When you're finished, click <b>${T.saveFile}</b>. A file called <b>index.html</b> downloads.</li>
+      <li>Turn in that index.html file the way your teacher tells you. That's the only way your work gets onto the real website.</li>
+    </ol>
+
+    <h4>6. Tips</h4>
+    <ul>
+      <li>Replace everything in <b>[square brackets]</b> with your own research.</li>
+      <li>Cite your sources with footnotes. Give a source for every image.</li>
+      <li>Ask your teacher before you click <b>${T.discard}</b>. It erases your changes and goes back to the uploaded version.</li>
+    </ul>`;
+
+  function showHelp() {
+    const box = el('div', 'ed-help');
+    box.innerHTML = HELP_HTML; // editor help from the code above, never student text
+    // Button names the students can change are filled in from the content (data.ui), so they always match.
+    box.querySelectorAll('[data-help]').forEach(b => { b.textContent = plain(data.ui[b.dataset.help]); });
+    showDialog(T.helpTitle, [box], [{ label: T.close, value: 'close', primary: true }]);
+  }
+
+  // --- password ---
+  function askPassword() {
+    const pw = el('input');
+    pw.type = 'password';
+    pw.autocomplete = 'off';
+    const label = el('label', '', T.passwordLabel);
+    label.append(pw);
+    const err = el('p', 'ed-error');
+    err.hidden = true;
+    const help = el('button', 'ed-link', T.howToEditLink);
+    help.type = 'button';
+    help.addEventListener('click', showHelp);
+    setTimeout(() => pw.focus(), 0);
+    return showDialog(T.passwordTitle, [label, err, help], [
+      { label: T.cancel, value: false },
+      { label: T.unlock, value: true, primary: true }
+    ], () => {
+      if (sha256(FILE_DATA.auth.salt + ':' + pw.value) === FILE_DATA.auth.hash) return true;
+      err.textContent = T.passwordWrong;
+      err.hidden = false;
+      pw.select();
+      return false;
+    }, 'ed-small').then(v => v === true);
+  }
+
+  // Opens edit mode: password (once per browser tab), then the auto-save question if needed.
+  let opening = false;
+  async function unlock() {
+    if (editing || opening) return;
+    opening = true;
+    try {
+      if (session.get('unlocked') !== FILE_DATA.auth.hash) {
+        if (!(await askPassword())) return;
+        session.set('unlocked', FILE_DATA.auth.hash);
+      }
+      if (olderSave) {
+        const when = new Date(olderSave.at).toLocaleString();
+        const choice = await showDialog(T.conflictTitle, [el('p', '', T.conflictBody.replace('{time}', when))], [
+          { label: T.useUploaded, value: 'uploaded' },
+          { label: T.keepSaved, value: 'keep', primary: true }
+        ]);
+        if (choice === null) return; // Escape: decide next time
+        if (choice === 'keep') { data = withDefaults(withFileAuth(olderSave.data)); trail = []; changed(); }
+        else await store.clear();
+        olderSave = null;
+      }
+      startEditing();
+    } finally { opening = false; }
+  }
+
+  // --- editing text in place ---
+  function bindPageText(on) {
+    document.querySelectorAll('[data-text]').forEach(node => {
+      if (!on) { node.removeAttribute('contenteditable'); node.oninput = node.onkeydown = node.onpaste = null; return; }
+      node.contentEditable = 'plaintext-only';
+      if (node.contentEditable !== 'plaintext-only') node.contentEditable = 'true'; // older browsers
+      const multi = node.hasAttribute('data-multiline');
+      node.oninput = () => {
+        let v = node.innerText.replace(/\n$/, '');
+        if (!multi) v = v.replace(/\s*\n\s*/g, ' ');
+        setPath(data, node.dataset.text, v);
+        updateTabTitle();
+        changed();
+      };
+      node.onkeydown = e => { if (e.key === 'Enter' && !multi) { e.preventDefault(); node.blur(); } };
+      // Paste as plain text only (no fonts, colors or links from other pages).
+      node.onpaste = e => {
+        e.preventDefault();
+        let t = (e.clipboardData || window.clipboardData).getData('text/plain');
+        if (!multi) t = t.replace(/\s*\n\s*/g, ' ');
+        document.execCommand('insertText', false, t);
+      };
+    });
+  }
+
+  // --- images ---
+  function pickImage() {
+    return new Promise(resolve => {
+      const inp = el('input');
+      inp.type = 'file';
+      inp.accept = 'image/*';
+      inp.onchange = async () => {
+        const f = inp.files[0];
+        if (!f) return resolve(null);
+        setStatus(T.statusImage);
+        try { resolve(await shrinkImage(f, 1600)); }
+        catch { setStatus(T.statusImageError); resolve(null); }
+      };
+      inp.click();
+    });
+  }
+  function readAsDataURL(file) {
+    return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+  }
+  // Photos are scaled down (about 1600px on the long side, JPEG) so the file stays small.
+  async function shrinkImage(file, max) {
+    if (file.type === 'image/svg+xml' || file.type === 'image/gif') return readAsDataURL(file);
+    const url = await readAsDataURL(file);
+    const img = new Image();
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+    const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    if (s === 1 && file.size < 300 * 1024) return url; // already small
+    const c = el('canvas');
+    c.width = Math.round(img.naturalWidth * s);
+    c.height = Math.round(img.naturalHeight * s);
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.85);
+  }
+  // Adds "Upload image" / "Remove image" under an image while editing.
+  function addImageTools(fig) {
+    const path = fig.dataset.image;
+    const empty = el('div', 'ed-ui ed-noimage', T.noImage);
+    const tools = el('div', 'ed-ui ed-image-tools');
+    tools.append(
+      edButton(T.uploadImage, async () => {
+        const url = await pickImage();
+        if (!url) return;
+        setPath(data, path + '.src', url);
+        render();
+        changed();
+      }),
+      edButton(T.removeImage, () => { setPath(data, path + '.src', ''); render(); changed(); })
+    );
+    fig.querySelector('img').after(empty, tools);
+  }
+
+  /* --- editing the story ---
+     The scene on screen is edited in place. Each choice also gets a
+     "Goes to" menu, a "Go ›" button to follow it, and a remove button. */
+  const sceneName = (s, i) => (i + 1) + '. ' + (plain(s.title) || T.untitled);
+
+  // The blue line above the scene in edit mode: which scene this is.
+  function sceneInfo(scene) {
+    const info = el('p', 'ed-ui ed-scene-info', T.editingScene + ' ' + sceneName(scene, sceneIndex(scene.id)));
+    if (scene.id === firstSceneId()) info.append(' · ' + T.badgeFirst);
+    if (!scene.choices.length) info.append(' · ' + T.badgeEnding);
+    return info;
+  }
+
+  function choiceEditor(scene, choice, ci, label) {
+    const row = el('div', 'ed-choice-row');
+    label.className = 'choice';
+    const tools = el('div', 'ed-ui ed-choice-tools');
+    const sel = el('select');
+    sel.setAttribute('aria-label', T.goesTo);
+    const add = (value, text) => { const o = el('option', '', text); o.value = value; sel.append(o); };
+    if (sceneIndex(choice.target) < 0) add('', T.nowhere);
+    data.game.scenes.forEach((s, i) => add(s.id, sceneName(s, i)));
+    add('+new', T.newScene);
+    sel.value = sceneIndex(choice.target) < 0 ? '' : choice.target;
+    sel.classList.toggle('ed-bad', sel.value === '');
+    sel.addEventListener('change', () => {
+      if (sel.value === '+new') {
+        const s = newScene('s' + Math.random().toString(36).slice(2, 8));
+        data.game.scenes.push(s);
+        choice.target = s.id;
+        render();
+        setStatus(T.statusNewScene);
+      } else {
+        choice.target = sel.value;
+        render();
+      }
+      changed();
+    });
+    const follow = edButton(T.follow, () => goToScene(choice.target));
+    follow.title = T.followTip;
+    const remove = edButton(T.removeChoice, () => { scene.choices.splice(ci, 1); render(); changed(); });
+    remove.title = T.removeChoiceTip;
+    remove.setAttribute('aria-label', T.removeChoiceTip);
+    tools.append(el('span', '', T.goesTo), sel, follow, remove);
+    row.append(label, tools);
+    return row;
+  }
+
+  // Which scenes can a player actually reach from the first scene?
+  function reachableScenes() {
+    const seen = new Set();
+    const todo = [firstSceneId()];
+    while (todo.length) {
+      const id = todo.pop();
+      const i = sceneIndex(id);
+      if (i < 0 || seen.has(id)) continue;
+      seen.add(id);
+      data.game.scenes[i].choices.forEach(c => todo.push(c.target));
+    }
+    return seen;
+  }
+
+  // "Scenes": every scene in a list, to rename, open, add or delete.
+  function showScenes() {
+    const list = el('div');
+    showDialog(T.scenesTitle, finish => {
+      function draw() {
+        const reach = reachableScenes();
+        list.replaceChildren();
+
+        const first = el('select');
+        data.game.scenes.forEach((s, i) => { const o = el('option', '', sceneName(s, i)); o.value = s.id; first.append(o); });
+        first.value = firstSceneId();
+        first.addEventListener('change', () => { data.game.start = first.value; changed(); draw(); });
+        const firstLabel = el('label', '', T.firstScene);
+        firstLabel.append(first);
+        list.append(firstLabel);
+
+        data.game.scenes.forEach((s, i) => {
+          const row = el('div', 'ed-scene-row');
+          const name = el('input');
+          name.type = 'text';
+          name.value = s.title;
+          name.setAttribute('aria-label', sceneName(s, i));
+          name.addEventListener('input', () => { s.title = name.value; changed(); });
+          const go = edButton(T.goToScene, () => { trail = [s.id]; finish('go'); });
+          const del = edButton(T.deleteScene, async () => {
+            const ok = await showDialog(T.deleteSceneTitle, [el('p', '', T.deleteSceneBody.replace('{title}', plain(s.title) || T.untitled))], [
+              { label: T.cancel, value: false },
+              { label: T.deleteScene, value: true, primary: true }
+            ]);
+            if (!ok) return;
+            data.game.scenes.splice(sceneIndex(s.id), 1);
+            if (data.game.start === s.id) data.game.start = data.game.scenes[0].id;
+            trail = trail.filter(id => id !== s.id);
+            changed();
+            draw();
+          });
+          // The first scene can't be deleted (pick another first scene first), nor the only scene.
+          del.disabled = s.id === firstSceneId() || data.game.scenes.length < 2;
+          const badges = el('div', 'ed-badges');
+          const badge = (text, warn) => badges.append(el('span', 'ed-badge' + (warn ? ' ed-warn-badge' : ''), text));
+          if (s.id === firstSceneId()) badge(T.badgeFirst);
+          if (!s.choices.length) badge(T.badgeEnding);
+          if (!reach.has(s.id)) badge(T.badgeUnreachable, true);
+          if (s.choices.some(c => sceneIndex(c.target) < 0)) badge(T.badgeBroken, true);
+          row.append(name, go, del, badges);
+          list.append(row);
+        });
+
+        list.append(edButton(T.newScene, () => {
+          data.game.scenes.push(newScene('s' + Math.random().toString(36).slice(2, 8)));
+          changed();
+          draw();
+        }));
+      }
+      draw();
+      return [el('p', '', T.scenesHelp), el('p', 'ed-hint', T.fnHint), list];
+    }, [{ label: T.close, value: 'close', primary: true }]).then(() => render());
+  }
+
+  // --- "Other text…": every text field that isn't on screen right now ---
+  // Settings rather than words: ids, where choices lead, the first scene, images, the password.
+  const NOT_TEXT_KEYS = ['auth', 'schemaVersion', 'src', 'id', 'target', 'start'];
+  function hiddenTextFields() {
+    const visible = new Set();
+    document.querySelectorAll('[data-text]').forEach(n => { if (n.getClientRects().length) visible.add(n.dataset.text); });
+    // Other scenes are reached with "Scenes" and "Go ›", so only the scene on screen is listed here.
+    const current = 'game.scenes.' + sceneIndex(trail[trail.length - 1]);
+    const fields = [];
+    (function walk(obj, prefix) {
+      Object.keys(obj).forEach(k => {
+        if (NOT_TEXT_KEYS.includes(k)) return;
+        const path = prefix ? prefix + '.' + k : k;
+        if (prefix === 'game.scenes' && path !== current) return;
+        const v = obj[k];
+        if (typeof v === 'string') { if (!visible.has(path)) fields.push(path); }
+        else if (v && typeof v === 'object') walk(v, path);
+      });
+    })(data, '');
+    return fields;
+  }
+  // "footnotesButton" -> "Footnotes button"
+  function niceName(part) {
+    if (part === 'alt') return 'Description (alt text)';
+    if (part === 'ui') return 'Buttons, headings and messages';
+    if (part === 'game') return 'This scene';
+    if (part === 'scenes' || /^\d+$/.test(part)) return '';
+    const s = part.replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase();
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  async function editOtherText() {
+    const fields = hiddenTextFields();
+    const body = [el('p', '', fields.length ? T.otherTextHelp : T.otherTextNone), el('p', 'ed-hint', T.fnHint)];
+    const boxes = [];
+    let group = null;
+    fields.forEach(path => {
+      const parts = path.split('.');
+      if (parts[0] !== group) { group = parts[0]; body.push(el('div', 'ed-group', niceName(group))); }
+      const label = el('label', '', parts.slice(1).map(niceName).filter(Boolean).join(' › ') || niceName(parts[0]));
+      const box = el('textarea');
+      box.rows = 2;
+      box.value = getPath(data, path);
+      label.append(box);
+      body.push(label);
+      boxes.push([path, box]);
+    });
+    const choice = await showDialog(T.otherTextTitle, body, [
+      { label: T.cancel, value: 'cancel' },
+      { label: T.apply, value: 'apply', primary: true }
+    ]);
+    if (choice !== 'apply') return;
+    let any = false;
+    boxes.forEach(([path, box]) => { if (getPath(data, path) !== box.value) { setPath(data, path, box.value); any = true; } });
+    if (any) { render(); changed(); }
+  }
+
+  // --- Discard changes ---
+  async function discardChanges() {
+    const choice = await showDialog(T.discardTitle, [el('p', '', T.discardBody)], [
+      { label: T.cancel, value: 'cancel' },
+      { label: T.discard, value: 'discard', primary: true }
+    ]);
+    if (choice !== 'discard') return;
+    clearTimeout(saveTimer);
+    saveTimer = 0;
+    await store.clear();
+    data = clone(FILE_DATA);
+    trail = [];
+    render();
+    setStatus(T.statusDiscarded);
+  }
+
+  // --- Save file: downloads a complete new copy of this single page ---
+  function buildHTML() {
+    const doc = new DOMParser().parseFromString(SNAPSHOT, 'text/html');
+    const out = clone(data);
+    out.auth = clone(FILE_DATA.auth);
+    // "<" is written as < so the content can never close its <script> tag.
+    const json = JSON.stringify(out, null, 2).replace(/</g, '\\u003c');
+    doc.getElementById('game-data').textContent = '\n' + json + '\n';
+    return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML + '\n';
+  }
+  function saveFile() {
+    const a = el('a');
+    a.href = URL.createObjectURL(new Blob([buildHTML()], { type: 'text/html' }));
+    a.download = 'index.html';
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    setStatus(T.statusDownloaded);
+  }
+
+  // --- turning edit mode on and off ---
+  function fitBar() {
+    const bar = $('.ed-bar');
+    document.body.style.paddingBottom = bar ? bar.offsetHeight + 16 + 'px' : '';
+  }
+  window.addEventListener('resize', fitBar);
+
+  function startEditing() {
+    editing = true;
+    session.set('editing', '1');
+    document.body.classList.add('ed-on');
+    const bar = el('div', 'ed-ui ed-bar');
+    statusEl = el('span', 'ed-status', stableJSON(data) === FILE_JSON ? T.statusStart : T.statusHasChanges);
+    bar.append(
+      statusEl,
+      edButton(T.howToEdit, showHelp),
+      edButton(T.scenes, showScenes),
+      edButton(T.otherText, editOtherText),
+      edButton(T.discard, discardChanges),
+      edButton(T.saveFile, saveFile, 'ed-primary'),
+      edButton(T.done, stopEditing)
+    );
+    document.body.append(bar);
+    document.querySelectorAll('header [data-image]').forEach(addImageTools); // scene images get theirs in renderScene()
+    render();
+    fitBar();
+    // Tell the editor right away if it can't auto-save here.
+    store.open().catch(() => setStatus(T.statusNoStorage));
+  }
+  function stopEditing() {
+    if (saveTimer) autoSaveNow();
+    editing = false;
+    session.set('editing', null);
+    if (document.activeElement) document.activeElement.blur();
+    document.body.classList.remove('ed-on');
+    document.querySelectorAll('.ed-ui').forEach(n => n.remove());
+    bindPageText(false);
+    statusEl = null;
+    fitBar();
+    render(); // footnotes turn into numbers again
+  }
+
+  /* =====================================================================
+     9. START
+     ===================================================================== */
+  render();
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'e') { e.preventDefault(); unlock(); }
+  });
+  $('#edit-link').addEventListener('click', e => { e.preventDefault(); unlock(); });
+  function fromHash() {
+    if (location.hash !== '#edit') return false;
+    try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+    unlock();
+    return true;
+  }
+  window.addEventListener('hashchange', fromHash);
+  loadAutoSave().finally(() => {
+    // Reopen edit mode after a reload if this tab was already editing.
+    if (!fromHash() && session.get('editing') && session.get('unlocked') === FILE_DATA.auth.hash) unlock();
+  });
+})();
+</script>
+</body>
+</html>
