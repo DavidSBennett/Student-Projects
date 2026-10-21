@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lewis Hine Project</title>
+<style>
+/* =====================================================================
+   GAME STYLES
+   ===================================================================== */
+:root {
+  --bg: #f3efe6;
+  --ink: #221f1b;
+  --muted: #6c655a;
+  --rule: #d9d1c1;
+  --panel: #fbf9f4;
+  --accent: #8c5a2b;
+  --accent-ink: #ffffff;
+  --node: #b0412e;
+  --node-done: #3d7a4a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 18px/1.6 Georgia, "Times New Roman", serif;
+}
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+
+.top { padding-top: 40px; padding-bottom: 20px; }
+.top h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.1; margin: 0 0 10px; font-weight: normal; }
+.top .intro { margin: 0 0 16px; color: var(--muted); max-width: 70ch; white-space: pre-line; }
+.progress { font: 15px/1.4 system-ui, sans-serif; color: var(--muted); display: flex; gap: 12px; align-items: center; margin: 0; }
+.progress button { font: inherit; background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; text-decoration: underline; }
+
+/* ----- Map ----- */
+.map { position: relative; margin: 8px 0 24px; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; user-select: none; }
+.map img { display: block; width: 100%; height: auto; }
+.node {
+  position: absolute; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: none; border: none; padding: 0; cursor: pointer; color: var(--ink);
+}
+.node .dot {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--node); border: 3px solid #fff;
+  box-shadow: 0 0 0 2px var(--node), 0 2px 6px rgba(0,0,0,.35);
+  transition: transform .15s;
+}
+.node:hover .dot, .node:focus-visible .dot { transform: scale(1.2); }
+.node.done .dot { background: var(--node-done); box-shadow: 0 0 0 2px var(--node-done), 0 2px 6px rgba(0,0,0,.35); }
+.node .label {
+  font: 600 13px/1.2 system-ui, sans-serif; white-space: nowrap;
+  background: rgba(255,255,255,.9); padding: 2px 6px; border-radius: 4px;
+}
+
+/* ----- Nodal (the pop-up story window) ----- */
+.nodal { border: none; border-radius: 10px; padding: 0; width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 48px); background: var(--panel); color: var(--ink); box-shadow: 0 12px 48px rgba(0,0,0,.4); }
+.nodal::backdrop { background: rgba(20, 16, 10, .6); }
+.nodal-inner { display: flex; flex-direction: column; max-height: calc(100vh - 48px); }
+.nodal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--rule); }
+.nodal-place { margin: 0; font: 600 13px/1.2 system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.nodal-close { background: none; border: none; font-size: 26px; line-height: 1; cursor: pointer; color: var(--muted); }
+.nodal-body { padding: 20px; overflow-y: auto; }
+.nodal-body h2 { margin: 0 0 12px; font-size: 26px; font-weight: normal; }
+.nodal-body p { margin: 0 0 1em; white-space: pre-line; }
+.nodal-body .photo { margin: 0 0 16px; }
+.nodal-body .photo img { display: block; width: 100%; max-height: 55vh; object-fit: contain; background: #e6e0d4; }
+.nodal-body .photo figcaption { font-size: 15px; margin-top: 8px; }
+.nodal-body .photo .credit { display: block; font: 12px/1.4 system-ui, sans-serif; color: var(--muted); margin-top: 4px; }
+.nodal-body.fail h2 { color: var(--node); }
+.nodal-body.reward h2 { color: var(--node-done); }
+.choices { display: grid; gap: 8px; padding: 16px 20px 20px; border-top: 1px solid var(--rule); }
+.choice {
+  text-align: left; font: 16px/1.4 Georgia, serif; cursor: pointer;
+  padding: 10px 14px; border-radius: 6px; border: 1px solid var(--rule); background: #fff; color: var(--ink);
+}
+.choice:hover, .choice:focus-visible { border-color: var(--accent); background: #fff8ef; }
+.choice.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+footer { padding: 16px 16px 40px; color: var(--muted); font: 14px/1.4 system-ui, sans-serif; display: flex; justify-content: space-between; gap: 16px; }
+.local-note { color: #9a6700; }
+.edit-link { color: var(--muted); opacity: .45; text-decoration: none; }
+.edit-link:hover { opacity: 1; }
+
+/* =====================================================================
+   EDITOR STYLES (only visible after entering the password)
+   ===================================================================== */
+body.ed-on { padding-bottom: 76px; }
+body.ed-on [data-text] { outline: 1px dashed rgba(40,110,220,.5); outline-offset: 3px; cursor: text; min-height: 1em; }
+body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,110,220,.05); }
+body.ed-on .node { cursor: grab; }
+body.ed-on .node:active { cursor: grabbing; }
+body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
+.ed-ui, .ed-ui * { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; box-sizing: border-box; }
+.ed-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 16px; background: #1d2330; color: #eef1f6; box-shadow: 0 -2px 12px rgba(0,0,0,.25); }
+.ed-bar .ed-title { font-weight: 600; }
+.ed-bar .ed-status { flex: 1; min-width: 160px; color: #aab3c2; font-size: 13px; }
+.ed-btn { appearance: none; border: 1px solid #c9ced8; background: #fff; color: #1d2330; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.ed-btn:hover { background: #eef2f9; }
+.ed-btn.ed-primary { background: #2a6edc; border-color: #2a6edc; color: #fff; }
+.ed-btn.ed-primary:hover { background: #1f5cbf; }
+.ed-btn.ed-danger { color: #b42318; border-color: #e7b4ae; }
+.ed-bar .ed-btn { border-color: #3a4357; background: #2a3242; color: #eef1f6; }
+.ed-bar .ed-btn:hover { background: #343e52; }
+.ed-bar .ed-btn.ed-primary { background: #2a6edc; border-color: #2a6edc; }
+.ed-dialog { border: none; border-radius: 10px; padding: 0; width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 32px); color: #1d2330; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+.ed-dialog.ed-small { width: min(420px, calc(100vw - 32px)); }
+.ed-dialog::backdrop { background: rgba(15,20,30,.5); }
+.ed-dialog form { padding: 20px; display: grid; gap: 14px; }
+.ed-dialog h3 { margin: 0; font-size: 18px; font-weight: 600; }
+.ed-dialog h4 { margin: 0; font-size: 15px; font-weight: 600; }
+.ed-dialog p { margin: 0; color: #4c5566; }
+.ed-dialog label { display: grid; gap: 4px; font-weight: 500; }
+.ed-dialog input[type=text], .ed-dialog input[type=password], .ed-dialog textarea, .ed-dialog select { width: 100%; padding: 7px 9px; border: 1px solid #c9ced8; border-radius: 6px; font-weight: 400; background: #fff; color: #1d2330; }
+.ed-dialog textarea { resize: vertical; min-height: 90px; }
+.ed-dialog fieldset { border: 1px solid #e1e4ea; border-radius: 8px; padding: 12px; display: grid; gap: 10px; margin: 0; }
+.ed-dialog legend { font-weight: 600; padding: 0 4px; }
+.ed-dialog .ed-section { background: #f7f8fb; }
+.ed-dialog .ed-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ed-dialog .ed-choice { display: grid; grid-template-columns: 1fr 220px auto; gap: 6px; align-items: center; }
+.ed-dialog .ed-thumb { width: 120px; height: 90px; object-fit: cover; border: 1px solid #c9ced8; border-radius: 4px; background: #eee; }
+.ed-dialog .ed-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; position: sticky; bottom: -20px; background: #fff; padding: 12px 0 0; border-top: 1px solid #e1e4ea; }
+.ed-dialog .ed-actions .ed-spacer { flex: 1; }
+.ed-dialog .ed-error { color: #b42318; }
+.ed-dialog .ed-warn { color: #9a6700; font-size: 13px; }
+@media (max-width: 600px) { .ed-dialog .ed-choice { grid-template-columns: 1fr auto; } .ed-dialog .ed-choice select { grid-column: 1 / -1; grid-row: 2; } }
+</style>
+</head>
+<body>
+
+<header class="top wrap">
+  <h1 data-text="title"></h1>
+  <p class="intro" data-text="intro" data-multiline></p>
+  <p class="progress">
+    <span><span data-text="progressLabel"></span> <span id="progress-count"></span></span>
+    <button type="button" id="reset-progress">Start over</button>
+  </p>
+</header>
+
+<main class="wrap">
+  <div class="map" id="map">
+    <img id="map-img" alt="Map of the United States">
+    <div id="nodes"></div>
+  </div>
+</main>
+
+<footer class="wrap">
+  <span data-text="footer"></span>
+  <span class="local-note" id="local-note" hidden>Showing changes auto-saved in this browser that aren&rsquo;t in the uploaded file yet.</span>
+  <a href="#edit" class="edit-link" id="edit-link">Edit</a>
+</footer>
+
+<dialog class="nodal" id="nodal">
+  <div class="nodal-inner">
+    <div class="nodal-head">
+      <p class="nodal-place" id="nodal-place"></p>
+      <button type="button" class="nodal-close" id="nodal-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="nodal-body" id="nodal-body"></div>
+    <div class="choices" id="nodal-choices"></div>
+  </div>
+</dialog>
+
+<!--
+  =====================================================================
+  GAME CONTENT
+  Everything the player reads lives in this block. The easiest way to
+  change it is in the browser: open the page, press Ctrl+Shift+E (or click
+  "Edit" at the bottom) and enter the password. Then click "Save file" to
+  download a new copy of this page with your changes inside it.
+
+  How a location ("node") works:
+    - "x" and "y" place it on the map, as a percentage of the map's width and height.
+    - "start" is the id of the first section the player sees.
+    - Each section has a title, text and choices.
+    - Each choice's "target" is the id of another section, or one of the endings:
+        "fail"    -> the "failed to take a picture" screen
+        "reward"  -> the reward screen with the photograph
+  =====================================================================
+-->
+<script type="application/json" id="game-data">
+{
+  "text": {
+    "title": "[Game title]",
+    "intro": "[Introduce the game. Who is the player, and what are they trying to do?]",
+    "progressLabel": "Photographs taken:",
+    "failTitle": "Failed to take a picture",
+    "rewardTitle": "You took the picture!",
+    "tryAgain": "Try again",
+    "backToMap": "Back to the map",
+    "footer": "[Your name and class]"
+  },
+  "mapImage": "",
+  "nodes": [
+    {
+      "id": "n1",
+      "x": 30,
+      "y": 45,
+      "label": "[Location 1]",
+      "start": "s1",
+      "sections": [
+        {
+          "id": "s1",
+          "title": "[Section 1 title]",
+          "text": "[Write what the player sees here.]",
+          "choices": [
+            { "label": "[Choice that moves on]", "target": "s2" },
+            { "label": "[Choice that fails]", "target": "fail" }
+          ]
+        },
+        {
+          "id": "s2",
+          "title": "[Section 2 title]",
+          "text": "[Write what happens next.]",
+          "choices": [
+            { "label": "[Choice that gets the photograph]", "target": "reward" },
+            { "label": "[Choice that fails]", "target": "fail" }
+          ]
+        }
+      ],
+      "fail": { "text": "[Explain why the photograph could not be taken.]" },
+      "reward": {
+        "image": "",
+        "caption": "[Photograph title and date]",
+        "credit": "[Source of the photograph]",
+        "text": "[Explain what this photograph shows.]"
+      }
+    },
+    {
+      "id": "n2",
+      "x": 68,
+      "y": 38,
+      "label": "[Location 2]",
+      "start": "s1",
+      "sections": [
+        {
+          "id": "s1",
+          "title": "[Section 1 title]",
+          "text": "[Write what the player sees here.]",
+          "choices": [
+            { "label": "[Choice that gets the photograph]", "target": "reward" },
+            { "label": "[Choice that fails]", "target": "fail" }
+          ]
+        }
+      ],
+      "fail": { "text": "[Explain why the photograph could not be taken.]" },
+      "reward": {
+        "image": "",
+        "caption": "[Photograph title and date]",
+        "credit": "[Source of the photograph]",
+        "text": "[Explain what this photograph shows.]"
+      }
+    }
+  ],
+  "auth": {
+    "salt": "6a28cecee782c120",
+    "hash": "0f701982570f5b448538be2798335e954c0dd43a61d35eea0d6d23fca6217ecc"
+  }
+}
+</script>
+
+<script>
+(() => {
+  'use strict';
+
+  // A copy of the untouched page, used as the starting point when saving.
+  const SNAPSHOT = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const PROGRESS_KEY = 'lh-progress:' + location.pathname;
+  const DRAFT_KEY = 'lh-draft:' + location.pathname;
+  const UNLOCK_KEY = 'lh-unlocked:' + location.pathname;
+  // Remembers the unlock for this browser tab only (some browsers block storage; that's fine).
+  const session = {
+    get() { try { return sessionStorage.getItem(UNLOCK_KEY); } catch { return null; } },
+    set(v) { try { v ? sessionStorage.setItem(UNLOCK_KEY, v) : sessionStorage.removeItem(UNLOCK_KEY); } catch {} }
+  };
+
+  // Rough stand-in outline, shown until a real map image is uploaded in edit mode.
+  const PLACEHOLDER_MAP = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620">' +
+    '<rect width="1000" height="620" fill="#e9e3d6"/>' +
+    '<polygon fill="#d6ccb8" stroke="#a89c85" stroke-width="3" stroke-linejoin="round" points="' +
+    '70,60 560,60 600,95 650,105 700,125 725,165 770,140 820,95 870,60 905,80 885,125 855,155 835,185 ' +
+    '825,225 805,275 790,315 765,360 745,405 725,445 750,520 738,565 705,548 680,478 640,465 585,475 ' +
+    '525,472 485,505 455,560 412,522 372,462 332,472 292,442 222,432 152,402 112,342 82,272 55,185 55,110"/>' +
+    '<text x="500" y="600" font-family="sans-serif" font-size="18" fill="#8c8270" text-anchor="middle">' +
+    'Placeholder outline. Upload a real map of the United States in edit mode.</text></svg>');
+  const NO_PHOTO = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="#e6e0d4"/>' +
+    '<text x="200" y="156" font-family="sans-serif" font-size="18" fill="#8c8270" text-anchor="middle">No photograph yet</text></svg>');
+
+  const $ = sel => document.querySelector(sel);
+  let data = JSON.parse($('#game-data').textContent);
+  let editing = false;
+  let dirty = false;
+  let currentNode = null;
+
+  /* =====================================================================
+     PLAYING THE GAME
+     ===================================================================== */
+
+  function getProgress() {
+    try { return new Set(JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]')); } catch { return new Set(); }
+  }
+  function saveProgress(set) {
+    try { localStorage.setItem(PROGRESS_KEY, JSON.stringify([...set])); } catch {}
+  }
+
+  function renderText() {
+    document.querySelectorAll('[data-text]').forEach(el => {
+      if (el !== document.activeElement) el.textContent = data.text[el.dataset.text] ?? '';
+    });
+    document.title = data.text.title || 'Lewis Hine Project';
+  }
+
+  function renderMap() {
+    $('#map-img').src = data.mapImage || PLACEHOLDER_MAP;
+    const done = getProgress();
+    const box = $('#nodes');
+    box.replaceChildren();
+    data.nodes.forEach(node => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'node' + (done.has(node.id) ? ' done' : '');
+      b.style.left = node.x + '%';
+      b.style.top = node.y + '%';
+      b.innerHTML = '<span class="dot"></span><span class="label"></span>';
+      b.querySelector('.label').textContent = node.label;
+      b.dataset.id = node.id;
+      if (editing) enableDrag(b, node);
+      else b.addEventListener('click', () => openNode(node));
+      box.append(b);
+    });
+    $('#progress-count').textContent = [...done].filter(id => data.nodes.some(n => n.id === id)).length + ' / ' + data.nodes.length;
+  }
+
+  function paragraphs(text) {
+    return String(text || '').split(/\n\s*\n/).filter(t => t.trim()).map(t => {
+      const p = document.createElement('p');
+      p.textContent = t.trim();
+      return p;
+    });
+  }
+  function heading(text) {
+    const h = document.createElement('h2');
+    h.textContent = text;
+    return h;
+  }
+  function choiceButton(label, onClick, primary) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'choice' + (primary ? ' primary' : '');
+    b.textContent = label;
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function openNode(node) {
+    currentNode = node;
+    $('#nodal-place').textContent = node.label;
+    showSection(node.start || (node.sections[0] && node.sections[0].id));
+    const dlg = $('#nodal');
+    if (!dlg.open) dlg.showModal();
+  }
+
+  function showSection(target) {
+    const node = currentNode;
+    const body = $('#nodal-body');
+    const choices = $('#nodal-choices');
+    body.className = 'nodal-body';
+    body.replaceChildren();
+    choices.replaceChildren();
+    const toMap = () => $('#nodal').close();
+
+    if (target === 'fail') {
+      body.classList.add('fail');
+      body.append(heading(data.text.failTitle), ...paragraphs(node.fail && node.fail.text));
+      choices.append(
+        choiceButton(data.text.tryAgain, () => showSection(node.start || node.sections[0].id), true),
+        choiceButton(data.text.backToMap, toMap)
+      );
+    } else if (target === 'reward') {
+      const r = node.reward || {};
+      body.classList.add('reward');
+      const fig = document.createElement('figure');
+      fig.className = 'photo';
+      const img = document.createElement('img');
+      img.src = r.image || NO_PHOTO;
+      img.alt = r.caption || '';
+      const cap = document.createElement('figcaption');
+      cap.textContent = r.caption || '';
+      const credit = document.createElement('span');
+      credit.className = 'credit';
+      credit.textContent = r.credit || '';
+      cap.append(credit);
+      fig.append(img, cap);
+      body.append(heading(data.text.rewardTitle), fig, ...paragraphs(r.text));
+      choices.append(choiceButton(data.text.backToMap, toMap, true));
+      if (!editing) {
+        const done = getProgress();
+        done.add(node.id);
+        saveProgress(done);
+        renderMap();
+      }
+    } else {
+      const s = node.sections.find(x => x.id === target);
+      if (!s) {
+        body.append(heading('This choice doesn’t lead anywhere yet.'));
+        choices.append(choiceButton(data.text.backToMap, toMap, true));
+      } else {
+        body.append(heading(s.title), ...paragraphs(s.text));
+        (s.choices || []).forEach(c => choices.append(choiceButton(c.label, () => showSection(c.target))));
+        if (!s.choices || !s.choices.length) choices.append(choiceButton(data.text.backToMap, toMap));
+      }
+    }
+    body.scrollTop = 0;
+  }
+
+  $('#nodal-close').addEventListener('click', () => $('#nodal').close());
+  $('#reset-progress').addEventListener('click', () => {
+    if (confirm('Clear your progress and start over?')) { saveProgress(new Set()); renderMap(); }
+  });
+
+  /* =====================================================================
+     EDITOR (password protected)
+     ===================================================================== */
+
+  // --- small helpers ---
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function btn(label, onClick, cls = '') {
+    const b = el('button', 'ed-btn ' + cls, label);
+    b.type = 'button';
+    b.addEventListener('click', e => { e.preventDefault(); onClick(); });
+    return b;
+  }
+  function input(value, onInput, type = 'text') {
+    const i = el('input');
+    i.type = type;
+    i.value = value ?? '';
+    i.addEventListener('input', () => onInput(i.value));
+    return i;
+  }
+  function textarea(value, onInput) {
+    const t = el('textarea');
+    t.value = value ?? '';
+    t.addEventListener('input', () => onInput(t.value));
+    return t;
+  }
+  function labelled(text, control, help) {
+    const l = el('label', '', text);
+    l.append(control);
+    if (help) l.append(el('small', 'ed-warn', help));
+    return l;
+  }
+  function newId(prefix) { return prefix + Math.random().toString(36).slice(2, 8); }
+  let statusEl = null;
+  function status(msg) { if (statusEl) statusEl.textContent = msg; }
+
+  function modal(cls) {
+    const dlg = el('dialog', 'ed-ui ed-dialog ' + (cls || ''));
+    const form = el('form');
+    form.addEventListener('submit', e => e.preventDefault());
+    dlg.append(form);
+    dlg.addEventListener('close', () => dlg.remove());
+    document.body.append(dlg);
+    return { dlg, form };
+  }
+
+  // --- password ---
+  // The password is never stored, only its SHA-256 "fingerprint". Written out in
+  // plain JavaScript so it works however the page is opened (file, http or https).
+  function sha256(text) {
+    const K = [];
+    const H = [];
+    for (let n = 2, found = 0; found < 64; n++) {
+      let prime = true;
+      for (let d = 2; d * d <= n; d++) if (n % d === 0) { prime = false; break; }
+      if (!prime) continue;
+      if (found < 8) H[found] = (Math.pow(n, 1 / 2) * 2 ** 32) | 0;
+      K[found++] = (Math.pow(n, 1 / 3) * 2 ** 32) | 0;
+    }
+    const bytes = [...new TextEncoder().encode(text)];
+    const bitLen = bytes.length * 8;
+    bytes.push(0x80);
+    while (bytes.length % 64 !== 56) bytes.push(0);
+    for (let i = 7; i >= 0; i--) bytes.push(i > 3 ? 0 : (bitLen >>> (i * 8)) & 0xff);
+    const rot = (x, n) => (x >>> n) | (x << (32 - n));
+    const W = new Array(64);
+    for (let off = 0; off < bytes.length; off += 64) {
+      for (let i = 0; i < 16; i++) W[i] = (bytes[off + i * 4] << 24) | (bytes[off + i * 4 + 1] << 16) | (bytes[off + i * 4 + 2] << 8) | bytes[off + i * 4 + 3];
+      for (let i = 16; i < 64; i++) {
+        const s0 = rot(W[i - 15], 7) ^ rot(W[i - 15], 18) ^ (W[i - 15] >>> 3);
+        const s1 = rot(W[i - 2], 17) ^ rot(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+        W[i] = (W[i - 16] + s0 + W[i - 7] + s1) | 0;
+      }
+      let [a, b, c, d, e, f, g, h] = H;
+      for (let i = 0; i < 64; i++) {
+        const t1 = (h + (rot(e, 6) ^ rot(e, 11) ^ rot(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + W[i]) | 0;
+        const t2 = ((rot(a, 2) ^ rot(a, 13) ^ rot(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      [a, b, c, d, e, f, g, h].forEach((v, i) => { H[i] = (H[i] + v) | 0; });
+    }
+    return H.map(v => (v >>> 0).toString(16).padStart(8, '0')).join('');
+  }
+
+  function askPassword() {
+    return new Promise(resolve => {
+      const { dlg, form } = modal('ed-small');
+      const pw = el('input');
+      pw.type = 'password';
+      pw.autocomplete = 'off';
+      const err = el('p', 'ed-error');
+      err.hidden = true;
+      const actions = el('div', 'ed-actions');
+      const ok = el('button', 'ed-btn ed-primary', 'Unlock');
+      ok.type = 'submit';
+      actions.append(btn('Cancel', () => dlg.close()), ok);
+      form.append(el('h3', '', 'Edit this game'), labelled('Password', pw), err, actions);
+      let passed = false;
+      form.addEventListener('submit', async () => {
+        if ((await sha256(data.auth.salt + ':' + pw.value)) === data.auth.hash) { passed = true; dlg.close(); }
+        else { err.textContent = 'That password is not correct.'; err.hidden = false; pw.select(); }
+      });
+      dlg.addEventListener('close', () => resolve(passed));
+      dlg.showModal();
+      pw.focus();
+    });
+  }
+
+  async function unlock() {
+    if (editing) return;
+    if (session.get() !== data.auth.hash) {
+      if (!(await askPassword())) return;
+      session.set(data.auth.hash);
+    }
+    if (olderSave) {
+      const when = new Date(olderSave.at).toLocaleString();
+      if (confirm('A newer version of this page was uploaded after your auto-saved changes from ' + when + '.\n\n' +
+        'OK: keep working on your auto-saved changes.\nCancel: discard them and use the uploaded version.')) useSaved(olderSave);
+      else store.clear();
+      olderSave = null;
+    }
+    startEditing();
+  }
+
+  // --- auto-save ---
+  // Every edit is saved automatically in this browser's storage (IndexedDB, which
+  // has room for photos), and loaded again automatically when the page opens.
+  // Other people only see the changes after "Save file" and uploading the new index.html.
+  const FILE_DATA = JSON.stringify(data); // the content exactly as it is in the uploaded file
+  const FILE_FP = sha256(FILE_DATA);
+  const store = {
+    db: null,
+    open() {
+      this.db ||= new Promise((res, rej) => {
+        const r = indexedDB.open('lewis-hine-game', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('autosave');
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+      return this.db;
+    },
+    async run(mode, fn) {
+      const db = await this.open();
+      return new Promise((res, rej) => {
+        const tx = db.transaction('autosave', mode);
+        const req = fn(tx.objectStore('autosave'));
+        tx.oncomplete = () => res(req && req.result);
+        tx.onerror = () => rej(tx.error);
+      });
+    },
+    get() { return this.run('readonly', s => s.get(DRAFT_KEY)).catch(() => null); },
+    set(value) { return this.run('readwrite', s => { s.put(value, DRAFT_KEY); }); },
+    clear() { return this.run('readwrite', s => { s.delete(DRAFT_KEY); }).catch(() => {}); }
+  };
+
+  let saveTimer = 0;
+  let olderSave = null; // auto-saved changes made before the uploaded file was replaced
+  function markDirty() {
+    dirty = true;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(autoSaveNow, 400);
+  }
+  async function autoSaveNow() {
+    clearTimeout(saveTimer);
+    saveTimer = 0;
+    try {
+      await store.set({ at: Date.now(), base: FILE_FP, data });
+      showLocalNote();
+      status('Auto-saved in this browser at ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) +
+        '. To update the live site, click “Save file” and upload it.');
+    } catch {
+      status('This browser can’t auto-save here. Click “Save file” so nothing is lost.');
+    }
+  }
+  function useSaved(saved) {
+    saved.data.auth = data.auth; // the password always comes from the file itself
+    data = saved.data;
+    dirty = true;
+    renderText();
+    renderMap();
+    showLocalNote();
+  }
+  async function loadAutoSave() {
+    const saved = await store.get();
+    if (!saved || !saved.data) return;
+    if (JSON.stringify(saved.data) === FILE_DATA) { store.clear(); return; } // the uploaded file already has these changes
+    if (saved.base !== FILE_FP) { olderSave = saved; return; } // the file was replaced since; ask when editing starts
+    useSaved(saved);
+  }
+  function showLocalNote() {
+    const note = $('#local-note');
+    note.hidden = JSON.stringify(data) === FILE_DATA;
+  }
+  async function discardChanges() {
+    if (!confirm('Throw away all changes that aren’t in the uploaded file, and go back to the uploaded version?')) return;
+    clearTimeout(saveTimer);
+    await store.clear();
+    data = JSON.parse(FILE_DATA);
+    dirty = false;
+    renderText();
+    renderMap();
+    showLocalNote();
+    status('Back to the uploaded version.');
+  }
+
+  // --- images ---
+  function pickImage(maxSize) {
+    return new Promise(resolve => {
+      const inp = el('input');
+      inp.type = 'file';
+      inp.accept = 'image/*';
+      inp.onchange = async () => {
+        const f = inp.files[0];
+        if (!f) return resolve(null);
+        status('Processing image…');
+        try { resolve(await shrinkImage(f, maxSize)); }
+        catch (e) { status('Could not read that image.'); resolve(null); }
+      };
+      inp.click();
+    });
+  }
+  function readAsDataURL(file) {
+    return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+  }
+  // Large photos are scaled down so the single file stays a reasonable size.
+  async function shrinkImage(file, max) {
+    if (file.type === 'image/svg+xml' || file.type === 'image/gif' || file.size < 250 * 1024) return readAsDataURL(file);
+    const bmp = await createImageBitmap(file);
+    const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = el('canvas');
+    c.width = Math.round(bmp.width * s);
+    c.height = Math.round(bmp.height * s);
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(bmp, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.85);
+  }
+
+  // --- editing page text in place ---
+  function bindPageText(on) {
+    document.querySelectorAll('[data-text]').forEach(node => {
+      if (!on) { node.removeAttribute('contenteditable'); node.oninput = node.onkeydown = node.onpaste = null; return; }
+      try { node.contentEditable = 'plaintext-only'; } catch { node.contentEditable = 'true'; }
+      node.oninput = () => { data.text[node.dataset.text] = node.innerText.replace(/\n$/, ''); markDirty(); if (node.dataset.text === 'title') document.title = data.text.title; };
+      node.onkeydown = e => { if (e.key === 'Enter' && !node.hasAttribute('data-multiline')) { e.preventDefault(); node.blur(); } };
+      node.onpaste = e => { e.preventDefault(); document.execCommand('insertText', false, e.clipboardData.getData('text/plain')); };
+    });
+  }
+
+  // --- dragging locations on the map (edit mode) ---
+  function enableDrag(b, node) {
+    b.title = 'Drag to move. Click to edit.';
+    b.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      b.setPointerCapture(e.pointerId);
+      const start = { x: e.clientX, y: e.clientY };
+      let moved = false;
+      const move = ev => {
+        if (!moved && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 4) return;
+        moved = true;
+        const r = $('#map').getBoundingClientRect();
+        node.x = Math.round(Math.min(100, Math.max(0, (ev.clientX - r.left) / r.width * 100)) * 10) / 10;
+        node.y = Math.round(Math.min(100, Math.max(0, (ev.clientY - r.top) / r.height * 100)) * 10) / 10;
+        b.style.left = node.x + '%';
+        b.style.top = node.y + '%';
+      };
+      const up = () => {
+        b.removeEventListener('pointermove', move);
+        b.removeEventListener('pointerup', up);
+        if (moved) markDirty(); else editNode(node);
+      };
+      b.addEventListener('pointermove', move);
+      b.addEventListener('pointerup', up);
+    });
+  }
+
+  // --- the location editor ---
+  function editNode(original) {
+    const w = JSON.parse(JSON.stringify(original)); // work on a copy until "Apply"
+    const { dlg, form } = modal();
+
+    function targetSelect(choice) {
+      const sel = el('select');
+      const opts = w.sections.map((s, i) => [s.id, 'Go to section ' + (i + 1) + (s.title ? ': ' + s.title : '')]);
+      opts.push(['fail', 'End: ' + data.text.failTitle], ['reward', 'End: reward screen (photograph)']);
+      if (!opts.some(o => o[0] === choice.target)) opts.unshift([choice.target, '(missing — pick a destination)']);
+      opts.forEach(([v, t]) => { const o = el('option', '', t); o.value = v; sel.append(o); });
+      sel.value = choice.target;
+      sel.addEventListener('change', () => { choice.target = sel.value; draw(); });
+      return sel;
+    }
+
+    function draw() {
+      const scroll = dlg.scrollTop;
+      form.replaceChildren();
+      form.append(el('h3', '', 'Edit location'));
+      form.append(labelled('Location name (shown on the map)', input(w.label, v => { w.label = v; })));
+
+      const startSel = el('select');
+      w.sections.forEach((s, i) => { const o = el('option', '', 'Section ' + (i + 1) + (s.title ? ': ' + s.title : '')); o.value = s.id; startSel.append(o); });
+      startSel.value = w.start;
+      startSel.addEventListener('change', () => { w.start = startSel.value; });
+      form.append(labelled('First section the player sees', startSel));
+
+      w.sections.forEach((s, i) => {
+        const fs = el('fieldset', 'ed-section');
+        fs.append(el('legend', '', 'Section ' + (i + 1)));
+        fs.append(labelled('Title', input(s.title, v => { s.title = v; })));
+        fs.append(labelled('Text (leave a blank line between paragraphs)', textarea(s.text, v => { s.text = v; })));
+        fs.append(el('h4', '', 'Choices (buttons at the bottom)'));
+        s.choices.forEach((c, ci) => {
+          const row = el('div', 'ed-choice');
+          const lab = input(c.label, v => { c.label = v; });
+          lab.placeholder = 'Button text';
+          row.append(lab, targetSelect(c), btn('✕', () => { s.choices.splice(ci, 1); draw(); }));
+          fs.append(row);
+        });
+        const row = el('div', 'ed-row');
+        row.append(btn('+ Add choice', () => { s.choices.push({ label: '[Choice]', target: 'fail' }); draw(); }));
+        if (w.sections.length > 1) row.append(btn('Remove section ' + (i + 1), () => {
+          if (!confirm('Remove section ' + (i + 1) + '? Choices that pointed to it will need a new destination.')) return;
+          w.sections.splice(i, 1);
+          if (w.start === s.id) w.start = w.sections[0].id;
+          draw();
+        }, 'ed-danger'));
+        fs.append(row);
+        form.append(fs);
+      });
+      const addRow = el('div', 'ed-row');
+      addRow.append(btn('+ Add section', () => {
+        w.sections.push({ id: newId('s'), title: '[Section title]', text: '[Section text]', choices: [] });
+        draw();
+      }));
+      form.append(addRow);
+
+      const fail = el('fieldset');
+      fail.append(el('legend', '', 'Ending: ' + data.text.failTitle));
+      fail.append(labelled('Text', textarea(w.fail.text, v => { w.fail.text = v; })));
+      form.append(fail);
+
+      const rw = el('fieldset');
+      rw.append(el('legend', '', 'Ending: reward screen'));
+      const thumb = el('img', 'ed-thumb');
+      thumb.src = w.reward.image || NO_PHOTO;
+      const imgRow = el('div', 'ed-row');
+      imgRow.append(thumb, btn(w.reward.image ? 'Replace photograph' : 'Upload photograph', async () => {
+        const url = await pickImage(1600);
+        if (url) { w.reward.image = url; draw(); status('Photograph added. Click Apply to keep it.'); }
+      }));
+      if (w.reward.image) imgRow.append(btn('Remove', () => { w.reward.image = ''; draw(); }, 'ed-danger'));
+      rw.append(imgRow);
+      rw.append(labelled('Photograph caption', input(w.reward.caption, v => { w.reward.caption = v; })));
+      rw.append(labelled('Photograph credit / source', input(w.reward.credit, v => { w.reward.credit = v; })));
+      rw.append(labelled('Text', textarea(w.reward.text, v => { w.reward.text = v; })));
+      form.append(rw);
+
+      const actions = el('div', 'ed-actions');
+      actions.append(
+        btn('Delete location', () => {
+          if (!confirm('Delete “' + original.label + '” and everything in it?')) return;
+          data.nodes = data.nodes.filter(n => n !== original);
+          dlg.close(); renderMap(); markDirty();
+        }, 'ed-danger'),
+        el('span', 'ed-spacer'),
+        btn('Cancel', () => dlg.close()),
+        btn('Preview', () => openNode(w)),
+        btn('Apply', () => {
+          Object.assign(original, w);
+          dlg.close(); renderMap(); markDirty();
+          status('Location updated. Click “Save file” to keep your changes.');
+        }, 'ed-primary')
+      );
+      form.append(actions);
+      dlg.scrollTop = scroll;
+    }
+
+    draw();
+    dlg.showModal();
+  }
+
+  function addNode() {
+    const node = {
+      id: newId('n'), x: 50, y: 50, label: '[New location]', start: 's1',
+      sections: [{ id: 's1', title: '[Section 1 title]', text: '[Section text]', choices: [
+        { label: '[Choice that gets the photograph]', target: 'reward' },
+        { label: '[Choice that fails]', target: 'fail' }
+      ] }],
+      fail: { text: '[Explain why the photograph could not be taken.]' },
+      reward: { image: '', caption: '[Photograph title and date]', credit: '[Source of the photograph]', text: '[Explain what this photograph shows.]' }
+    };
+    data.nodes.push(node);
+    renderMap();
+    markDirty();
+    editNode(node);
+  }
+
+  // --- wording used inside the pop-up (not visible on the page itself) ---
+  function editGameText() {
+    const t = { ...data.text };
+    const { dlg, form } = modal('ed-small');
+    form.append(el('h3', '', 'Pop-up wording'));
+    [['failTitle', 'Heading when the photo fails'], ['rewardTitle', 'Heading on the reward screen'],
+     ['tryAgain', '“Try again” button'], ['backToMap', '“Back to the map” button']]
+      .forEach(([k, label]) => form.append(labelled(label, input(t[k], v => { t[k] = v; }))));
+    const actions = el('div', 'ed-actions');
+    actions.append(btn('Cancel', () => dlg.close()), btn('Apply', () => {
+      Object.assign(data.text, t); dlg.close(); markDirty();
+    }, 'ed-primary'));
+    form.append(actions);
+    dlg.showModal();
+  }
+
+  async function changeMap() {
+    const url = await pickImage(2400);
+    if (!url) return;
+    data.mapImage = url;
+    renderMap();
+    markDirty();
+    status('Map replaced. Drag the locations to where they belong.');
+  }
+
+  // --- saving: downloads a complete new copy of this single file ---
+  function buildHTML() {
+    const doc = new DOMParser().parseFromString(SNAPSHOT, 'text/html');
+    const json = JSON.stringify(data, null, 2).replace(/</g, '\\u003c');
+    doc.getElementById('game-data').textContent = '\n' + json + '\n';
+    return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML + '\n';
+  }
+  function saveFile() {
+    const a = el('a');
+    a.href = URL.createObjectURL(new Blob([buildHTML()], { type: 'text/html' }));
+    a.download = 'index.html';
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    dirty = false;
+    status('Downloaded index.html. Upload it to your webspace (replacing the old one) to update the live site.');
+  }
+
+  let bar = null;
+  function startEditing() {
+    editing = true;
+    document.body.classList.add('ed-on');
+    bar = el('div', 'ed-ui ed-bar');
+    statusEl = el('span', 'ed-status', dirty
+      ? 'Your auto-saved changes are loaded. Every edit is saved in this browser automatically.'
+      : 'Click outlined text to edit it. Drag locations to move them, or click one to edit it. Edits auto-save in this browser.');
+    bar.append(
+      el('span', 'ed-title', 'Editing'), statusEl,
+      btn('+ Add location', addNode),
+      btn('Map image', changeMap),
+      btn('Pop-up wording', editGameText),
+      btn('Discard changes', discardChanges),
+      btn('Save file', saveFile, 'ed-primary'),
+      btn('Done', stopEditing)
+    );
+    document.body.append(bar);
+    renderText();
+    bindPageText(true);
+    renderMap();
+  }
+  function stopEditing() {
+    if (saveTimer) autoSaveNow();
+    editing = false;
+    document.body.classList.remove('ed-on');
+    document.querySelectorAll('.ed-ui').forEach(n => n.remove());
+    bindPageText(false);
+    session.set(null);
+    bar = statusEl = null;
+    renderText();
+    renderMap();
+  }
+
+  /* =====================================================================
+     START
+     ===================================================================== */
+  renderText();
+  renderMap();
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'e') { e.preventDefault(); unlock(); }
+  });
+  $('#edit-link').addEventListener('click', e => { e.preventDefault(); unlock(); });
+  const fromHash = () => {
+    if (location.hash === '#edit') { history.replaceState(null, '', location.pathname + location.search); unlock(); }
+  };
+  window.addEventListener('hashchange', fromHash);
+  // Save right away if the page is closed in the middle of an edit.
+  window.addEventListener('pagehide', () => { if (saveTimer) autoSaveNow(); });
+  loadAutoSave().finally(() => {
+    if (session.get() === data.auth.hash) unlock(); else fromHash();
+  });
+})();
+</script>
+</body>
+</html>
