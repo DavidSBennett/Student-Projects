@@ -154,6 +154,31 @@ h2 { font-size: 1.3rem; margin: 0 0 0.6em; font-family: var(--font-ui); }
 /* Ending screen */
 .ending-title { font-size: 1.4rem; margin: 0.2em 0; }
 
+/* ---------- Footnotes ---------- */
+.fn-ref { font: 700 0.65em/0 var(--font-ui); color: var(--accent); padding: 0 1px; cursor: pointer; }
+.fn-ref:hover { text-decoration: underline; }
+button .fn-ref, a .fn-ref { color: inherit; cursor: inherit; }
+button .fn-ref:hover, a .fn-ref:hover { text-decoration: none; }
+.fn-bar { display: flex; justify-content: flex-end; margin-bottom: 0.4rem; }
+.fn-bar:empty { display: none; }
+.fn-btn {
+  font: 600 0.8rem var(--font-ui); padding: 0.25rem 0.7rem; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer;
+}
+.fn-btn:hover { color: var(--accent); border-color: var(--accent); }
+.page-fn { margin-top: 0.6rem; }
+.fn-dialog {
+  width: min(32rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--text); padding: 1.2rem;
+}
+.fn-dialog::backdrop { background: var(--overlay-bg); }
+.fn-dialog h2 { margin-top: 0; }
+.fn-dialog ol { padding-left: 1.6em; margin: 0; display: grid; gap: 0.4rem; }
+.fn-dialog li { overflow-wrap: anywhere; padding: 0.2rem 0.4rem; border-radius: 4px; }
+.fn-dialog li.current { background: #fff3c4; outline: 2px solid #e0b400; }
+.fn-dialog .fn-close { margin-top: 1rem; }
+
 /* ---------- Footer ---------- */
 .site-footer {
   color: var(--muted);
@@ -265,6 +290,15 @@ body.is-editing [data-image-box]::after {
 .ge-row > input { flex: 1 1 4.5rem; width: auto; }
 .ge-thumb { display: block; max-width: 12rem; max-height: 8rem; border-radius: 4px; margin: 0.3rem 0; }
 .ge-top { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.game-editor .ge-hint, .ed-dialog .ge-hint { color: var(--text); background: #fff8ec; border-left: 3px solid var(--edit-outline); padding: 0.3rem 0.6rem; }
+.ed-dialog button.ed-link { border: 0; background: none; color: var(--accent); text-decoration: underline; padding: 0.4rem 0; }
+
+/* "How to edit" help */
+.ed-help h3 { margin: 1rem 0 0.3rem; font-size: 1rem; }
+.ed-help ol, .ed-help ul { margin: 0; padding-left: 1.4em; display: grid; gap: 0.25rem; }
+.ed-help p { margin: 0.3rem 0; }
+.ed-help code { font: 0.85rem/1.4 ui-monospace, Consolas, monospace; background: #f1f3f7; border: 1px solid #e1e4ea; border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+.ed-help .ed-example { display: block; margin: 0.3rem 0; padding: 0.3rem 0.5rem; }
 </style>
 </head>
 <body>
@@ -328,6 +362,10 @@ body.is-editing [data-image-box]::after {
        Conditions look like { "kind": "age" / "stat" / "person" / "background" /
                         "choice", "ref": id, "op": ..., "value": number }
 
+     Footnotes: in ANY text, type {{fn: your citation}} right where the note
+     belongs, e.g.  A sentence that needs a source.{{fn: Author, Title, Year, page}}
+     The game shows a small number there, and a "Footnotes" button lists them.
+
      You do not need to edit this by hand: open the editor (the faint "Edit"
      link at the bottom of the page), make changes, then use "Save file".
      ===================================================================== -->
@@ -376,7 +414,10 @@ body.is-editing [data-image-box]::after {
     "relationship": "[Relationship]",
     "endingHeading": "[The end]",
     "finalStats": "[Final stats]",
-    "playAgain": "[Play again]"
+    "playAgain": "[Play again]",
+    "footnotesButton": "[Footnotes]",
+    "footnotesTitle": "[Footnotes]",
+    "footnotesBack": "[Back]"
   },
   "images": {
     "header": { "src": "", "alt": "[Header image description]" }
@@ -464,7 +505,13 @@ body.is-editing [data-image-box]::after {
      only swaps in new game data, so no editor bits can leak into it.
      ------------------------------------------------------------------- */
   const ORIGINAL_PAGE = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-  const FILE_DATA = JSON.parse(document.getElementById('game-data').textContent);
+
+  // Wording added in later versions of the game. Merged in when loading,
+  // so older saved files that don't have these keys still work.
+  const DEFAULT_UI = { footnotesButton: '[Footnotes]', footnotesTitle: '[Footnotes]', footnotesBack: '[Back]' };
+  function withDefaults(d) { d.ui = Object.assign({}, DEFAULT_UI, d.ui); return d; }
+
+  const FILE_DATA = withDefaults(JSON.parse(document.getElementById('game-data').textContent));
   let data = clone(FILE_DATA);              // the data currently shown (may include edits)
 
   // A key unique to this page's location, so copies of the game in different
@@ -498,6 +545,11 @@ body.is-editing [data-image-box]::after {
     statusNoStorage: 'This browser is blocking storage, so changes are NOT auto-saved. Use "Save file" before leaving.',
     statusDownloaded: 'Downloaded index.html. Upload it to the website to replace the old file.',
     statusImageError: 'That file could not be read as an image.',
+    howToEdit: 'How to edit',
+    howToEditLink: 'How to edit this game',
+    helpTitle: 'How to edit this game',
+    close: 'Close',
+    fnHint: 'Footnotes: in any box, type {{fn: your citation}} right where the note belongs. Example: A sentence that needs a source.{{fn: Author, Title, Year, page}}',
 
     // The game editor
     game: {
@@ -643,6 +695,98 @@ body.is-editing [data-image-box]::after {
   function newId(prefix) { return prefix + Math.random().toString(36).slice(2, 8); }
 
   /* -------------------------------------------------------------------
+     FOOTNOTES
+     In any text, {{fn: citation}} becomes a small number, and the citation
+     is added to the list for that screen. Each screen (a game step, a pop-up,
+     or the page header + footer) keeps its own list, numbered 1, 2, 3...
+     In edit mode the raw {{fn: ...}} text is shown instead, so it can be edited.
+     ------------------------------------------------------------------- */
+  const NOTE_RE = /\{\{\s*fn\s*:\s*([\s\S]*?)\s*\}\}/gi;
+
+  // Text with each {{fn: ...}} swapped for a numbered superscript.
+  // The citations are added to `notes` (an array) in reading order.
+  function withNotes(text, notes) {
+    const frag = document.createDocumentFragment();
+    const str = String(text == null ? '' : text);
+    let last = 0;
+    for (const m of str.matchAll(NOTE_RE)) {
+      frag.append(str.slice(last, m.index));
+      notes.push(m[1]);
+      const sup = el('sup', { class: 'fn-ref', 'data-note': String(notes.length), title: 'Footnote ' + notes.length }, String(notes.length));
+      sup._notes = notes;               // which list this number belongs to
+      frag.append(sup);
+      last = m.index + m[0].length;
+    }
+    frag.append(str.slice(last));
+    return frag;
+  }
+
+  // Text with the footnotes removed, for places that can't show them
+  // (browser tab title, image descriptions, screen-reader labels).
+  function stripNotes(text) { return String(text == null ? '' : text).replace(NOTE_RE, '').trim(); }
+
+  // Put text into an element: raw while editing, with footnote numbers otherwise.
+  function showText(node, text, notes) {
+    if (editing || !notes) node.textContent = text == null ? '' : String(text);
+    else node.replaceChildren(withNotes(text, notes));
+    return node;
+  }
+
+  // A citation, with web addresses turned into links that open in a new tab.
+  function citation(text) {
+    const frag = document.createDocumentFragment();
+    String(text).split(/(https?:\/\/[^\s<>"]+)/).forEach((part, i) => {
+      if (i % 2 === 0) { frag.append(part); return; }
+      const a = el('a', { href: part, target: '_blank', rel: 'noopener' }, part);
+      frag.append(a);
+    });
+    return frag;
+  }
+
+  // The "Footnotes (n)" button for a screen. Returns an empty bar if there are none.
+  function notesBar(notes) {
+    const bar = el('div', { class: 'fn-bar' });
+    if (notes.length && !editing) {
+      const b = el('button', { type: 'button', class: 'fn-btn' }, stripNotes(uiText('footnotesButton')) + ' (' + notes.length + ')');
+      b.addEventListener('click', () => openNotes(notes));
+      bar.appendChild(b);
+    }
+    return bar;
+  }
+
+  // The footnotes list, shown on top of the current screen.
+  // `current` (optional) is the number to highlight.
+  function openNotes(notes, current) {
+    const dlg = el('dialog', { class: 'fn-dialog', 'aria-label': stripNotes(uiText('footnotesTitle')) });
+    const list = el('ol');
+    notes.forEach((n, i) => {
+      const li = el('li');
+      li.append(citation(n));
+      if (i + 1 === Number(current)) li.className = 'current';
+      list.appendChild(li);
+    });
+    const back = el('button', { type: 'button', class: 'game-btn primary fn-close' }, stripNotes(uiText('footnotesBack')));
+    const close = () => { if (dlg.open) dlg.close(); dlg.remove(); };
+    back.addEventListener('click', close);
+    dlg.addEventListener('cancel', e => { e.preventDefault(); close(); });
+    dlg.append(el('h2', {}, stripNotes(uiText('footnotesTitle'))), list, back);
+    document.body.appendChild(dlg);
+    dlg.showModal();
+    const cur = list.querySelector('.current');
+    if (cur) cur.scrollIntoView({ block: 'center' });
+    else back.focus();
+  }
+
+  // Clicking a footnote number in body text opens the list with that note highlighted.
+  // (Numbers inside buttons and links don't, so the button still does its job.)
+  document.addEventListener('click', e => {
+    if (editing) return;
+    const ref = e.target.closest && e.target.closest('.fn-ref');
+    if (!ref || !ref._notes || ref.closest('button, a')) return;
+    openNotes(ref._notes, ref.dataset.note);
+  });
+
+  /* -------------------------------------------------------------------
      3. SHA-256
      Written out in plain JavaScript (instead of crypto.subtle) so it also
      works when the file is opened from disk or over plain http.
@@ -709,20 +853,15 @@ body.is-editing [data-image-box]::after {
   let editing = false;
 
   function render() {
-    if (data.ui && data.ui.browserTabTitle) document.title = data.ui.browserTabTitle;
+    if (data.ui && data.ui.browserTabTitle) document.title = stripNotes(data.ui.browserTabTitle);
 
-    // Text: fill every element marked data-text or data-label.
-    document.querySelectorAll('[data-text], [data-label]').forEach(node => {
-      if (editing && node === document.activeElement) return; // don't disturb typing
-      const value = getPath(data, node.dataset.text || node.dataset.label);
-      node.textContent = value == null ? '' : String(value);
-    });
+    renderPageText();
 
     // Images: fill every <img data-image="name"> from data.images.name.
     document.querySelectorAll('img[data-image]').forEach(img => {
       const info = (data.images || {})[img.dataset.image] || {};
       if (info.src) img.src = info.src; else img.removeAttribute('src');
-      img.alt = info.alt || '';
+      img.alt = stripNotes(info.alt);
       const box = img.closest('[data-image-box]');
       if (box) box.hidden = !info.src && !editing;   // empty images only show while editing
     });
@@ -730,9 +869,29 @@ body.is-editing [data-image-box]::after {
     renderGame();
   }
 
+  // The page header and footer: their text, and their own "Footnotes" button.
+  let pageNotesBar = null;
+  function renderPageText() {
+    const pageNotes = [];
+    document.querySelectorAll('[data-text], [data-label]').forEach(node => {
+      if (node.closest('#game-root')) return;                 // the game draws its own text
+      if (editing && node === document.activeElement) return; // don't disturb typing
+      const value = getPath(data, node.dataset.text || node.dataset.label);
+      // Hidden text (e.g. the footer note) doesn't get numbers in the list.
+      showText(node, value, node.hidden ? [] : pageNotes);
+    });
+    const bar = notesBar(pageNotes);
+    bar.classList.add('page-fn');
+    if (pageNotesBar) pageNotesBar.replaceWith(bar);
+    else document.querySelector('.site-header').appendChild(bar);
+    pageNotesBar = bar;
+  }
+
   // Footer note: shown when the page has changes that aren't in the uploaded file.
   function updateLocalNote() {
-    document.getElementById('local-note').hidden = sameAsFile(data);
+    const note = document.getElementById('local-note');
+    const hide = sameAsFile(data);
+    if (note.hidden !== hide) { note.hidden = hide; renderPageText(); }
   }
 
   /* -------------------------------------------------------------------
@@ -947,15 +1106,22 @@ body.is-editing [data-image-box]::after {
   let setupDraft = { name: '', background: '' };
   let lastPopupKey = '';         // so we only move keyboard focus when a new pop-up opens
 
-  // An element showing editable text from the data, e.g. textEl('h3', 'ui.setupHeading').
-  function textEl(tag, path, attrs) {
+  // Every function below that builds a screen is given `notes`: the footnote
+  // list for that screen. Text added with textEl / rich / gameButton puts its
+  // footnotes into that list, in reading order.
+
+  // An element showing editable text from the data, e.g. textEl('h3', 'ui.setupHeading', notes).
+  function textEl(tag, path, notes, attrs) {
     const node = el(tag, Object.assign({ 'data-text': path }, attrs || {}));
-    const value = getPath(data, path);
-    node.textContent = value == null ? '' : String(value);
-    return node;
+    return showText(node, getPath(data, path), notes);
   }
-  function gameButton(label, onClick, cls) {
-    const b = el('button', { type: 'button', class: 'game-btn' + (cls ? ' ' + cls : '') }, label);
+  // An element showing any text (not editable in place), with footnotes.
+  function rich(tag, text, notes, attrs) {
+    return showText(el(tag, attrs || {}), text, notes);
+  }
+  function gameButton(label, onClick, cls, notes) {
+    const b = el('button', { type: 'button', class: 'game-btn' + (cls ? ' ' + cls : '') });
+    showText(b, label, notes);
     b.addEventListener('click', onClick);
     return b;
   }
@@ -964,12 +1130,16 @@ body.is-editing [data-image-box]::after {
     const root = document.getElementById('game-root');
     if (!root || !data.game) return;
     const life = getLife();
+    const notes = [];      // footnotes on the main game screen
     root.replaceChildren();
     let popup = null;
-    if (!life) root.appendChild(setupScreen());
-    else if (life.ending) root.appendChild(endingScreen(life));
-    else {
-      root.appendChild(lifeScreen(life));
+    let screen;
+    if (!life) screen = setupScreen(notes);
+    else if (life.ending) screen = endingScreen(life, notes);
+    else screen = lifeScreen(life, notes);
+    screen.prepend(notesBar(notes));
+    root.appendChild(screen);
+    if (life && !life.ending) {
       popup = popupFor(life);
       if (popup) root.appendChild(popup.node);
     }
@@ -978,7 +1148,7 @@ body.is-editing [data-image-box]::after {
     // Move keyboard focus into a pop-up when a new one opens.
     const key = popup ? popup.key : '';
     if (popup && key !== lastPopupKey && !editing) {
-      const first = popup.node.querySelector('button');
+      const first = popup.node.querySelector('.card-buttons button');
       if (first) first.focus({ preventScroll: true });
       popup.node.querySelector('.game-card').scrollIntoView({ block: 'nearest' });
     }
@@ -988,32 +1158,32 @@ body.is-editing [data-image-box]::after {
   }
 
   // --- Screen 1: character setup ---
-  function setupScreen() {
+  function setupScreen(notes) {
     const wrap = el('div', { class: 'game-setup' });
     const backgrounds = game().backgrounds || [];
     if (!byId(backgrounds, setupDraft.background)) setupDraft.background = backgrounds.length ? backgrounds[0].id : '';
 
-    wrap.appendChild(textEl('h3', 'ui.setupHeading'));
+    wrap.appendChild(textEl('h3', 'ui.setupHeading', notes));
     // (A <div> rather than a <label>, so the label text can be edited in place.)
-    wrap.appendChild(textEl('div', 'ui.nameLabel', { id: 'game-name-label' }));
+    wrap.appendChild(textEl('div', 'ui.nameLabel', notes, { id: 'game-name-label' }));
     const row = el('div', { class: 'name-row' });
     const input = el('input', { id: 'game-name', type: 'text', maxlength: '60', autocomplete: 'off', 'aria-labelledby': 'game-name-label' });
     input.value = setupDraft.name;
     input.addEventListener('input', () => { setupDraft.name = input.value; });
     row.appendChild(input);
-    row.appendChild(gameButton(uiText('randomName'), () => { input.value = setupDraft.name = randomName(); }));
+    row.appendChild(gameButton(uiText('randomName'), () => { input.value = setupDraft.name = randomName(); }, '', notes));
     wrap.appendChild(row);
 
     if (backgrounds.length) {
-      wrap.appendChild(textEl('h3', 'ui.backgroundHeading'));
+      wrap.appendChild(textEl('h3', 'ui.backgroundHeading', notes));
       const list = el('div', { class: 'bg-list', role: 'radiogroup' });
       backgrounds.forEach((b, i) => {
         const card = el('div', { class: 'bg-card' + (b.id === setupDraft.background ? ' selected' : '') });
-        const radio = el('input', { type: 'radio', name: 'game-background', 'aria-label': b.name });
+        const radio = el('input', { type: 'radio', name: 'game-background', 'aria-label': stripNotes(b.name) });
         radio.checked = b.id === setupDraft.background;
         const text = el('div');
-        text.appendChild(textEl('strong', 'game.backgrounds.' + i + '.name'));
-        text.appendChild(textEl('p', 'game.backgrounds.' + i + '.description', { 'data-multiline': '' }));
+        text.appendChild(textEl('strong', 'game.backgrounds.' + i + '.name', notes));
+        text.appendChild(textEl('p', 'game.backgrounds.' + i + '.description', notes, { 'data-multiline': '' }));
         card.append(radio, text);
         card.addEventListener('click', () => {
           setupDraft.background = b.id;
@@ -1032,7 +1202,7 @@ body.is-editing [data-image-box]::after {
       setupDraft.name = '';
       setLife(newLife(name, setupDraft.background, 0));
       renderGame();
-    }, 'primary setup-start');
+    }, 'primary setup-start', notes);
     wrap.appendChild(start);
     return wrap;
   }
@@ -1043,45 +1213,49 @@ body.is-editing [data-image-box]::after {
   }
 
   // --- Screen 2: living a life ---
-  function lifeScreen(life) {
-    const wrap = el('div', { class: 'life' });
-
+  // The top line: name, age and background.
+  function lifeTop(life, notes) {
     const top = el('div', { class: 'life-top' });
-    top.appendChild(el('span', { class: 'who' }, life.name));
-    top.appendChild(el('span', { class: 'age' }, uiText('ageLabel', { age: life.age })));
+    top.appendChild(rich('span', life.name, notes, { class: 'who' }));
+    top.appendChild(rich('span', uiText('ageLabel', { age: life.age }), notes, { class: 'age' }));
     const background = byId(game().backgrounds, life.background);
-    if (background) top.appendChild(el('span', { class: 'bg' }, background.name));
-    wrap.appendChild(top);
+    if (background) top.appendChild(rich('span', background.name, notes, { class: 'bg' }));
+    return top;
+  }
 
-    wrap.appendChild(textEl('h4', 'ui.statsHeading'));
-    wrap.appendChild(statBars(life));
+  function lifeScreen(life, notes) {
+    const wrap = el('div', { class: 'life' });
+    wrap.appendChild(lifeTop(life, notes));
 
-    wrap.appendChild(textEl('h4', 'ui.logHeading'));
-    wrap.appendChild(logList(life));
+    wrap.appendChild(textEl('h4', 'ui.statsHeading', notes));
+    wrap.appendChild(statBars(life, notes));
+
+    wrap.appendChild(textEl('h4', 'ui.logHeading', notes));
+    wrap.appendChild(logList(life, notes));
 
     const actions = el('div', { class: 'actions' });
-    actions.appendChild(gameButton(uiText('ageUp'), ageUp, 'primary age-up'));
-    actions.appendChild(gameButton(uiText('activities'), () => { openPanel = 'activities'; renderGame(); }));
-    actions.appendChild(gameButton(uiText('people'), () => { openPanel = 'people'; renderGame(); }));
-    actions.appendChild(gameButton(uiText('startOver'), () => { openPanel = 'startOver'; renderGame(); }, 'quiet'));
+    actions.appendChild(gameButton(uiText('ageUp'), ageUp, 'primary age-up', notes));
+    actions.appendChild(gameButton(uiText('activities'), () => { openPanel = 'activities'; renderGame(); }, '', notes));
+    actions.appendChild(gameButton(uiText('people'), () => { openPanel = 'people'; renderGame(); }, '', notes));
+    actions.appendChild(gameButton(uiText('startOver'), () => { openPanel = 'startOver'; renderGame(); }, 'quiet', notes));
     wrap.appendChild(actions);
     return wrap;
   }
 
   function bar(value, label) {
-    const outer = el('div', { class: 'bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(value), 'aria-label': label });
+    const outer = el('div', { class: 'bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(value), 'aria-label': stripNotes(label) });
     const inner = el('div', { class: 'fill' + (value < 20 ? ' low' : '') });
     inner.style.width = value + '%';
     outer.appendChild(inner);
     return outer;
   }
 
-  function statBars(life) {
+  function statBars(life, notes) {
     const list = el('div', { class: 'stats' });
     game().stats.forEach((s, i) => {
       const row = el('div', { class: 'stat' });
       const value = statValue(life, s.id);
-      row.appendChild(textEl('span', 'game.stats.' + i + '.name', { class: 'name' }));
+      row.appendChild(textEl('span', 'game.stats.' + i + '.name', notes, { class: 'name' }));
       row.appendChild(bar(value, s.name));
       row.appendChild(el('span', { class: 'value' }, value));
       list.appendChild(row);
@@ -1089,43 +1263,44 @@ body.is-editing [data-image-box]::after {
     return list;
   }
 
-  function logList(life) {
+  function logList(life, notes) {
     const box = el('div', { class: 'log-box' });
     const list = el('ol', { class: 'log' });
     let lastAge = null;
     life.log.forEach(entry => {
       if (entry.age !== lastAge) {
-        list.appendChild(el('li', { class: 'log-age' }, uiText('ageLabel', { age: entry.age })));
+        list.appendChild(rich('li', uiText('ageLabel', { age: entry.age }), notes, { class: 'log-age' }));
         lastAge = entry.age;
       }
-      list.appendChild(el('li', { class: 'log-entry' }, entry.text));
+      list.appendChild(rich('li', entry.text, notes, { class: 'log-entry' }));
     });
     box.appendChild(list);
     return box;
   }
 
-  function peopleList(life) {
+  function peopleList(life, notes) {
     const wrap = el('div');
     const met = game().people.filter(p => life.met.includes(p.id));
-    if (!met.length) wrap.appendChild(textEl('p', 'ui.noPeople', { class: 'muted' }));
+    if (!met.length) wrap.appendChild(textEl('p', 'ui.noPeople', notes, { class: 'muted' }));
     met.forEach(p => {
       const i = game().people.indexOf(p);
       const item = el('div', { class: 'person' });
       const head = el('div');
-      head.appendChild(textEl('strong', 'game.people.' + i + '.name'));
-      head.appendChild(textEl('span', 'game.people.' + i + '.role', { class: 'role' }));
+      head.appendChild(textEl('strong', 'game.people.' + i + '.name', notes));
+      head.appendChild(textEl('span', 'game.people.' + i + '.role', notes, { class: 'role' }));
       item.appendChild(head);
-      item.appendChild(textEl('p', 'game.people.' + i + '.description', { 'data-multiline': '' }));
+      item.appendChild(textEl('p', 'game.people.' + i + '.description', notes, { 'data-multiline': '' }));
       item.appendChild(bar(personValue(life, p.id), uiText('relationship')));
       wrap.appendChild(item);
     });
     return wrap;
   }
 
-  // A pop-up card over the game. Returns { node, key }.
-  function popup(key, content, buttons) {
+  // A pop-up card over the game, with its own footnotes. Returns { node, key }.
+  function popup(key, content, buttons, notes) {
     const overlay = el('div', { class: 'game-overlay' });
     const card = el('div', { class: 'game-card', role: 'dialog', 'aria-modal': 'true' });
+    card.appendChild(notesBar(notes));
     content.forEach(n => card.appendChild(n));
     const row = el('div', { class: 'card-buttons' });
     buttons.forEach(b => row.appendChild(b));
@@ -1136,12 +1311,12 @@ body.is-editing [data-image-box]::after {
 
   // Which pop-up (if any) should show right now.
   function popupFor(life) {
+    const notes = [];      // each pop-up has its own footnotes
+
     // 1. What happened after a choice or activity.
     if (life.result) {
-      return popup('result' + life.log.length, [
-        el('h3', {}, life.result.title),
-        el('p', {}, life.result.text)
-      ], [gameButton(uiText('continue'), closeResult, 'primary')]);
+      const content = [rich('h3', life.result.title, notes), rich('p', life.result.text, notes)];
+      return popup('result' + life.log.length, content, [gameButton(uiText('continue'), closeResult, 'primary', notes)], notes);
     }
 
     // 2. The next event this year.
@@ -1149,65 +1324,64 @@ body.is-editing [data-image-box]::after {
       const event = byId(game().events, life.pending[0]);
       if (!event) { life.pending.shift(); continue; }   // event was deleted in the editor
       const i = game().events.indexOf(event);
-      const content = [textEl('h3', 'game.events.' + i + '.title')];
-      if (event.image && event.image.src) content.push(el('img', { class: 'event-image', src: event.image.src, alt: event.image.alt || '' }));
-      content.push(textEl('p', 'game.events.' + i + '.text', { 'data-multiline': '' }));
+      const content = [textEl('h3', 'game.events.' + i + '.title', notes)];
+      if (event.image && event.image.src) content.push(el('img', { class: 'event-image', src: event.image.src, alt: stripNotes(event.image.alt) }));
+      content.push(textEl('p', 'game.events.' + i + '.text', notes, { 'data-multiline': '' }));
       const choices = (event.choices || []).filter(c => conditionsMet(life, c.conditions));
       const buttons = choices.length
-        ? choices.map(c => gameButton(c.label, () => choose(event.id, c.id)))
-        : [gameButton(uiText('continue'), () => choose(event.id, null), 'primary')];
-      return popup('event' + event.id, content, buttons);
+        ? choices.map(c => gameButton(c.label, () => choose(event.id, c.id), '', notes))
+        : [gameButton(uiText('continue'), () => choose(event.id, null), 'primary', notes)];
+      return popup('event' + event.id, content, buttons, notes);
     }
 
     // 3. A panel the player opened.
-    const close = gameButton(uiText('close'), () => { openPanel = null; renderGame(); });
+    const close = () => gameButton(uiText('close'), () => { openPanel = null; renderGame(); }, '', notes);
     if (openPanel === 'activities') {
-      const content = [textEl('h3', 'ui.activitiesHeading')];
+      const content = [textEl('h3', 'ui.activitiesHeading', notes)];
       const buttons = [];
       const list = availableActivities(life);
-      if (activityLimitReached(life)) content.push(textEl('p', 'ui.activityLimitReached', { class: 'muted' }));
-      else if (!list.length) content.push(textEl('p', 'ui.noActivities', { class: 'muted' }));
-      else list.forEach(a => buttons.push(gameButton(a.name, () => doActivity(a.id))));
-      buttons.push(close);
-      return popup('activities', content, buttons);
+      if (activityLimitReached(life)) content.push(textEl('p', 'ui.activityLimitReached', notes, { class: 'muted' }));
+      else if (!list.length) content.push(textEl('p', 'ui.noActivities', notes, { class: 'muted' }));
+      else list.forEach(a => buttons.push(gameButton(a.name, () => doActivity(a.id), '', notes)));
+      buttons.push(close());
+      return popup('activities', content, buttons, notes);
     }
     if (openPanel === 'people') {
-      return popup('people', [textEl('h3', 'ui.peopleHeading'), peopleList(life)], [close]);
+      const content = [textEl('h3', 'ui.peopleHeading', notes), peopleList(life, notes)];
+      return popup('people', content, [close()], notes);
     }
     if (openPanel === 'startOver') {
-      return popup('startOver', [textEl('p', 'ui.startOverQuestion')], [
-        gameButton(uiText('yes'), () => { openPanel = null; setLife(null); renderGame(); }, 'primary'),
-        gameButton(uiText('no'), () => { openPanel = null; renderGame(); })
-      ]);
+      const content = [textEl('p', 'ui.startOverQuestion', notes)];
+      return popup('startOver', content, [
+        gameButton(uiText('yes'), () => { openPanel = null; setLife(null); renderGame(); }, 'primary', notes),
+        gameButton(uiText('no'), () => { openPanel = null; renderGame(); }, '', notes)
+      ], notes);
     }
     return null;
   }
 
   // --- Screen 3: the end of a life ---
-  function endingScreen(life) {
+  function endingScreen(life, notes) {
     const wrap = el('div', { class: 'ending' });
-    wrap.appendChild(textEl('h3', 'ui.endingHeading'));
-    const top = el('div', { class: 'life-top' });
-    top.appendChild(el('span', { class: 'who' }, life.name));
-    top.appendChild(el('span', { class: 'age' }, uiText('ageLabel', { age: life.age })));
-    wrap.appendChild(top);
+    wrap.appendChild(textEl('h3', 'ui.endingHeading', notes));
+    wrap.appendChild(lifeTop(life, notes));
 
     const ending = byId(game().endings, life.ending);
     if (ending) {
       const i = game().endings.indexOf(ending);
-      wrap.appendChild(textEl('p', 'game.endings.' + i + '.title', { class: 'ending-title' }));
-      wrap.appendChild(textEl('p', 'game.endings.' + i + '.text', { 'data-multiline': '' }));
+      wrap.appendChild(textEl('p', 'game.endings.' + i + '.title', notes, { class: 'ending-title' }));
+      wrap.appendChild(textEl('p', 'game.endings.' + i + '.text', notes, { 'data-multiline': '' }));
     }
 
-    wrap.appendChild(textEl('h4', 'ui.finalStats'));
-    wrap.appendChild(statBars(life));
-    wrap.appendChild(textEl('h4', 'ui.peopleHeading'));
-    wrap.appendChild(peopleList(life));
-    wrap.appendChild(textEl('h4', 'ui.logHeading'));
-    wrap.appendChild(logList(life));
+    wrap.appendChild(textEl('h4', 'ui.finalStats', notes));
+    wrap.appendChild(statBars(life, notes));
+    wrap.appendChild(textEl('h4', 'ui.peopleHeading', notes));
+    wrap.appendChild(peopleList(life, notes));
+    wrap.appendChild(textEl('h4', 'ui.logHeading', notes));
+    wrap.appendChild(logList(life, notes));
 
     const actions = el('div', { class: 'actions' });
-    actions.appendChild(gameButton(uiText('playAgain'), () => { setLife(null); renderGame(); }, 'primary'));
+    actions.appendChild(gameButton(uiText('playAgain'), () => { setLife(null); renderGame(); }, 'primary', notes));
     wrap.appendChild(actions);
     return wrap;
   }
@@ -1308,7 +1482,7 @@ body.is-editing [data-image-box]::after {
 
   // Use an auto-save's data (the password check always comes from the file).
   function useSaved(saved) {
-    data = withFileAuth(saved.data);
+    data = withDefaults(withFileAuth(saved.data));
     refreshAll();
   }
 
@@ -1398,13 +1572,117 @@ body.is-editing [data-image-box]::after {
     });
   }
 
+  /* --- "How to edit" instructions for students ---
+     This is editor help, not game content, so it lives here in the code.
+     IMPORTANT: whenever the editor changes (new buttons, fields or game
+     parts), update these steps in the same change so they always match
+     what students see. Button names in <b> must match the real buttons. */
+  const HELP_HTML = `
+    <h3>1. Getting started</h3>
+    <ol>
+      <li>Click the faint <b>Edit</b> link at the very bottom of the page.</li>
+      <li>Type the password your teacher gives you and click <b>Unlock</b>.</li>
+      <li>A dark bar appears at the bottom of the screen. That means you're in edit mode.</li>
+    </ol>
+
+    <h3>2. Editing text on the page</h3>
+    <ol>
+      <li>Click any text with a dotted orange outline and type. This works for the title, the introduction,
+        headings, and text inside the game (like the words on an event).</li>
+      <li>For text that isn't on the screen right now (button words, messages, picture descriptions),
+        click <b>Other text…</b> in the dark bar, change the boxes, then click <b>Apply</b>.</li>
+      <li>Words in {curly brackets}, like <code>{age}</code>, are filled in by the game. Leave them as they are.</li>
+      <li>To add a picture at the top of the page, click the dotted box above the title and pick an image.</li>
+    </ol>
+
+    <h3>3. Editing the game</h3>
+    <p>Scroll down to the <b>Game editor</b> box under the game. Click a section name to open it.</p>
+    <ol>
+      <li><b>Settings:</b> the maximum age, the chance of a random event each year, how many activities
+        a player can do each year, and (if you want) a stat that ends the life when it reaches 0.</li>
+      <li><b>Stats:</b> the bars, like a score from 0 to 100. Type a name and a starting value.
+        Click <b>Add stat</b> for another one.</li>
+      <li><b>Character setup:</b> type names for the random name button, one per line. Then fill in each
+        background (name and description). Click <b>Add background</b> for another one.</li>
+      <li><b>People:</b> the characters in the player's life. Fill in name, role, description, starting
+        relationship, and the age they come into the life. Click <b>Add person</b> for another one.</li>
+      <li><b>Events:</b> click an event to open it.
+        <ol>
+          <li>Pick the <b>Type</b>: <b>Fixed</b> (always happens at one exact age) or
+            <b>Random</b> (may happen between two ages).</li>
+          <li>Type the age (or the <b>From age</b> and <b>To age</b>), the <b>Title</b>, and <b>What happens</b>.</li>
+          <li>To add a picture, click <b>Upload image</b>, then describe the picture in the box below it.
+            <b>Remove image</b> takes it away.</li>
+          <li>Under <b>Choices</b>, type the <b>Button text</b> and <b>What happens after this choice</b>.
+            Click <b>Add choice</b> for more (up to 4).</li>
+          <li>Click <b>Add event</b> at the bottom of the list to make a new event.</li>
+        </ol></li>
+      <li><b>Activities:</b> things the player can choose to do in a year. Fill in the name, what happens,
+        and the ages. Click <b>Add activity</b> for another one.</li>
+      <li><b>Endings:</b> the game checks endings from top to bottom and shows the first one that matches.
+        Keep one at the bottom with no conditions. Click <b>Add ending</b> for another one.</li>
+    </ol>
+    <p>Many items also have:</p>
+    <ul>
+      <li><b>Effects:</b> click <b>Add effect</b>, pick the stat or relationship that changes, and type how much
+        (for example 5, or -5 to lower it).</li>
+      <li><b>Conditions:</b> click <b>Add condition</b> to make something happen only sometimes, for example
+        only if a stat is at least 50, or only if the player picked an earlier choice.</li>
+      <li>The <b>↑</b> and <b>↓</b> buttons move an item up or down. The <b>✕</b> button deletes it
+        (it asks first).</li>
+    </ul>
+    <p><b>Testing:</b> while you edit, you can play the game above. It's only a test and doesn't change
+      anyone's saved game. Click <b>Preview from an age…</b>, choose an age and stats, then click
+      <b>Start preview</b> to jump straight there. <b>Restart test run</b> starts over.</p>
+
+    <h3>4. Adding footnotes</h3>
+    <p>You can add a footnote to <b>any</b> text in the game.</p>
+    <ol>
+      <li>Click right after the sentence that needs a source.</li>
+      <li>Type two curly brackets, the letters <code>fn</code>, a colon, your citation, and two closing curly brackets:
+        <code class="ed-example">A sentence that needs a source.{{fn: Author, Title, Year, page}}</code></li>
+      <li>When you play the game, a small number appears there instead.</li>
+      <li>A <b>Footnotes</b> button appears at the top of that screen. Click it, or click the small number,
+        to see all the citations.</li>
+    </ol>
+    <ul>
+      <li>In edit mode you'll see the <code>{{fn: ...}}</code> code. That's normal. It turns into a number when you click <b>Done</b>.</li>
+      <li>A web address that starts with <code>https://</code> becomes a clickable link.</li>
+      <li>Every footnote needs <code>{{</code> at the start and <code>}}</code> at the end, or it won't work.</li>
+    </ul>
+
+    <h3>5. Saving your work</h3>
+    <ol>
+      <li>Your work saves automatically, but only in this browser on this computer.</li>
+      <li>When you're finished, click <b>Save file</b>. A file called <b>index.html</b> downloads.</li>
+      <li><b>Turn in that index.html file</b> the way your teacher tells you. That's the only way your work
+        gets onto the real website.</li>
+      <li>Click <b>Done</b> to leave edit mode.</li>
+    </ol>
+
+    <h3>6. Tips</h3>
+    <ul>
+      <li>Replace everything in <b>[square brackets]</b> with your own research.</li>
+      <li>Cite your sources with footnotes, and give the source for every image.</li>
+      <li>If you make a mistake you can't fix, ask your teacher before you click <b>Discard changes</b>.
+        It erases everything back to the last uploaded version.</li>
+    </ul>`;
+
+  function showHelp() {
+    const content = el('div', { class: 'ed-help' });
+    content.innerHTML = HELP_HTML;   // fixed text written above, never student text
+    showDialog(EDITOR_TEXT.helpTitle, [content], [{ label: EDITOR_TEXT.close, value: 'close', primary: true }]);
+  }
+
   // Ask for the password. Resolves true if it's right.
   async function askPassword() {
     const input = el('input', { type: 'password', id: 'ed-password', autocomplete: 'current-password' });
     const error = el('p', { class: 'error', role: 'alert' });
     const label = el('label', { for: 'ed-password' }, EDITOR_TEXT.passwordLabel);
+    const help = el('button', { type: 'button', class: 'ed-link' }, EDITOR_TEXT.howToEditLink);
+    help.addEventListener('click', showHelp);
     let ok = false;
-    const shown = showDialog(EDITOR_TEXT.passwordTitle, [label, input, error], [
+    const shown = showDialog(EDITOR_TEXT.passwordTitle, [label, input, error, help], [
       { label: EDITOR_TEXT.cancel, value: 'cancel' },
       { label: EDITOR_TEXT.unlock, value: 'unlock', primary: true }
     ], () => {
@@ -1461,6 +1739,7 @@ body.is-editing [data-image-box]::after {
     editBar = el('div', { class: 'edit-bar', role: 'region', 'aria-label': 'Editor' });
     statusEl = el('span', { class: 'status', 'aria-live': 'polite' });
     const buttons = [
+      [EDITOR_TEXT.howToEdit, showHelp],
       [EDITOR_TEXT.otherText, editOtherText],
       [EDITOR_TEXT.discard, discardChanges],
       [EDITOR_TEXT.saveFile, saveFile],
@@ -1605,7 +1884,7 @@ body.is-editing [data-image-box]::after {
 
   async function editOtherText() {
     const fields = hiddenTextFields();
-    const body = [el('p', {}, EDITOR_TEXT.otherTextHelp)];
+    const body = [el('p', {}, EDITOR_TEXT.otherTextHelp), el('p', { class: 'ge-hint' }, EDITOR_TEXT.fnHint)];
     const inputs = [];
     let group = null;
     fields.forEach((f, i) => {
@@ -1715,6 +1994,7 @@ body.is-editing [data-image-box]::after {
     gameEditorEl.replaceChildren(
       el('h2', {}, GT.heading),
       el('p', {}, GT.intro),
+      el('p', { class: 'ge-hint' }, EDITOR_TEXT.fnHint),
       top,
       section('settings', GT.settings, settingsPanel),
       section('stats', GT.stats, statsPanel),
