@@ -140,6 +140,13 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
 .ed-dialog .ed-actions .ed-spacer { flex: 1; }
 .ed-dialog .ed-error { color: #b42318; }
 .ed-dialog .ed-warn { color: #9a6700; font-size: 13px; }
+.ed-help h4 { margin: 10px 0 0; font-size: 16px; }
+.ed-help ol, .ed-help ul { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }
+.ed-help li { color: #2c3443; }
+.ed-help b { font-weight: 700; }
+.ed-help code { font: 13px/1.4 ui-monospace, Consolas, monospace; background: #f1f3f7; border: 1px solid #e1e4ea; border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+.ed-help .ed-example { display: block; margin: 4px 0; padding: 6px 8px; }
+.ed-link { background: none; border: none; padding: 0; color: #2a6edc; cursor: pointer; text-decoration: underline; justify-self: start; }
 @media (max-width: 600px) { .ed-dialog .ed-choice { grid-template-columns: 1fr auto; } .ed-dialog .ed-choice select { grid-column: 1 / -1; grid-row: 2; } }
 </style>
 </head>
@@ -633,6 +640,84 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     return H.map(v => (v >>> 0).toString(16).padStart(8, '0')).join('');
   }
 
+  // --- "How to edit" instructions for students ---
+  const HELP_HTML = `
+    <h3>How to edit this game</h3>
+
+    <h4>Getting started</h4>
+    <ol>
+      <li>Click <b>Edit</b> in the bottom-right corner of the page.</li>
+      <li>Type the password your teacher gives you and click <b>Unlock</b>.</li>
+      <li>A dark bar appears at the bottom of the screen. That means you're in edit mode.</li>
+    </ol>
+
+    <h4>Changing the title and introduction</h4>
+    <ul><li>Click any text with a dotted outline around it and type.</li></ul>
+
+    <h4>Editing a location on the map</h4>
+    <ul>
+      <li><b>To move a location:</b> drag its dot to a new spot on the map.</li>
+      <li><b>To change what happens there:</b> click the dot. A form opens.</li>
+    </ul>
+    <p>In the form:</p>
+    <ol>
+      <li><b>Location name:</b> the name shown on the map.</li>
+      <li><b>Sections:</b> the parts of the story. Give each one a <b>title</b> and <b>text</b>
+        (leave a blank line between paragraphs), then add <b>choices</b>. Choices are the buttons the
+        player clicks. Type the button text, then pick where it goes: another section,
+        <b>Failed to take a picture</b>, or the <b>reward screen</b>.</li>
+      <li>Click <b>+ Add section</b> or <b>+ Add choice</b> if you need more.</li>
+      <li><b>Failed to take a picture:</b> explain why the photograph wasn't taken.</li>
+      <li><b>Reward screen:</b> click <b>Upload photograph</b>, then fill in the caption, the credit/source,
+        and what the photograph shows.</li>
+      <li>Click <b>Preview</b> to play your location and test it.</li>
+      <li>Click <b>Apply</b> when you're done.</li>
+    </ol>
+
+    <h4>Adding footnotes</h4>
+    <p>You can add a footnote to <b>any</b> text in the game.</p>
+    <ol>
+      <li>Click right after the sentence that needs a source.</li>
+      <li>Type two curly brackets, the letters <code>fn</code>, a colon, your citation, and two closing curly brackets:
+        <code class="ed-example">A sentence that needs a source.{{fn: Author, Title, Year, page}}</code></li>
+      <li>When you play the game, a small number appears there instead.</li>
+      <li>A <b>Footnotes</b> button appears at the top of that screen. Click it, or click the small number,
+        to see all the citations.</li>
+    </ol>
+    <ul>
+      <li>In edit mode you'll see the <code>{{fn: ...}}</code> code. That's normal. It turns into a number when you click <b>Done</b>.</li>
+      <li>A web address that starts with <code>https://</code> becomes a clickable link.</li>
+      <li>Every footnote needs <code>{{</code> at the start and <code>}}</code> at the end, or it won't work.</li>
+    </ul>
+
+    <h4>Adding a new location</h4>
+    <ul><li>Click <b>+ Add location</b> in the bottom bar. A new dot appears in the middle of the map. Drag it to the right place.</li></ul>
+
+    <h4>Saving your work</h4>
+    <ul>
+      <li>Your work saves automatically in this browser, on this computer.</li>
+      <li>When you're finished, click <b>Save file</b>. A file called <b>index.html</b> downloads.</li>
+      <li><b>Turn in that index.html file</b> the way your teacher tells you. That's the only way your work gets onto the real website.</li>
+    </ul>
+
+    <h4>Tips</h4>
+    <ul>
+      <li>Replace everything in <b>[square brackets]</b> with your own research.</li>
+      <li>Cite your sources with footnotes, and always give the source for every photograph.</li>
+      <li>If you make a mistake you can't fix, ask your teacher before you click <b>Discard changes</b>.
+        It erases everything back to the last uploaded version.</li>
+    </ul>`;
+
+  function showHelp() {
+    const { dlg, form } = modal('ed-help');
+    form.insertAdjacentHTML('beforeend', HELP_HTML);
+    const actions = el('div', 'ed-actions');
+    actions.append(btn('Close', () => dlg.close(), 'ed-primary'));
+    form.append(actions);
+    dlg.showModal();
+    dlg.scrollTop = 0;
+  }
+
   function askPassword() {
     return new Promise(resolve => {
       const { dlg, form } = modal('ed-small');
@@ -645,7 +730,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
       const ok = el('button', 'ed-btn ed-primary', 'Unlock');
       ok.type = 'submit';
       actions.append(btn('Cancel', () => dlg.close()), ok);
-      form.append(el('h3', '', 'Edit this game'), labelled('Password', pw), err, actions);
+      form.append(el('h3', '', 'Edit this game'), labelled('Password', pw), err, btn('How to edit this game', showHelp, 'ed-link'), actions);
       let passed = false;
       form.addEventListener('submit', async () => {
         if ((await sha256(data.auth.salt + ':' + pw.value)) === data.auth.hash) { passed = true; dlg.close(); }
@@ -1005,6 +1090,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
       btn('+ Add location', addNode),
       btn('Map image', changeMap),
       btn('Pop-up wording', editGameText),
+      btn('How to edit', showHelp),
       btn('Discard changes', discardChanges),
       btn('Save file', saveFile, 'ed-primary'),
       btn('Done', stopEditing)
