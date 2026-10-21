@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Northern Factory Work</title>
+<style>
+/* =====================================================================
+   GAME STYLES
+   Change the colors and fonts here to restyle the whole page.
+   ===================================================================== */
+:root {
+  --bg: #f4f1ea;          /* page background */
+  --ink: #23211d;         /* main text */
+  --muted: #6b665c;       /* quieter text (footer, captions) */
+  --rule: #d8d1c3;        /* thin lines and borders */
+  --panel: #fbfaf6;       /* boxes and pop-ups */
+  --accent: #7a4b22;      /* links, buttons, footnote numbers */
+  --accent-ink: #ffffff;  /* text on accent-colored buttons */
+  --highlight: #fff0d6;   /* the footnote you clicked */
+  --font-body: Georgia, "Times New Roman", serif;
+  --font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --width: 960px;         /* widest the page gets */
+
+  /* The game box: dark and muted. Each part of the day has its own background. */
+  --game-ink: #ece6da;
+  --game-muted: #b5ad9e;
+  --game-card: rgba(255,255,255,.06);
+  --game-line: rgba(255,255,255,.16);
+  --game-start: #34322e;
+  --game-day: #3b3934;
+  --game-evening: #2e2c34;
+  --game-night: #1c1b21;
+  --game-button: #e6dccb;
+  --game-button-ink: #23211d;
+  --game-note: #f0c48a;     /* footnote numbers inside the game */
+  --state-0: #9cbf8f;       /* best step of a need */
+  --state-1: #dcc77c;
+  --state-2: #e09a62;
+  --state-3: #d0604f;       /* worst step of a need */
+  --photo-filter: grayscale(1) contrast(1.05); /* how pictures look inside the game */
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 18px/1.6 var(--font-body);
+  overflow-wrap: break-word;
+}
+.wrap { max-width: var(--width); margin: 0 auto; padding: 0 16px; }
+img { max-width: 100%; }
+
+/* ----- Header ----- */
+.top { padding-top: 32px; padding-bottom: 16px; }
+.top h1 { font-size: clamp(28px, 6vw, 44px); line-height: 1.15; margin: 0 0 12px; font-weight: normal; }
+.top .intro { margin: 0; color: var(--muted); max-width: 70ch; white-space: pre-line; }
+.header-image { margin: 0 0 20px; }
+.header-image img { display: block; width: 100%; max-height: 50vh; object-fit: contain; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; }
+.header-image figcaption { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+/* ----- Game area ----- */
+.game-area {
+  margin: 16px 0 32px; padding: 20px; min-height: 240px; border-radius: 8px;
+  background: var(--game-start); color: var(--game-ink);
+  transition: background .4s;
+}
+.game-area.phase-day { background: var(--game-day); }
+.game-area.phase-evening { background: var(--game-evening); }
+.game-area.phase-night, .game-area.phase-result, .game-area.phase-morning { background: var(--game-night); }
+.game-area h2 { margin: 0 0 6px; font-size: clamp(24px, 5vw, 32px); font-weight: normal; }
+.game-area h3 { margin: 18px 0 8px; font-size: 20px; font-weight: normal; }
+.game-area p { margin: 0 0 .8em; white-space: pre-line; }
+.game-area .help { color: var(--game-muted); }
+.game-area .fn-ref { color: var(--game-note); }
+.game-area .notes-btn { background: transparent; color: var(--game-note); border-color: var(--game-line); margin-top: 12px; }
+.game-status { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; font: 14px/1.4 var(--font-ui); color: var(--game-muted); border-bottom: 1px solid var(--game-line); padding-bottom: 10px; margin-bottom: 16px; }
+.game-status .day { color: var(--game-ink); font-weight: 600; }
+.supplies { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+.supply { background: var(--game-card); border: 1px solid var(--game-line); border-radius: 4px; padding: 2px 8px; color: var(--game-ink); }
+.supply b { font-weight: 700; }
+.family { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin: 12px 0 16px; }
+.member { background: var(--game-card); border: 1px solid var(--game-line); border-radius: 6px; padding: 12px; font: 15px/1.4 var(--font-ui); display: flex; flex-direction: column; gap: 8px; }
+.member.lost { opacity: .55; }
+.member img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 4px; filter: var(--photo-filter); }
+.member h4 { margin: 0; font: 19px/1.25 var(--font-body); }
+.member .about { color: var(--game-muted); margin: 0; white-space: pre-line; }
+.needs { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; align-items: center; }
+.needs dt { color: var(--game-muted); }
+.needs dd { margin: 0; justify-self: start; padding: 0 6px; border-radius: 3px; color: #1d1b18; font-weight: 600; }
+.sev-0 { background: var(--state-0); } .sev-1 { background: var(--state-1); } .sev-2 { background: var(--state-2); } .sev-3 { background: var(--state-3); }
+.member select { width: 100%; font: 15px/1.3 var(--font-ui); padding: 6px; border-radius: 4px; border: 1px solid var(--game-line); background: #f6f2ea; color: #23211d; }
+.hint { font: 13px/1.4 var(--font-ui); color: var(--game-muted); margin: 0; }
+.checks { display: grid; gap: 6px; }
+.check { display: flex; gap: 8px; align-items: flex-start; font: 15px/1.4 var(--font-ui); cursor: pointer; }
+.check input { margin-top: 3px; }
+.check .hint { display: block; }
+.check.disabled { opacity: .5; cursor: default; }
+.household { background: var(--game-card); border: 1px solid var(--game-line); border-radius: 6px; padding: 12px; margin-bottom: 16px; }
+.game-lines { margin: 0 0 16px; padding-left: 1.2em; font: 15px/1.5 var(--font-ui); color: var(--game-muted); }
+.game-photo { margin: 0 0 14px; }
+.game-photo img { display: block; width: 100%; max-height: 50vh; object-fit: contain; filter: var(--photo-filter); border-radius: 4px; }
+.game-photo figcaption { font: 13px/1.4 var(--font-ui); color: var(--game-muted); margin-top: 6px; }
+.game-actions { display: grid; gap: 8px; margin-top: 12px; }
+.game-btn {
+  text-align: left; font: 17px/1.35 var(--font-body); cursor: pointer;
+  padding: 10px 14px; border-radius: 6px; border: 1px solid var(--game-line); background: transparent; color: var(--game-ink);
+}
+.game-btn:hover:not(:disabled), .game-btn:focus-visible { border-color: var(--game-button); }
+.game-btn.primary { background: var(--game-button); color: var(--game-button-ink); border-color: var(--game-button); text-align: center; justify-self: start; min-width: 160px; }
+.game-btn:disabled { opacity: .45; cursor: default; }
+.game-btn .hint { display: block; margin-top: 2px; }
+.game-error { color: #ffb4a6; font: 15px/1.4 var(--font-ui); }
+
+/* ----- Footnotes ----- */
+.fn-ref { font: 700 .65em/0 var(--font-ui); color: var(--accent); padding: 0 1px; cursor: pointer; }
+.fn-ref:hover { text-decoration: underline; }
+button .fn-ref, a .fn-ref, label .fn-ref { color: inherit; cursor: inherit; }
+button .fn-ref:hover, a .fn-ref:hover, label .fn-ref:hover { text-decoration: none; }
+.notes-btn {
+  font: 600 13px/1 var(--font-ui); cursor: pointer;
+  padding: 6px 10px; border-radius: 6px; border: 1px solid var(--rule); background: #fff; color: var(--accent);
+}
+.notes-btn:hover { border-color: var(--accent); }
+.popup { border: none; border-radius: 10px; padding: 0; width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 48px); background: var(--panel); color: var(--ink); box-shadow: 0 12px 48px rgba(0,0,0,.4); }
+.popup::backdrop { background: rgba(20, 16, 10, .6); }
+.popup-inner { display: flex; flex-direction: column; max-height: calc(100vh - 48px); }
+.popup-body { padding: 20px; overflow-y: auto; }
+.popup-body h2 { margin: 0 0 12px; font-size: 24px; font-weight: normal; }
+.popup-actions { padding: 14px 20px 18px; border-top: 1px solid var(--rule); display: flex; justify-content: flex-end; }
+.popup-actions button { font: 16px/1.3 var(--font-body); cursor: pointer; padding: 9px 16px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.notes-list { margin: 0; padding: 0 0 0 1.6em; font-size: 16px; }
+.notes-list li { margin: 0 0 .6em; padding: 4px 8px; border-radius: 4px; white-space: pre-line; overflow-wrap: anywhere; }
+.notes-list li.current { background: var(--highlight); }
+.notes-list a { color: var(--accent); }
+
+/* ----- Footer ----- */
+footer { padding-top: 16px; padding-bottom: 40px; color: var(--muted); font: 14px/1.4 var(--font-ui); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; border-top: 1px solid var(--rule); }
+footer .author { margin-right: auto; }
+.local-note { color: #9a6700; flex-basis: 100%; order: 3; }
+.edit-link { color: var(--muted); opacity: .4; text-decoration: none; }
+.edit-link:hover, .edit-link:focus-visible { opacity: 1; }
+
+/* =====================================================================
+   EDITOR STYLES (only used after someone clicks Edit)
+   ===================================================================== */
+body.ed-on { padding-bottom: 170px; }
+body.ed-on [data-text] { outline: 1px dashed rgba(40,110,220,.6); outline-offset: 3px; cursor: text; min-height: 1em; min-width: 2em; white-space: pre-wrap; }
+body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,110,220,.05); }
+.ed-ui, .ed-ui * { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; box-sizing: border-box; }
+.ed-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 16px; background: #1d2330; color: #eef1f6; box-shadow: 0 -2px 12px rgba(0,0,0,.25); }
+.ed-bar .ed-status { flex: 1 1 220px; color: #aab3c2; font-size: 13px; }
+.ed-btn { appearance: none; border: 1px solid #c9ced8; background: #fff; color: #1d2330; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.ed-btn:hover { background: #eef2f9; }
+.ed-btn.ed-primary { background: #2a6edc; border-color: #2a6edc; color: #fff; }
+.ed-btn.ed-primary:hover { background: #1f5cbf; }
+.ed-btn.ed-danger { color: #b42318; border-color: #e7b4ae; }
+.ed-bar .ed-btn { border-color: #3a4357; background: #2a3242; color: #eef1f6; }
+.ed-bar .ed-btn:hover { background: #343e52; }
+.ed-bar .ed-btn.ed-primary { background: #2a6edc; border-color: #2a6edc; }
+.ed-image-tools { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.ed-game-panel { display: grid; gap: 10px; justify-items: start; color: var(--game-ink); }
+.ed-game-panel p { margin: 0; }
+.ed-dialog { border: none; border-radius: 10px; padding: 0; width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 32px); color: #1d2330; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+.ed-dialog.ed-small { width: min(420px, calc(100vw - 32px)); }
+.ed-dialog.ed-wide { width: min(860px, calc(100vw - 32px)); }
+.ed-dialog::backdrop { background: rgba(15,20,30,.5); }
+.ed-dialog form { padding: 20px; display: grid; gap: 14px; }
+.ed-dialog h3 { margin: 0; font-size: 18px; font-weight: 600; }
+.ed-dialog h4 { margin: 0; font-size: 15px; font-weight: 600; }
+.ed-dialog p { margin: 0; color: #4c5566; white-space: pre-line; }
+.ed-dialog label { display: grid; gap: 4px; font-weight: 500; }
+.ed-dialog label.ed-check { display: flex; align-items: center; gap: 8px; }
+.ed-dialog input[type=text], .ed-dialog input[type=password], .ed-dialog input[type=number], .ed-dialog textarea, .ed-dialog select { width: 100%; padding: 7px 9px; border: 1px solid #c9ced8; border-radius: 6px; font-weight: 400; background: #fff; color: #1d2330; }
+.ed-dialog textarea { resize: vertical; min-height: 70px; }
+.ed-dialog fieldset { border: 1px solid #e1e4ea; border-radius: 8px; padding: 12px; display: grid; gap: 10px; margin: 0; min-width: 0; }
+.ed-dialog fieldset fieldset { background: #f7f8fb; }
+.ed-dialog legend { font-weight: 600; padding: 0 4px; }
+.ed-dialog .ed-hint { background: #f4f6fa; border: 1px solid #e1e4ea; border-radius: 6px; padding: 8px 10px; font-size: 13px; overflow-wrap: anywhere; }
+.ed-dialog .ed-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.ed-dialog .ed-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ed-dialog .ed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.ed-dialog .ed-grid label { font-weight: 400; font-size: 13px; }
+.ed-dialog .ed-thumb { width: 120px; height: 90px; object-fit: cover; border: 1px solid #c9ced8; border-radius: 4px; background: #eee; }
+.ed-dialog .ed-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; position: sticky; bottom: -20px; background: #fff; padding: 12px 0 0; border-top: 1px solid #e1e4ea; }
+.ed-dialog .ed-error { color: #b42318; }
+.ed-help h4 { margin: 10px 0 0; font-size: 16px; }
+.ed-help ol, .ed-help ul { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }
+.ed-help li { color: #2c3443; }
+.ed-help b { font-weight: 700; }
+.ed-help code { font: 13px/1.4 ui-monospace, Consolas, monospace; background: #f1f3f7; border: 1px solid #e1e4ea; border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+.ed-help .ed-example { display: block; margin: 4px 0; padding: 6px 8px; }
+.ed-link { background: none; border: none; padding: 0; color: #2a6edc; cursor: pointer; text-decoration: underline; justify-self: start; }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER: optional image, title and introduction ===== -->
+<header class="top wrap" data-group="page">
+  <figure class="header-image" data-image="images.header">
+    <img alt="">
+    <figcaption data-text="images.header.caption"></figcaption>
+  </figure>
+  <h1 data-text="page.title"></h1>
+  <p class="intro" data-text="page.intro" data-multiline></p>
+</header>
+
+<!-- ===== GAME AREA: the game draws each screen inside #game-screen ===== -->
+<main class="wrap">
+  <section class="game-area" id="game-area" data-group="game" aria-live="polite">
+    <div id="game-screen"></div>
+    <button type="button" class="notes-btn" data-notes-for="game" hidden></button>
+  </section>
+</main>
+
+<!-- ===== FOOTER: author line, footnotes for the header and footer, and the Edit link ===== -->
+<footer class="wrap" data-group="page">
+  <span class="author" data-text="page.footer"></span>
+  <button type="button" class="notes-btn" data-notes-for="page" hidden></button>
+  <a href="#edit" class="edit-link" id="edit-link"></a>
+  <span class="local-note" id="local-note" hidden></span>
+</footer>
+
+<!-- ===== FOOTNOTES POP-UP (opens on top of whatever screen is showing) ===== -->
+<dialog class="popup" id="notes">
+  <div class="popup-inner">
+    <div class="popup-body">
+      <h2 id="notes-title"></h2>
+      <ol class="notes-list" id="notes-list"></ol>
+    </div>
+    <div class="popup-actions"><button type="button" id="notes-close"></button></div>
+  </div>
+</dialog>
+
+<!--
+  =====================================================================
+  GAME CONTENT
+  Everything the player reads is stored in the block below, and the page
+  is built from it. The easiest way to change it is in the browser: click
+  "Edit" at the bottom of the page (or press Ctrl+Shift+E), enter the
+  password, make your changes, then click "Save file" to download a new
+  copy of this page with your changes inside it.
+
+  How the content is organized:
+    schemaVersion  which version of this layout the file uses
+    auth           the editor password, stored only as a salt and a hash
+    page           text shown on the page (title, introduction, footer)
+    ui             footnote wording (button, pop-up heading, close button)
+    images         pictures, each one { "src": picture data, "alt": description, "caption": caption }
+    game           the game:
+      settings     number of days, how often rent is due and what it costs
+      text         every heading, button and message the game shows.
+                   Words in {curly brackets} are filled in by the game.
+      resources    the household's supplies and how many it starts with
+      needs        what each family member needs. "levels" go from best to
+                   worst; "daily" is how many steps worse it gets each morning;
+                   past the last step the member is lost, or (with
+                   "overflowTo") a different need gets worse instead.
+      family       the family members, their portraits and starting levels
+      tasks        daytime: each family member does one task
+      evening      evening choices, for one member ("perMember") or the whole
+                   household; "skipEffects" happen when a household choice is skipped
+      events       night events with choices. "day" fixes an event to one day;
+                   null means it can come up on any night. "who" is "all" or "one".
+    Every "effects" has "resources" (+ adds, - takes away) and "needs"
+    (+ steps worse, - steps better).
+
+  Footnote hint: in ANY text, type {{fn: your citation}} where the note belongs, e.g.
+    A sentence that needs a source.{{fn: Author, Title, Year, page}}
+  =====================================================================
+-->
+<script type="application/json" id="game-data">
+{
+  "schemaVersion": 2,
+  "auth": {
+    "salt": "040b652e659a2781",
+    "hash": "06eb656d7f20b30b53c9b25ee02b6ce392e9103d466ab588a7cf34be46bddb0d"
+  },
+  "page": {
+    "title": "[Game title]",
+    "intro": "[Introduction]",
+    "footer": "[Your name and class]"
+  },
+  "ui": {
+    "footnotesButton": "[Footnotes]",
+    "footnotesTitle": "[Footnotes]",
+    "footnotesClose": "[Back]"
+  },
+  "images": {
+    "header": { "src": "", "alt": "[Image description]", "caption": "[Image caption]" }
+  },
+  "game": {
+    "settings": { "days": 14, "rentEvery": 7, "rentCost": 6, "rentResource": "money", "missedRentAllowed": 0 },
+    "text": {
+      "startTitle": "[Game start title]",
+      "startText": "[Explain the family's situation and what the player has to do]",
+      "startButton": "[Begin]",
+      "familyHeading": "[The family]",
+      "dayCounter": "[Day {day} of {days}]",
+      "rentDue": "[Rent: {cost} {resource}, due in {days} days]",
+      "rentDueToday": "[Rent: {cost} {resource}, due tonight]",
+      "dayTitle": "[Daytime]",
+      "dayHelp": "[Choose a task for each family member]",
+      "endDay": "[End the day]",
+      "eveningTitle": "[Evening]",
+      "eveningHelp": "[Decide how to take care of the family tonight]",
+      "householdHeading": "[For the whole household]",
+      "goToSleep": "[Go to sleep]",
+      "nightTitle": "[Night]",
+      "quietNight": "[Nothing happens tonight]",
+      "continueButton": "[Continue]",
+      "morningTitle": "[Morning]",
+      "nothingChanged": "[Nothing changed]",
+      "stateChange": "[{name} is now {state}]",
+      "rentPaid": "[The rent was paid: {cost} {resource}]",
+      "rentMissed": "[The rent could not be paid]",
+      "notEnough": "[There isn't enough for that]",
+      "lostLabel": "[Gone]",
+      "survivedLabel": "[Survived]",
+      "winTitle": "[Ending title: the family survived]",
+      "winText": "[Ending text: the family survived]",
+      "lostTitle": "[Ending title: no one is left]",
+      "lostText": "[Ending text: no one is left]",
+      "evictedTitle": "[Ending title: evicted]",
+      "evictedText": "[Ending text: evicted]",
+      "playAgain": "[Play again]"
+    },
+    "resources": [
+      { "id": "money", "name": "[Money]", "start": 4 },
+      { "id": "food", "name": "[Food]", "start": 3 },
+      { "id": "fuel", "name": "[Fuel]", "start": 2 },
+      { "id": "medicine", "name": "[Medicine]", "start": 0 }
+    ],
+    "needs": [
+      { "id": "hunger", "name": "[Hunger]", "levels": ["[Fed]", "[Hungry]", "[Very hungry]", "[Starving]"], "daily": 1, "overflowTo": "health", "lostText": "[What happens to {name} when hunger goes past the last step]" },
+      { "id": "health", "name": "[Health]", "levels": ["[Healthy]", "[Sick]", "[Very sick]", "[Gravely ill]"], "daily": 0, "overflowTo": "", "lostText": "[What happens to {name} when health goes past the last step]" },
+      { "id": "mood", "name": "[Mood]", "levels": ["[Hopeful]", "[Sad]", "[Very sad]", "[Broken]"], "daily": 0, "overflowTo": "health", "lostText": "[What happens to {name} when mood goes past the last step]" },
+      { "id": "tired", "name": "[Tiredness]", "levels": ["[Rested]", "[Tired]", "[Very tired]", "[Exhausted]"], "daily": 0, "overflowTo": "health", "lostText": "[What happens to {name} when tiredness goes past the last step]" }
+    ],
+    "family": [
+      { "id": "m1", "name": "[Family member 1]", "about": "[Who is this person?]", "image": { "src": "", "alt": "[Portrait description]" }, "start": {} },
+      { "id": "m2", "name": "[Family member 2]", "about": "[Who is this person?]", "image": { "src": "", "alt": "[Portrait description]" }, "start": {} },
+      { "id": "m3", "name": "[Family member 3]", "about": "[Who is this person?]", "image": { "src": "", "alt": "[Portrait description]" }, "start": {} },
+      { "id": "m4", "name": "[Family member 4]", "about": "[Who is this person?]", "image": { "src": "", "alt": "[Portrait description]" }, "start": {} }
+    ],
+    "tasks": [
+      { "id": "rest", "name": "[Rest]", "about": "[Describe this task]", "effects": { "resources": {}, "needs": { "tired": -1 } } },
+      { "id": "work-out", "name": "[Work outside the home]", "about": "[Describe this task]", "effects": { "resources": { "money": 2 }, "needs": { "tired": 1 } } },
+      { "id": "work-in", "name": "[Work at home]", "about": "[Describe this task]", "effects": { "resources": { "money": 1 }, "needs": { "tired": 1 } } },
+      { "id": "gather", "name": "[Gather fuel]", "about": "[Describe this task]", "effects": { "resources": { "fuel": 1 }, "needs": { "tired": 1 } } }
+    ],
+    "evening": [
+      { "id": "meal", "name": "[Give a meal]", "about": "[Describe this choice]", "perMember": true, "effects": { "resources": { "food": -1 }, "needs": { "hunger": -1 } }, "skipEffects": { "resources": {}, "needs": {} } },
+      { "id": "give-medicine", "name": "[Give medicine]", "about": "[Describe this choice]", "perMember": true, "effects": { "resources": { "medicine": -1 }, "needs": { "health": -1 } }, "skipEffects": { "resources": {}, "needs": {} } },
+      { "id": "heat", "name": "[Heat the home]", "about": "[Describe this choice]", "perMember": false, "effects": { "resources": { "fuel": -1 }, "needs": {} }, "skipEffects": { "resources": {}, "needs": { "mood": 1 } } },
+      { "id": "buy-food", "name": "[Buy food]", "about": "[Describe this choice]", "perMember": false, "effects": { "resources": { "money": -2, "food": 2 }, "needs": {} }, "skipEffects": { "resources": {}, "needs": {} } },
+      { "id": "buy-medicine", "name": "[Buy medicine]", "about": "[Describe this choice]", "perMember": false, "effects": { "resources": { "money": -3, "medicine": 1 }, "needs": {} }, "skipEffects": { "resources": {}, "needs": {} } }
+    ],
+    "events": [
+      { "id": "e1", "title": "[Night event 1 title]", "text": "[Describe what happens tonight]", "day": null, "image": { "src": "", "alt": "[Image description]", "caption": "[Image caption]" }, "choices": [
+        { "label": "[Choice A]", "result": "[What happens after choice A]", "who": "all", "effects": { "resources": { "money": -1 }, "needs": { "mood": -1 } } },
+        { "label": "[Choice B]", "result": "[What happens to {name} after choice B]", "who": "one", "effects": { "resources": {}, "needs": { "mood": 1 } } }
+      ] },
+      { "id": "e2", "title": "[Night event 2 title]", "text": "[Describe what happens tonight]", "day": null, "image": { "src": "", "alt": "[Image description]", "caption": "[Image caption]" }, "choices": [
+        { "label": "[Choice A]", "result": "[What happens after choice A]", "who": "all", "effects": { "resources": { "food": -1 }, "needs": {} } },
+        { "label": "[Choice B]", "result": "[What happens to {name} after choice B]", "who": "one", "effects": { "resources": {}, "needs": { "health": 1 } } }
+      ] },
+      { "id": "e3", "title": "[Night event 3 title (always on day 3)]", "text": "[Describe what happens tonight]", "day": 3, "image": { "src": "", "alt": "[Image description]", "caption": "[Image caption]" }, "choices": [
+        { "label": "[Choice A]", "result": "[What happens after choice A]", "who": "all", "effects": { "resources": { "money": 1 }, "needs": { "tired": 1 } } },
+        { "label": "[Choice B]", "result": "[What happens after choice B]", "who": "all", "effects": { "resources": {}, "needs": { "mood": 1 } } }
+      ] }
+    ]
+  }
+}
+</script>
+
+<script>
+(() => {
+  'use strict';
+
+  // A copy of the untouched page, taken before anything is rendered.
+  // "Save file" starts from this copy and replaces only the game-data block.
+  const SNAPSHOT = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const FALLBACK_TITLE = document.title;
+
+  /* =====================================================================
+     EDITOR WORDING
+     Everything the editor itself says (password screen, edit bar, dialogs,
+     help). This is editor UI, not game content, so it lives here in the
+     code instead of in the game-data block.
+     ===================================================================== */
+  const EDITOR_TEXT = {
+    editLink: 'Edit',
+    localNote: 'This page is showing changes auto-saved in this browser that aren’t in the uploaded file yet.',
+    passwordTitle: 'Edit this game',
+    passwordLabel: 'Password',
+    unlock: 'Unlock',
+    cancel: 'Cancel',
+    wrongPassword: 'That password is not correct.',
+    helpLink: 'How to edit this game',
+    barTitle: 'Editing',
+    howToEdit: 'How to edit',
+    editGame: 'Edit game…',
+    otherText: 'Other text…',
+    discard: 'Discard changes',
+    saveFile: 'Save file',
+    done: 'Done',
+    close: 'Close',
+    apply: 'Apply',
+    remove: 'Remove',
+    uploadImage: 'Upload image',
+    removeImage: 'Remove image',
+    noImage: 'No image yet',
+    statusStart: 'Click outlined text to edit it. Changes auto-save in this browser.',
+    statusLoaded: 'Your auto-saved changes are loaded. Changes auto-save in this browser.',
+    statusSaved: time => 'Auto-saved in this browser at ' + time + '. Click “Save file” to download index.html.',
+    statusNoStorage: 'This browser can’t auto-save here. Click “Save file” so nothing is lost.',
+    statusDownloaded: 'Downloaded index.html. Turn it in the way your teacher tells you.',
+    statusDiscarded: 'Back to the uploaded version.',
+    statusImage: 'Processing image…',
+    statusImageFailed: 'Could not read that image.',
+    otherTextTitle: 'Other text',
+    otherTextIntro: 'Text that isn’t on the screen right now: footnote wording and image descriptions. The game’s own text is in “Edit game…”.',
+    otherTextNone: 'All of the text is on the screen right now. Click it on the page to edit it. The game’s own text is in “Edit game…”.',
+    footnoteHint: 'Footnotes: type {{fn: your citation}} where the note belongs. Example: A sentence that needs a source.{{fn: Author, Title, Year, page}}',
+    discardQuestion: 'Throw away all changes that aren’t in the uploaded file, and go back to the uploaded version?',
+    discardYes: 'Discard changes',
+    removeQuestion: name => 'Remove “' + name + '”?',
+    olderTitle: 'Auto-saved changes found',
+    olderQuestion: when => 'A newer version of this page was uploaded after your auto-saved changes from ' + when + '.\n\nWhich version do you want to work on?',
+    olderKeep: 'Keep my auto-saved changes',
+    olderUpload: 'Use the uploaded version',
+    // Names shown in the "Other text" form. Any text field without a name here is shown by its path.
+    fieldNames: {
+      'page.title': 'Game title',
+      'page.intro': 'Introduction',
+      'page.footer': 'Author line (footer)',
+      'ui.footnotesButton': 'Footnotes button',
+      'ui.footnotesTitle': 'Heading of the footnotes pop-up',
+      'ui.footnotesClose': 'Button that closes the footnotes pop-up',
+      'images.header.alt': 'Header image description (read aloud by screen readers)',
+      'images.header.caption': 'Header image caption'
+    },
+
+    // ----- The "Edit game" form -----
+    gamePanel: 'While you’re editing, the game is paused. Click “Edit game…” to change it. Click “Done” to play and test it.',
+    editGameTitle: 'Edit game',
+    editGameIntro: 'Changes save as you type. Click Close when you’re finished, then click Done to play and test the game.',
+    tabs: [
+      ['settings', 'Settings'], ['text', 'Game wording'], ['resources', 'Supplies'], ['needs', 'Needs'],
+      ['family', 'Family'], ['tasks', 'Daytime tasks'], ['evening', 'Evening choices'], ['events', 'Night events']
+    ],
+    tabHelp: {
+      settings: 'How long the game lasts and how rent works.',
+      text: 'Headings, buttons and messages the game shows. Leave words in {curly brackets} exactly as they are; the game fills them in.',
+      resources: 'The household’s supplies, and how many of each the family starts with.',
+      needs: 'What each family member needs. Steps go from best (first line) to worst (last line). Past the last step, the family member is lost, or another need gets worse instead.',
+      family: 'The family members. Each one gets a task in the daytime and can be cared for in the evening.',
+      tasks: 'Each daytime, every family member does one of these tasks. Changes to needs happen to the person doing the task.',
+      evening: 'Choices the player can make every evening, either for each family member or for the whole household.',
+      events: 'One night event happens each night. Give an event a day number to make it happen on that day; leave the day empty to let it come up on any night. Each event happens only once.'
+    },
+    days: 'Number of days the family has to get through',
+    rentEvery: 'Rent is due every … days (0 = no rent)',
+    rentCost: 'Rent cost',
+    rentResource: 'Rent is paid with',
+    missedRentAllowed: 'Missed rent payments allowed before eviction',
+    name: 'Name',
+    about: 'Description',
+    start: 'Starting amount',
+    startLevel: 'Starts at',
+    levels: 'Steps, best first (one per line)',
+    daily: 'Gets worse by this many steps every morning',
+    overflow: 'Past the last step',
+    overflowLost: 'the family member is lost',
+    overflowTo: need => need + ' gets worse instead',
+    lostText: 'Message when a family member is lost this way ({name} = their name)',
+    portrait: 'Portrait',
+    imageAlt: 'Image description (read aloud by screen readers)',
+    imageCaption: 'Caption (put the image’s source here as a footnote)',
+    effects: 'What happens',
+    skipEffects: 'What happens if the player skips this',
+    effectsHelp: 'Supplies: + adds, − takes away. Needs: + makes it worse, − makes it better. Leave a box empty for no change.',
+    perMember: 'Choose this separately for each family member',
+    title: 'Title',
+    text: 'Text',
+    day: 'Happens on day (empty = any night)',
+    choices: 'Choices',
+    choiceLabel: 'Button text',
+    result: 'What happens next ({name} = the family member it happens to)',
+    who: 'Happens to',
+    whoAll: 'the whole family',
+    whoOne: 'one family member, picked at random',
+    item: (kind, n) => kind + ' ' + n,
+    kinds: { resources: 'Supply', needs: 'Need', family: 'Family member', tasks: 'Task', evening: 'Evening choice', events: 'Night event', choice: 'Choice' },
+    add: kind => '+ Add ' + kind.toLowerCase(),
+    textNames: {
+      startTitle: 'Start screen: title', startText: 'Start screen: text', startButton: 'Start screen: button',
+      familyHeading: 'Start screen: heading above the family', dayCounter: 'Day counter ({day}, {days})',
+      rentDue: 'Rent reminder ({cost}, {resource}, {days})', rentDueToday: 'Rent reminder on rent day ({cost}, {resource})',
+      dayTitle: 'Daytime: heading', dayHelp: 'Daytime: instructions', endDay: 'Daytime: button',
+      eveningTitle: 'Evening: heading', eveningHelp: 'Evening: instructions', householdHeading: 'Evening: heading above household choices',
+      goToSleep: 'Evening: button', nightTitle: 'Night: heading', quietNight: 'Night: when no event happens',
+      continueButton: 'Continue button', morningTitle: 'Morning: heading', nothingChanged: 'Morning: when nothing changed',
+      stateChange: 'Message when a need changes ({name}, {state})', rentPaid: 'Message when rent is paid ({cost}, {resource})',
+      rentMissed: 'Message when rent can’t be paid ({cost}, {resource})', notEnough: 'Message when there aren’t enough supplies',
+      lostLabel: 'Label for a family member who is lost', survivedLabel: 'Label for a family member who survived',
+      winTitle: 'Ending (survived): title', winText: 'Ending (survived): text',
+      lostTitle: 'Ending (no one left): title', lostText: 'Ending (no one left): text',
+      evictedTitle: 'Ending (evicted): title', evictedText: 'Ending (evicted): text', playAgain: 'Play again button'
+    }
+  };
+
+  /* ---------------------------------------------------------------------
+     "HOW TO EDIT" HELP FOR STUDENTS
+     IMPORTANT: update this text in the SAME change whenever the editor
+     changes (new buttons, fields or game mechanics), so it always matches
+     exactly what students see. Use only neutral examples.
+     --------------------------------------------------------------------- */
+  EDITOR_TEXT.helpHTML = `
+    <h3>How to edit this game</h3>
+
+    <h4>1. Getting started</h4>
+    <ol>
+      <li>Click <b>Edit</b> at the bottom of the page.</li>
+      <li>Type the password your teacher gives you.</li>
+      <li>Click <b>Unlock</b>.</li>
+      <li>A dark bar appears at the bottom of the screen. That means you're editing.</li>
+    </ol>
+
+    <h4>2. Editing text on the page</h4>
+    <ol>
+      <li>Text you can change has a dotted outline. Click it and type.</li>
+      <li>Some text isn't on the screen, like the footnote button and image descriptions. Click <b>Other text…</b> in the dark bar to change it, then click <b>Apply</b>.</li>
+      <li>If you see a word in {curly brackets}, leave it exactly as it is. The game fills it in.</li>
+      <li>To add a picture, click <b>Upload image</b> and choose a picture file. Click <b>Remove image</b> to take it away.</li>
+    </ol>
+
+    <h4>3. Editing the game</h4>
+    <p>How the game works: the player takes care of a family, one day at a time.</p>
+    <ul>
+      <li><b>Daytime:</b> the player picks a task for each family member.</li>
+      <li><b>Evening:</b> the player decides how to use the family's supplies, like giving someone a meal.</li>
+      <li><b>Night:</b> something happens, and the player picks what to do.</li>
+      <li><b>Morning:</b> needs get worse, and rent may be due. The game ends when the days run out, when no one is left, or when the family can't pay the rent.</li>
+    </ul>
+    <p>To change the game:</p>
+    <ol>
+      <li>Click <b>Edit game…</b> in the dark bar (or in the game box).</li>
+      <li>Click a tab at the top of the form: <b>Settings</b>, <b>Game wording</b>, <b>Supplies</b>, <b>Needs</b>, <b>Family</b>, <b>Daytime tasks</b>, <b>Evening choices</b> or <b>Night events</b>.</li>
+      <li>Type in the boxes. Each tab explains what it's for at the top.</li>
+      <li>In <b>What happens</b>, type numbers. For supplies, a plus number adds and a minus number takes away. For needs, a plus number makes it worse and a minus number makes it better. Leave a box empty for no change.</li>
+      <li>Use the <b>+ Add</b> buttons to add more, and <b>Remove</b> to take something out.</li>
+      <li>Click <b>Upload image</b> to add a portrait or a picture for a night event.</li>
+      <li>Your changes save as you type. Click <b>Close</b> when you're finished.</li>
+      <li>Click <b>Done</b> to play your game and test it. Click <b>Edit</b> again to keep working.</li>
+    </ol>
+
+    <h4>4. Adding footnotes</h4>
+    <ol>
+      <li>Click right after the sentence that needs a source.</li>
+      <li>Type two curly brackets, the letters <code>fn</code>, a colon, your citation, and two closing curly brackets:
+        <code class="ed-example">A sentence that needs a source.{{fn: Author, Title, Year, page}}</code></li>
+      <li>This works everywhere, including in the <b>Edit game…</b> form.</li>
+      <li>While you're editing, you'll see the <code>{{fn: ...}}</code> code. That's normal.</li>
+      <li>Click <b>Done</b>. The code turns into a small number, and a <b>Footnotes</b> button appears on that part of the page or that screen of the game.</li>
+      <li>Click the button, or the small number, to see the list of citations.</li>
+    </ol>
+    <ul>
+      <li>A web address that starts with <code>https://</code> becomes a link.</li>
+      <li>Every footnote needs <code>{{</code> at the start and <code>}}</code> at the end, or it won't work.</li>
+    </ul>
+
+    <h4>5. Saving your work</h4>
+    <ol>
+      <li>Your work saves automatically, but only in this browser on this computer.</li>
+      <li>When you're finished, click <b>Save file</b>. A file called <b>index.html</b> downloads.</li>
+      <li>Turn in that index.html file the way your teacher tells you. That's the only way your work gets onto the real website.</li>
+    </ol>
+
+    <h4>6. Tips</h4>
+    <ul>
+      <li>Replace everything in <b>[square brackets]</b> with your own research.</li>
+      <li>Cite your sources with footnotes, including a source for every image.</li>
+      <li>Play your game all the way through to check that the numbers make sense.</li>
+      <li>Ask your teacher before you click <b>Discard changes</b>. It erases everything back to the uploaded version.</li>
+    </ul>`;
+
+  /* =====================================================================
+     LOADING THE CONTENT
+     ===================================================================== */
+  const $ = sel => document.querySelector(sel);
+  const clone = obj => JSON.parse(JSON.stringify(obj));
+
+  // Default values for keys added in later versions. They are merged into
+  // older files when loading, so those files keep working.
+  const DEFAULTS = {
+    schemaVersion: 2,
+    page: { title: '[Game title]', intro: '[Introduction]', footer: '[Your name and class]' },
+    ui: { footnotesButton: '[Footnotes]', footnotesTitle: '[Footnotes]', footnotesClose: '[Back]' },
+    images: { header: { src: '', alt: '[Image description]', caption: '[Image caption]' } },
+    game: {
+      settings: { days: 14, rentEvery: 7, rentCost: 6, rentResource: 'money', missedRentAllowed: 0 },
+      text: {
+        startTitle: '[Game start title]',
+        startText: '[Explain the family\'s situation and what the player has to do]',
+        startButton: '[Begin]',
+        familyHeading: '[The family]',
+        dayCounter: '[Day {day} of {days}]',
+        rentDue: '[Rent: {cost} {resource}, due in {days} days]',
+        rentDueToday: '[Rent: {cost} {resource}, due tonight]',
+        dayTitle: '[Daytime]',
+        dayHelp: '[Choose a task for each family member]',
+        endDay: '[End the day]',
+        eveningTitle: '[Evening]',
+        eveningHelp: '[Decide how to take care of the family tonight]',
+        householdHeading: '[For the whole household]',
+        goToSleep: '[Go to sleep]',
+        nightTitle: '[Night]',
+        quietNight: '[Nothing happens tonight]',
+        continueButton: '[Continue]',
+        morningTitle: '[Morning]',
+        nothingChanged: '[Nothing changed]',
+        stateChange: '[{name} is now {state}]',
+        rentPaid: '[The rent was paid: {cost} {resource}]',
+        rentMissed: '[The rent could not be paid]',
+        notEnough: '[There isn\'t enough for that]',
+        lostLabel: '[Gone]',
+        survivedLabel: '[Survived]',
+        winTitle: '[Ending title: the family survived]',
+        winText: '[Ending text: the family survived]',
+        lostTitle: '[Ending title: no one is left]',
+        lostText: '[Ending text: no one is left]',
+        evictedTitle: '[Ending title: evicted]',
+        evictedText: '[Ending text: evicted]',
+        playAgain: '[Play again]'
+      },
+      resources: [], needs: [], family: [], tasks: [], evening: [], events: []
+    }
+  };
+  // Adds any missing keys from `defaults` to `target` (never overwrites).
+  function withDefaults(target, defaults = DEFAULTS) {
+    for (const [k, v] of Object.entries(defaults)) {
+      if (!(k in target)) target[k] = clone(v);
+      else if (v && typeof v === 'object' && !Array.isArray(v) && target[k] && typeof target[k] === 'object') withDefaults(target[k], v);
+    }
+    return target;
+  }
+
+  // Read and write a value by its path, such as "page.title" or "images.header.alt".
+  function getPath(obj, path) { return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj); }
+  function setPath(obj, path, value) {
+    const keys = path.split('.');
+    const last = keys.pop();
+    keys.reduce((o, k) => (o[k] ??= {}), obj)[last] = value;
+  }
+
+  let data = withDefaults(JSON.parse($('#game-data').textContent));
+  let editing = false;
+
+  /* =====================================================================
+     FOOTNOTES
+     In any text, {{fn: citation}} becomes a small number, and the citation
+     is added to that screen's footnote list. A "screen" (group) is what the
+     player sees at one time. The header and footer are the "page" group;
+     each game screen is the "game" group.
+     ===================================================================== */
+  const NOTE_RE = /\{\{\s*fn\s*:\s*([\s\S]*?)\s*\}\}/gi;
+  const groups = {}; // group id -> { id, notes: [citation, ...] }
+
+  // Starts (or restarts) the footnote list for one screen.
+  function noteGroup(id) { return (groups[id] = { id, notes: [] }); }
+
+  // Turns text into page content, swapping each {{fn: ...}} for a numbered marker.
+  // Built only from text nodes, so student text is never treated as HTML.
+  function withNotes(text, group) {
+    const frag = document.createDocumentFragment();
+    const str = String(text ?? '');
+    let last = 0;
+    for (const m of str.matchAll(NOTE_RE)) {
+      frag.append(str.slice(last, m.index));
+      group.notes.push(m[1]);
+      const sup = document.createElement('sup');
+      sup.className = 'fn-ref';
+      sup.dataset.group = group.id;
+      sup.dataset.note = group.notes.length;
+      sup.textContent = group.notes.length;
+      frag.append(sup);
+      last = m.index + m[0].length;
+    }
+    frag.append(str.slice(last));
+    return frag;
+  }
+
+  // For places that can't show a number (tab title, image descriptions, menus, screen-reader labels).
+  function stripNotes(text) { return String(text ?? '').replace(NOTE_RE, '').replace(/\s{2,}/g, ' ').trim(); }
+
+  // Citation text, with web addresses turned into links that open in a new tab.
+  function citation(text) {
+    const frag = document.createDocumentFragment();
+    String(text).split(/(https?:\/\/[^\s<>"]+)/).forEach((part, i) => {
+      if (i % 2 === 0) { frag.append(part); return; }
+      const a = document.createElement('a');
+      a.href = part;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = part;
+      frag.append(a);
+    });
+    return frag;
+  }
+
+  // Shows or hides a "Footnotes (n)" button for one group.
+  function notesButton(button, group) {
+    const n = editing || !group ? 0 : group.notes.length;
+    button.hidden = n === 0;
+    button.replaceChildren(stripNotes(data.ui.footnotesButton) + ' (' + n + ')');
+    button.onclick = () => openNotes(group);
+  }
+
+  // Opens the footnotes pop-up for a group, optionally highlighting one note.
+  function openNotes(group, current) {
+    const g = noteGroup('notes-popup'); // footnotes inside the pop-up's own wording
+    $('#notes-title').replaceChildren(withNotes(data.ui.footnotesTitle, g));
+    $('#notes-close').replaceChildren(withNotes(data.ui.footnotesClose, g));
+    const list = $('#notes-list');
+    list.replaceChildren(...group.notes.map((n, i) => {
+      const li = document.createElement('li');
+      li.append(citation(n));
+      if (i + 1 === Number(current)) li.className = 'current';
+      return li;
+    }));
+    const dlg = $('#notes');
+    if (!dlg.open) dlg.showModal();
+    const cur = list.querySelector('.current');
+    if (cur) cur.scrollIntoView({ block: 'center' });
+  }
+  $('#notes-close').addEventListener('click', () => $('#notes').close());
+
+  // Clicking a footnote number in body text opens the list with that note highlighted.
+  // Numbers inside buttons, links and checkbox labels don't, so those still do their job.
+  document.addEventListener('click', e => {
+    const ref = e.target.closest && e.target.closest('.fn-ref');
+    if (!ref || editing || ref.closest('button, a, label')) return;
+    const group = groups[ref.dataset.group];
+    if (group) openNotes(group, ref.dataset.note);
+  });
+
+  /* =====================================================================
+     RENDERING THE PAGE
+     Elements with data-text="path" show the text at that path in game-data.
+     Elements with data-image="path" show the image at that path.
+     The closest data-group="..." decides which footnote list a text belongs to.
+     ===================================================================== */
+  const NO_IMAGE = () => 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 160"><rect width="800" height="160" fill="#ece7dc"/>' +
+    '<text x="400" y="88" font-family="sans-serif" font-size="22" fill="#8c8270" text-anchor="middle">' +
+    EDITOR_TEXT.noImage.replace(/[<&]/g, '') + '</text></svg>');
+
+  function render() {
+    // Restart the footnote list of every group shown on the page, in reading order.
+    document.querySelectorAll('[data-group]').forEach(area => noteGroup(area.dataset.group));
+
+    document.querySelectorAll('[data-image]').forEach(fig => {
+      const img = getPath(data, fig.dataset.image) || {};
+      fig.hidden = !img.src && !editing; // an empty image slot only shows while editing
+      const tag = fig.querySelector('img');
+      tag.src = img.src || NO_IMAGE();
+      tag.alt = stripNotes(img.alt);
+    });
+
+    document.querySelectorAll('[data-text]').forEach(node => {
+      const value = getPath(data, node.dataset.text) ?? '';
+      if (editing) { if (node !== document.activeElement) node.textContent = value; } // raw text, markers visible
+      else node.replaceChildren(withNotes(value, groups[node.closest('[data-group]').dataset.group]));
+    });
+
+    renderGame();
+    document.querySelectorAll('[data-notes-for]').forEach(b => notesButton(b, groups[b.dataset.notesFor]));
+    updateTitle();
+
+    $('#edit-link').textContent = EDITOR_TEXT.editLink;
+    $('#local-note').textContent = EDITOR_TEXT.localNote;
+    showLocalNote();
+  }
+
+  // The browser tab shows the game title once it's no longer a [placeholder].
+  function updateTitle() {
+    const t = stripNotes(data.page.title);
+    document.title = t && !/^\[.*\]$/.test(t) ? t : FALLBACK_TITLE;
+  }
+
+  /* =====================================================================
+     THE GAME
+     One day at a time: daytime (a task for each family member), evening
+     (spend supplies to care for the family), night (an event with choices),
+     morning (needs get worse, rent may be due). The game ends when the days
+     run out, no one is left, or the rent can't be paid.
+     Everything the game shows comes from data.game. Each screen is one
+     footnote group ("game"), so every screen gets its own footnote list.
+     ===================================================================== */
+  let game = null; // the game in progress (not saved; a reload starts over)
+  const G = () => data.game;
+  const T = key => G().text[key] ?? '';
+  const num = v => Number(v) || 0;
+  // Fills in {words} in curly brackets. Footnote markers {{fn: ...}} are left alone.
+  const fill = (text, vars) => String(text ?? '').replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+
+  function newGame() {
+    const g = G();
+    game = {
+      screen: 'start', day: 1, res: {}, missed: 0, used: [], ending: null,
+      assign: {},   // member id -> task id (daytime)
+      care: {},     // evening choice id -> list of member ids, or true for household choices
+      event: null, result: null, error: '',
+      pending: [],  // messages waiting to be shown on the next screen
+      members: g.family.map(f => ({
+        id: f.id, lost: '',
+        levels: Object.fromEntries(g.needs.map(n => [n.id, Math.min(num((f.start || {})[n.id]), Math.max(0, n.levels.length - 1))]))
+      }))
+    };
+    g.resources.forEach(r => { game.res[r.id] = num(r.start); });
+  }
+
+  const memberData = m => G().family.find(f => f.id === m.id) || {};
+  const nameOf = m => memberData(m).name || '';
+  const alive = () => game.members.filter(m => !m.lost);
+  const resourceName = id => (G().resources.find(r => r.id === id) || {}).name || '';
+  const needOf = id => G().needs.find(n => n.id === id);
+
+  // Adds up the supply changes of several effects.
+  function totals(list) {
+    const t = {};
+    list.forEach(e => Object.entries((e && e.resources) || {}).forEach(([k, v]) => { t[k] = (t[k] || 0) + num(v); }));
+    return t;
+  }
+  // True if the household has enough supplies for all of these effects together.
+  function affordable(list) {
+    return Object.entries(totals(list)).every(([k, v]) => v >= 0 || (game.res[k] || 0) + v >= 0);
+  }
+
+  // Moves a need some steps (+ worse, - better) and records what changed.
+  function changeNeed(m, needId, steps, lines, depth = 0) {
+    const need = needOf(needId);
+    if (!need || m.lost || !steps || !need.levels.length) return;
+    const last = need.levels.length - 1;
+    const before = m.levels[needId] ?? 0;
+    const after = Math.max(0, before + steps);
+    const vars = { name: nameOf(m) };
+    if (after > last) {
+      m.levels[needId] = last;
+      if (before !== last) lines.push(fill(T('stateChange'), { ...vars, state: need.levels[last] }));
+      const next = need.overflowTo && need.overflowTo !== needId && needOf(need.overflowTo);
+      if (next && depth < 5) changeNeed(m, next.id, after - last, lines, depth + 1);
+      else { m.lost = fill(need.lostText, vars); lines.push(m.lost); }
+      return;
+    }
+    m.levels[needId] = after;
+    if (after !== before) lines.push(fill(T('stateChange'), { ...vars, state: need.levels[after] }));
+  }
+
+  // Applies one set of effects: supplies change once, needs change for each listed member.
+  function applyEffects(effects, members, lines) {
+    if (!effects) return;
+    Object.entries(effects.resources || {}).forEach(([k, v]) => {
+      if (k in game.res) game.res[k] = Math.max(0, game.res[k] + num(v));
+    });
+    members.forEach(m => Object.entries(effects.needs || {}).forEach(([id, steps]) => changeNeed(m, id, num(steps), lines)));
+  }
+
+  // "+2 [Money] · −1 [Food]" — a short summary of the supply changes.
+  function effectHint(effects, costsOnly) {
+    return Object.entries((effects && effects.resources) || {})
+      .filter(([k, v]) => num(v) && (!costsOnly || num(v) < 0) && G().resources.some(r => r.id === k))
+      .map(([k, v]) => (num(v) > 0 ? '+' : '−') + Math.abs(num(v)) + ' ' + stripNotes(resourceName(k)))
+      .join(' · ');
+  }
+
+  // ----- building blocks for game screens -----
+  let gp = null; // footnote group of the screen being drawn
+  function gt(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    n.append(withNotes(text, gp));
+    return n;
+  }
+  // Text with a blank line between paragraphs.
+  const paragraphs = text => String(text ?? '').split(/\n\s*\n/).filter(s => s.trim()).map(s => gt('p', '', s.trim()));
+  function gameButton(label, onClick, cls = '', hint = '') {
+    const b = gt('button', 'game-btn ' + cls, label);
+    b.type = 'button';
+    if (hint) b.append(gt('span', 'hint', hint));
+    b.addEventListener('click', onClick);
+    return b;
+  }
+  function lineList(lines) {
+    const ul = document.createElement('ul');
+    ul.className = 'game-lines';
+    ul.append(...lines.map(l => gt('li', '', l)));
+    return ul;
+  }
+  function picture(img, cls) {
+    if (!img || !img.src) return null;
+    const fig = document.createElement('figure');
+    fig.className = cls;
+    const tag = document.createElement('img');
+    tag.src = img.src;
+    tag.alt = stripNotes(img.alt);
+    fig.append(tag);
+    if (img.caption) fig.append(gt('figcaption', '', img.caption));
+    return fig;
+  }
+
+  // Day counter, rent reminder and supplies.
+  function statusBar() {
+    const s = G().settings;
+    const bar = document.createElement('div');
+    bar.className = 'game-status';
+    bar.append(gt('span', 'day', fill(T('dayCounter'), { day: game.day, days: num(s.days) })));
+    const every = num(s.rentEvery);
+    if (every > 0) {
+      const left = (every - (game.day % every)) % every;
+      const vars = { cost: num(s.rentCost), resource: resourceName(s.rentResource), days: left };
+      bar.append(gt('span', '', fill(T(left ? 'rentDue' : 'rentDueToday'), vars)));
+    }
+    const sup = document.createElement('div');
+    sup.className = 'supplies';
+    G().resources.forEach(r => {
+      const chip = gt('span', 'supply', r.name);
+      const b = document.createElement('b');
+      b.textContent = ' ' + (game.res[r.id] || 0);
+      chip.append(b);
+      sup.append(chip);
+    });
+    bar.append(sup);
+    return bar;
+  }
+
+  // One family member's card: portrait, name, and the state of each need.
+  function memberCard(m, { about = false } = {}) {
+    const f = memberData(m);
+    const card = document.createElement('div');
+    card.className = 'member' + (m.lost ? ' lost' : '');
+    const pic = picture(f.image, '');
+    if (pic) card.append(pic.querySelector('img'));
+    card.append(gt('h4', '', f.name));
+    if (about) card.append(gt('p', 'about', f.about));
+    if (m.lost) {
+      card.append(gt('p', 'about', T('lostLabel')));
+      return card;
+    }
+    const dl = document.createElement('dl');
+    dl.className = 'needs';
+    G().needs.forEach(n => {
+      if (!n.levels.length) return;
+      const lvl = Math.min(m.levels[n.id] ?? 0, n.levels.length - 1);
+      const sev = n.levels.length > 1 ? Math.round(lvl / (n.levels.length - 1) * 3) : 0;
+      dl.append(gt('dt', '', n.name), gt('dd', 'sev-' + sev, n.levels[lvl]));
+    });
+    card.append(dl);
+    return card;
+  }
+  function familyGrid(cardFor) {
+    const grid = document.createElement('div');
+    grid.className = 'family';
+    grid.append(...game.members.map(cardFor));
+    return grid;
+  }
+
+  function setScreen(screen) {
+    game.screen = screen;
+    game.error = '';
+    renderGame();
+    const area = $('#game-area');
+    if (area.getBoundingClientRect().top < 0) area.scrollIntoView({ block: 'start' });
+  }
+
+  // ----- the screens -----
+  const SCREENS = {
+    start(box) {
+      box.append(gt('h2', '', T('startTitle')), ...paragraphs(T('startText')), gt('h3', '', T('familyHeading')),
+        familyGrid(m => memberCard(m, { about: true })),
+        gameButton(T('startButton'), () => setScreen('day'), 'primary'));
+    },
+
+    day(box) {
+      const tasks = G().tasks;
+      const taskOf = m => tasks.find(t => t.id === game.assign[m.id]) || tasks[0];
+      alive().forEach(m => { if (!tasks.some(t => t.id === game.assign[m.id]) && tasks[0]) game.assign[m.id] = tasks[0].id; });
+      box.append(statusBar(), gt('h2', '', T('dayTitle')), gt('p', 'help', T('dayHelp')));
+      box.append(familyGrid(m => {
+        const card = memberCard(m);
+        if (m.lost || !tasks.length) return card;
+        const others = alive().filter(o => o !== m).map(o => taskOf(o).effects);
+        const sel = document.createElement('select');
+        sel.setAttribute('aria-label', stripNotes(nameOf(m)) + ': ' + stripNotes(T('dayHelp')));
+        tasks.forEach(t => {
+          const o = document.createElement('option');
+          o.value = t.id;
+          const hint = effectHint(t.effects);
+          o.textContent = stripNotes(t.name) + (hint ? ' (' + hint + ')' : '');
+          o.disabled = t !== taskOf(m) && !affordable([...others, t.effects]);
+          sel.append(o);
+        });
+        sel.value = taskOf(m).id;
+        sel.addEventListener('change', () => { game.assign[m.id] = sel.value; renderGame(); });
+        card.append(sel, gt('p', 'about', taskOf(m).about));
+        return card;
+      }));
+      if (game.error) box.append(gt('p', 'game-error', game.error));
+      box.append(gameButton(T('endDay'), () => {
+        const doing = alive().map(m => [m, taskOf(m)]).filter(([, t]) => t);
+        if (!affordable(doing.map(([, t]) => t.effects))) { game.error = T('notEnough'); renderGame(); return; }
+        const lines = [];
+        doing.forEach(([m, t]) => applyEffects(t.effects, [m], lines));
+        game.pending = lines;
+        game.care = {};
+        setScreen('evening');
+      }, 'primary'));
+    },
+
+    evening(box) {
+      const acts = G().evening;
+      const chosen = () => acts.flatMap(a => a.perMember
+        ? (game.care[a.id] || []).map(() => a.effects)
+        : (game.care[a.id] ? [a.effects] : []));
+      // A checkbox for one evening choice (for one member, or for the household).
+      const check = (a, isOn, toggle) => {
+        const label = document.createElement('label');
+        const ok = isOn || affordable([...chosen(), a.effects]);
+        label.className = 'check' + (ok ? '' : ' disabled');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = isOn;
+        cb.disabled = !ok;
+        cb.addEventListener('change', () => { toggle(cb.checked); renderGame(); });
+        const words = document.createElement('span');
+        words.append(withNotes(a.name, gp));
+        const hint = effectHint(a.effects);
+        if (hint) words.append(gt('span', 'hint', hint));
+        if (!a.perMember && a.about) words.append(gt('span', 'hint', a.about));
+        label.append(cb, words);
+        return label;
+      };
+      box.append(statusBar(), gt('h2', '', T('eveningTitle')), gt('p', 'help', T('eveningHelp')));
+      if (game.pending.length) box.append(lineList(game.pending));
+      // What each per-member choice means, shown once above the family.
+      acts.filter(a => a.perMember && a.about).forEach(a => {
+        const p = gt('p', 'hint', a.name);
+        p.append(': ', withNotes(a.about, gp));
+        box.append(p);
+      });
+      box.append(familyGrid(m => {
+        const card = memberCard(m);
+        if (m.lost) return card;
+        const list = document.createElement('div');
+        list.className = 'checks';
+        acts.filter(a => a.perMember).forEach(a => {
+          const ids = game.care[a.id] || [];
+          list.append(check(a, ids.includes(m.id), on => {
+            game.care[a.id] = on ? [...ids, m.id] : ids.filter(id => id !== m.id);
+          }));
+        });
+        card.append(list);
+        return card;
+      }));
+      const household = acts.filter(a => !a.perMember);
+      if (household.length) {
+        const div = document.createElement('div');
+        div.className = 'household checks';
+        div.append(gt('h3', '', T('householdHeading')));
+        household.forEach(a => div.append(check(a, !!game.care[a.id], on => { game.care[a.id] = on; })));
+        box.append(div);
+      }
+      box.append(gameButton(T('goToSleep'), () => {
+        const lines = [];
+        acts.forEach(a => {
+          if (a.perMember) (game.care[a.id] || []).forEach(id => {
+            const m = alive().find(x => x.id === id);
+            if (m) applyEffects(a.effects, [m], lines);
+          });
+          else applyEffects(game.care[a.id] ? a.effects : a.skipEffects, alive(), lines);
+        });
+        game.pending = lines;
+        // Tonight's event: one fixed to this day, or else a random unused one.
+        const unused = G().events.filter(e => !game.used.includes(e.id));
+        const fixed = unused.filter(e => num(e.day) === game.day);
+        const pool = fixed.length ? fixed : unused.filter(e => !num(e.day));
+        game.event = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+        if (game.event) game.used.push(game.event.id);
+        setScreen('night');
+      }, 'primary'));
+    },
+
+    night(box) {
+      const ev = game.event;
+      box.append(statusBar(), gt('h2', '', T('nightTitle')));
+      if (!ev) {
+        box.append(gt('p', '', T('quietNight')), gameButton(T('continueButton'), morning, 'primary'));
+        return;
+      }
+      box.append(gt('h3', '', ev.title));
+      const pic = picture(ev.image, 'game-photo');
+      if (pic) box.append(pic);
+      box.append(...paragraphs(ev.text));
+      const choices = document.createElement('div');
+      choices.className = 'game-actions';
+      const options = ev.choices || [];
+      options.forEach(c => {
+        const b = gameButton(c.label, () => choose(c), '', effectHint(c.effects, true));
+        b.disabled = !affordable([c.effects]);
+        choices.append(b);
+      });
+      // If no choice is possible, the night simply passes.
+      if (!options.some(c => affordable([c.effects]))) choices.append(gameButton(T('continueButton'), morning, 'primary'));
+      box.append(choices);
+    },
+
+    result(box) {
+      const r = game.result;
+      box.append(statusBar(), gt('h2', '', T('nightTitle')), gt('h3', '', r.title), ...paragraphs(r.text));
+      if (r.lines.length) box.append(lineList(r.lines));
+      box.append(gameButton(T('continueButton'), morning, 'primary'));
+    },
+
+    morning(box) {
+      box.append(statusBar(), gt('h2', '', T('morningTitle')));
+      box.append(game.pending.length ? lineList(game.pending) : gt('p', 'help', T('nothingChanged')));
+      box.append(familyGrid(m => memberCard(m)));
+      box.append(gameButton(T('continueButton'), () => {
+        game.pending = [];
+        setScreen(game.ending ? 'end' : 'day');
+      }, 'primary'));
+    },
+
+    end(box) {
+      const key = game.ending; // "win", "lost" or "evicted"
+      box.append(gt('h2', '', T(key + 'Title')), ...paragraphs(T(key + 'Text')));
+      box.append(familyGrid(m => {
+        const card = memberCard(m);
+        if (!m.lost) card.append(gt('p', 'about', T('survivedLabel')));
+        else card.append(gt('p', 'about', m.lost));
+        return card;
+      }));
+      box.append(gameButton(T('playAgain'), () => { newGame(); setScreen('start'); }, 'primary'));
+    }
+  };
+
+  // A night choice: its effects happen to the whole family or to one member.
+  function choose(c) {
+    const target = c.who === 'one' ? alive()[Math.floor(Math.random() * alive().length)] : null;
+    const lines = [];
+    applyEffects(c.effects, target ? [target] : alive(), lines);
+    game.result = { title: game.event.title, text: fill(c.result, { name: target ? nameOf(target) : '' }), lines };
+    setScreen('result');
+  }
+
+  // Morning: needs get worse, rent may be due, and the game may end.
+  function morning() {
+    const s = G().settings;
+    const lines = game.pending;
+    alive().forEach(m => G().needs.forEach(n => changeNeed(m, n.id, num(n.daily), lines)));
+    const every = num(s.rentEvery);
+    if (every > 0 && game.day % every === 0) {
+      const cost = num(s.rentCost);
+      const r = s.rentResource;
+      const vars = { cost, resource: resourceName(r) };
+      if ((game.res[r] || 0) >= cost) { game.res[r] -= cost; lines.push(fill(T('rentPaid'), vars)); }
+      else {
+        game.missed++;
+        lines.push(fill(T('rentMissed'), vars));
+        if (game.missed > num(s.missedRentAllowed)) game.ending = 'evicted';
+      }
+    }
+    if (!alive().length) game.ending = 'lost';
+    else if (!game.ending && game.day >= num(s.days)) game.ending = 'win';
+    if (!game.ending) game.day++; // it's the morning of the next day
+    game.pending = lines;
+    setScreen('morning');
+  }
+
+  function renderGame() {
+    const area = $('#game-area');
+    const box = $('#game-screen');
+    gp = noteGroup('game');
+    box.replaceChildren();
+    if (editing) {
+      // While editing, the game box holds the button that opens the game editor.
+      area.className = 'game-area';
+      const panel = el('div', 'ed-ui ed-game-panel');
+      panel.append(el('p', '', EDITOR_TEXT.gamePanel), btn(EDITOR_TEXT.editGame, editGame, 'ed-primary'));
+      box.append(panel);
+    } else {
+      if (!game) newGame();
+      area.className = 'game-area phase-' + game.screen;
+      (SCREENS[game.screen] || SCREENS.start)(box);
+    }
+    notesButton(area.querySelector('[data-notes-for="game"]'), gp);
+  }
+
+  /* =====================================================================
+     EDITOR (password protected)
+     ===================================================================== */
+
+  // --- small helpers for building editor UI ---
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function btn(label, onClick, cls = '') {
+    const b = el('button', 'ed-btn ' + cls, label);
+    b.type = 'button';
+    b.addEventListener('click', e => { e.preventDefault(); onClick(); });
+    return b;
+  }
+  let statusEl = null;
+  function status(msg) { if (statusEl) statusEl.textContent = msg; }
+
+  // Opens an editor dialog. build(form, finish) fills it in; calling finish(value)
+  // closes it and resolves the promise. Escape calls finish(escValue). The dialog
+  // resolves straight from its own buttons and keys, not the "close" event,
+  // which doesn't always fire in background tabs.
+  function dialog(cls, build, escValue) {
+    return new Promise(resolve => {
+      const dlg = el('dialog', 'ed-ui ed-dialog ' + (cls || ''));
+      const form = el('form');
+      form.addEventListener('submit', e => e.preventDefault());
+      dlg.append(form);
+      let finished = false;
+      const finish = value => {
+        if (finished) return;
+        finished = true;
+        try { dlg.close(); } catch {}
+        dlg.remove();
+        resolve(value);
+      };
+      dlg.addEventListener('cancel', e => { e.preventDefault(); finish(escValue); });
+      dlg.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(escValue); }
+      });
+      document.body.append(dlg);
+      build(form, finish);
+      dlg.showModal();
+      dlg.scrollTop = 0;
+      const first = form.querySelector('input, textarea');
+      if (first) first.focus();
+    });
+  }
+  function actions(...buttons) { const a = el('div', 'ed-actions'); a.append(...buttons); return a; }
+
+  // A question with two answers. Resolves true (yes), false (no) or null (Escape).
+  function ask(title, message, yesLabel, noLabel, cls = 'ed-primary') {
+    return dialog('ed-small', (form, finish) => {
+      form.append(el('h3', '', title), el('p', '', message),
+        actions(btn(noLabel, () => finish(false)), btn(yesLabel, () => finish(true), cls)));
+    }, null);
+  }
+
+  function showHelp() {
+    return dialog('ed-help', (form, finish) => {
+      form.insertAdjacentHTML('beforeend', EDITOR_TEXT.helpHTML); // editor-written help, never student text
+      form.append(actions(btn(EDITOR_TEXT.close, () => finish(), 'ed-primary')));
+    });
+  }
+
+  // --- password ---
+  // The password is never stored, only a random salt and the SHA-256 hash of
+  // salt + ":" + password. SHA-256 is written out in plain JavaScript so it
+  // works however the page is opened (from a file, over http or https).
+  function sha256(text) {
+    const K = [], H = [];
+    for (let n = 2, found = 0; found < 64; n++) {
+      let prime = true;
+      for (let d = 2; d * d <= n; d++) if (n % d === 0) { prime = false; break; }
+      if (!prime) continue;
+      if (found < 8) H[found] = (Math.pow(n, 1 / 2) * 2 ** 32) | 0;
+      K[found++] = (Math.pow(n, 1 / 3) * 2 ** 32) | 0;
+    }
+    const bytes = [...new TextEncoder().encode(text)];
+    const bitLen = bytes.length * 8;
+    bytes.push(0x80);
+    while (bytes.length % 64 !== 56) bytes.push(0);
+    for (let i = 7; i >= 0; i--) bytes.push(i > 3 ? Math.floor(bitLen / 2 ** (i * 8)) & 0xff : (bitLen >>> (i * 8)) & 0xff);
+    const rot = (x, n) => (x >>> n) | (x << (32 - n));
+    const W = new Array(64);
+    for (let off = 0; off < bytes.length; off += 64) {
+      for (let i = 0; i < 16; i++) W[i] = (bytes[off + i * 4] << 24) | (bytes[off + i * 4 + 1] << 16) | (bytes[off + i * 4 + 2] << 8) | bytes[off + i * 4 + 3];
+      for (let i = 16; i < 64; i++) {
+        const s0 = rot(W[i - 15], 7) ^ rot(W[i - 15], 18) ^ (W[i - 15] >>> 3);
+        const s1 = rot(W[i - 2], 17) ^ rot(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+        W[i] = (W[i - 16] + s0 + W[i - 7] + s1) | 0;
+      }
+      let [a, b, c, d, e, f, g, h] = H;
+      for (let i = 0; i < 64; i++) {
+        const t1 = (h + (rot(e, 6) ^ rot(e, 11) ^ rot(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + W[i]) | 0;
+        const t2 = ((rot(a, 2) ^ rot(a, 13) ^ rot(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      [a, b, c, d, e, f, g, h].forEach((v, i) => { H[i] = (H[i] + v) | 0; });
+    }
+    return H.map(v => (v >>> 0).toString(16).padStart(8, '0')).join('');
+  }
+
+  // Unlocking lasts for this browser tab (sessionStorage). Storage may be blocked; that's fine.
+  const UNLOCK_KEY = 'nfw-unlocked:' + location.pathname;
+  const EDITING_KEY = 'nfw-editing:' + location.pathname;
+  const session = {
+    get(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { v ? sessionStorage.setItem(k, v) : sessionStorage.removeItem(k); } catch {} }
+  };
+
+  function askPassword() {
+    return dialog('ed-small', (form, finish) => {
+      const pw = el('input');
+      pw.type = 'password';
+      pw.autocomplete = 'off';
+      const label = el('label', '', EDITOR_TEXT.passwordLabel);
+      label.append(pw);
+      const err = el('p', 'ed-error');
+      err.hidden = true;
+      const ok = el('button', 'ed-btn ed-primary', EDITOR_TEXT.unlock);
+      ok.type = 'submit';
+      form.addEventListener('submit', () => {
+        if (sha256(data.auth.salt + ':' + pw.value) === data.auth.hash) finish(true);
+        else { err.textContent = EDITOR_TEXT.wrongPassword; err.hidden = false; pw.select(); }
+      });
+      form.append(el('h3', '', EDITOR_TEXT.passwordTitle), label, err,
+        btn(EDITOR_TEXT.helpLink, showHelp, 'ed-link'),
+        actions(btn(EDITOR_TEXT.cancel, () => finish(false)), ok));
+    }, false);
+  }
+
+  let unlocking = false;
+  async function unlock() {
+    if (editing || unlocking) return;
+    unlocking = true;
+    try {
+      if (session.get(UNLOCK_KEY) !== data.auth.hash) {
+        if (!(await askPassword())) return;
+        session.set(UNLOCK_KEY, data.auth.hash);
+      }
+      if (olderSave) {
+        const answer = await ask(EDITOR_TEXT.olderTitle, EDITOR_TEXT.olderQuestion(new Date(olderSave.at).toLocaleString()),
+          EDITOR_TEXT.olderKeep, EDITOR_TEXT.olderUpload);
+        if (answer === null) return; // Escape: decide later, don't start editing
+        if (answer) { useSaved(olderSave); olderSave = null; await autoSaveNow(); } // now based on the uploaded file
+        else { olderSave = null; await store.clear(); }
+      }
+      startEditing();
+    } finally { unlocking = false; }
+  }
+
+  // --- auto-save ---
+  // Every change is saved in this browser (IndexedDB, which has room for images)
+  // and loaded again automatically when the page opens. Storage is keyed by the
+  // page's own path, so other projects and copies in other folders never share it.
+  // Other people only see changes after "Save file" and uploading the new index.html.
+  const DRAFT_KEY = 'nfw-draft:' + location.pathname;
+  const FILE_DATA = JSON.stringify(data); // the uploaded file's content (with defaults merged in)
+  const FILE_FP = sha256(FILE_DATA);      // its fingerprint, stored with each auto-save
+  const store = {
+    db: null,
+    open() {
+      this.db ||= new Promise((res, rej) => {
+        try {
+          const r = indexedDB.open('student-game-autosave', 1);
+          r.onupgradeneeded = () => r.result.createObjectStore('autosave');
+          r.onsuccess = () => res(r.result);
+          r.onerror = () => rej(r.error);
+          r.onblocked = () => rej(new Error('blocked'));
+        } catch (e) { rej(e); }
+      });
+      return this.db;
+    },
+    async run(mode, fn) {
+      const db = await this.open();
+      return new Promise((res, rej) => {
+        try {
+          const tx = db.transaction('autosave', mode);
+          const req = fn(tx.objectStore('autosave'));
+          tx.oncomplete = () => res(req && req.result);
+          tx.onerror = tx.onabort = () => rej(tx.error);
+        } catch (e) { rej(e); }
+      });
+    },
+    get() { return this.run('readonly', s => s.get(DRAFT_KEY)).catch(() => null); },
+    set(value) { return this.run('readwrite', s => { s.put(value, DRAFT_KEY); }); },
+    clear() { return this.run('readwrite', s => { s.delete(DRAFT_KEY); }).catch(() => {}); }
+  };
+
+  let saveTimer = 0;
+  let olderSave = null;   // auto-saved changes made before the uploaded file was replaced
+  let loadedSave = false; // true when the page opened with auto-saved changes
+  function markDirty() {
+    showLocalNote();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(autoSaveNow, 500);
+  }
+  async function autoSaveNow() {
+    clearTimeout(saveTimer);
+    saveTimer = 0;
+    try {
+      await store.set({ at: Date.now(), base: FILE_FP, data: clone(data) });
+      status(EDITOR_TEXT.statusSaved(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })));
+    } catch {
+      status(EDITOR_TEXT.statusNoStorage);
+    }
+  }
+  // Auto-saved content, with defaults merged in. The password always comes
+  // from the file itself, never from an auto-save.
+  function savedData(saved) {
+    const d = withDefaults(clone(saved.data));
+    d.auth = JSON.parse(FILE_DATA).auth;
+    return d;
+  }
+  function useSaved(saved) {
+    data = savedData(saved);
+    loadedSave = true;
+    newGame();
+    render();
+  }
+  async function loadAutoSave() {
+    const saved = await store.get();
+    if (!saved || !saved.data) return;
+    if (JSON.stringify(savedData(saved)) === FILE_DATA) { await store.clear(); return; } // the uploaded file already has these changes
+    if (saved.base !== FILE_FP) { olderSave = saved; return; }       // the file changed since; ask when editing starts
+    useSaved(saved);
+  }
+  function showLocalNote() { $('#local-note').hidden = JSON.stringify(data) === FILE_DATA; }
+
+  async function discardChanges() {
+    if (!(await ask(EDITOR_TEXT.discard, EDITOR_TEXT.discardQuestion, EDITOR_TEXT.discardYes, EDITOR_TEXT.cancel, 'ed-danger'))) return;
+    clearTimeout(saveTimer);
+    saveTimer = 0;
+    await store.clear();
+    data = JSON.parse(FILE_DATA);
+    newGame();
+    if (document.activeElement) document.activeElement.blur();
+    render();
+    status(EDITOR_TEXT.statusDiscarded);
+  }
+
+  // --- images ---
+  function pickImage() {
+    return new Promise(resolve => {
+      const inp = el('input');
+      inp.type = 'file';
+      inp.accept = 'image/*';
+      inp.onchange = async () => {
+        const f = inp.files[0];
+        if (!f) return resolve(null);
+        status(EDITOR_TEXT.statusImage);
+        try { resolve(await shrinkImage(f, 1600)); }
+        catch { status(EDITOR_TEXT.statusImageFailed); resolve(null); }
+      };
+      inp.click();
+    });
+  }
+  function readAsDataURL(file) {
+    return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+  }
+  // Photos are scaled down (about 1600px on the long side, JPEG) so the single file stays small.
+  async function shrinkImage(file, max) {
+    if (file.type === 'image/svg+xml' || file.type === 'image/gif') return readAsDataURL(file);
+    const bmp = await createImageBitmap(file);
+    const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = el('canvas');
+    c.width = Math.round(bmp.width * s);
+    c.height = Math.round(bmp.height * s);
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(bmp, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.85);
+  }
+  // Adds Upload / Remove buttons to every image slot on the page while editing.
+  function addImageTools() {
+    document.querySelectorAll('[data-image]').forEach(fig => {
+      const path = fig.dataset.image;
+      const tools = el('div', 'ed-ui ed-image-tools');
+      tools.append(
+        btn(EDITOR_TEXT.uploadImage, async () => {
+          const url = await pickImage();
+          if (!url) return;
+          setPath(data, path + '.src', url);
+          render(); markDirty();
+        }),
+        btn(EDITOR_TEXT.removeImage, () => { setPath(data, path + '.src', ''); render(); markDirty(); }, 'ed-danger')
+      );
+      fig.querySelector('img').after(tools);
+    });
+  }
+
+  // --- editing visible text in place ---
+  function bindPageText(on) {
+    document.querySelectorAll('[data-text]').forEach(node => {
+      if (!on) { node.removeAttribute('contenteditable'); node.oninput = node.onkeydown = node.onpaste = null; return; }
+      try { node.contentEditable = 'plaintext-only'; } catch { node.contentEditable = 'true'; }
+      if (node.contentEditable !== 'plaintext-only') node.contentEditable = 'true';
+      const multiline = node.hasAttribute('data-multiline');
+      node.oninput = () => {
+        let v = node.innerText.replace(/\n$/, '');
+        if (!multiline) v = v.replace(/\n/g, ' ');
+        setPath(data, node.dataset.text, v);
+        if (node.dataset.text === 'page.title') updateTitle();
+        markDirty();
+      };
+      // Enter finishes single-line text.
+      node.onkeydown = e => { if (e.key === 'Enter' && !multiline) { e.preventDefault(); node.blur(); } };
+      // Pasting always inserts plain text.
+      node.onpaste = e => {
+        e.preventDefault();
+        let t = (e.clipboardData || window.clipboardData).getData('text/plain');
+        if (!multiline) t = t.replace(/\s*\n\s*/g, ' ');
+        document.execCommand('insertText', false, t);
+      };
+    });
+  }
+
+  // --- "Other text…": every page text field that isn't on screen right now ---
+  // Every string in the content counts as text, except picture data, the password
+  // and the game (which has its own "Edit game…" form).
+  function allTextPaths(obj = data, prefix = '') {
+    const out = [];
+    for (const [k, v] of Object.entries(obj)) {
+      const path = prefix ? prefix + '.' + k : k;
+      if (path === 'auth' || path === 'game' || k === 'src') continue;
+      if (typeof v === 'string') out.push(path);
+      else if (v && typeof v === 'object') out.push(...allTextPaths(v, path));
+    }
+    return out;
+  }
+  function onScreen(path) {
+    return [...document.querySelectorAll('[data-text]')].some(n => n.dataset.text === path && n.getClientRects().length > 0);
+  }
+  function editOtherText() {
+    const paths = allTextPaths().filter(p => !onScreen(p));
+    const draft = {};
+    return dialog('', (form, finish) => {
+      form.append(el('h3', '', EDITOR_TEXT.otherTextTitle), el('p', 'ed-hint', EDITOR_TEXT.footnoteHint),
+        el('p', '', paths.length ? EDITOR_TEXT.otherTextIntro : EDITOR_TEXT.otherTextNone));
+      paths.forEach(p => {
+        const value = getPath(data, p);
+        const label = el('label', '', EDITOR_TEXT.fieldNames[p] || p);
+        const field = value.includes('\n') || value.length > 80 ? el('textarea') : el('input');
+        if (field.tagName === 'INPUT') field.type = 'text';
+        field.value = value;
+        field.addEventListener('input', () => { draft[p] = field.value; });
+        label.append(field);
+        form.append(label);
+      });
+      form.append(actions(btn(EDITOR_TEXT.cancel, () => finish(false)), btn(EDITOR_TEXT.apply, () => finish(true), 'ed-primary')));
+    }, false).then(applied => {
+      if (!applied || !Object.keys(draft).length) return;
+      for (const [p, v] of Object.entries(draft)) setPath(data, p, v);
+      render(); markDirty();
+    });
+  }
+
+  // --- "Edit game…": the form for everything in data.game ---
+  // Every change is written straight into the content and auto-saved, so
+  // nothing is lost if the form is closed with Escape.
+  function editGame() {
+    const E = EDITOR_TEXT;
+    let tab = 'settings';
+    return dialog('ed-wide', (form, finish) => {
+      const dlg = form.parentElement;
+      const g = () => data.game;
+
+      // ----- field builders -----
+      function text(obj, key, label, multiline) {
+        const l = el('label', '', label);
+        const f = el(multiline ? 'textarea' : 'input');
+        if (!multiline) f.type = 'text';
+        f.value = obj[key] ?? '';
+        f.addEventListener('input', () => { obj[key] = f.value; markDirty(); });
+        l.append(f);
+        return l;
+      }
+      function number(obj, key, label, allowEmpty) {
+        const l = el('label', '', label);
+        const f = el('input');
+        f.type = 'number';
+        f.value = obj[key] ?? '';
+        f.addEventListener('input', () => {
+          const v = f.value.trim();
+          obj[key] = v === '' ? (allowEmpty ? null : 0) : Number(v);
+          markDirty();
+        });
+        l.append(f);
+        return l;
+      }
+      function choice(obj, key, label, options, redraw) {
+        const l = el('label', '', label);
+        const s = el('select');
+        options.forEach(([v, t]) => { const o = el('option', '', t); o.value = v; s.append(o); });
+        s.value = String(obj[key] ?? '');
+        // Number-like options (such as starting steps) are stored as numbers.
+        s.addEventListener('change', () => { obj[key] = /^\d+$/.test(s.value) ? Number(s.value) : s.value; markDirty(); if (redraw) draw(); });
+        l.append(s);
+        return l;
+      }
+      function checkbox(obj, key, label) {
+        const l = el('label', 'ed-check');
+        const c = el('input');
+        c.type = 'checkbox';
+        c.checked = !!obj[key];
+        c.addEventListener('change', () => { obj[key] = c.checked; markDirty(); draw(); });
+        l.append(c, label);
+        return l;
+      }
+      // Number boxes for each supply and each need. Empty means "no change".
+      function effects(obj, key, legend) {
+        obj[key] ??= {};
+        const e = obj[key];
+        e.resources ??= {};
+        e.needs ??= {};
+        const fs = el('fieldset');
+        fs.append(el('legend', '', legend), el('p', '', E.effectsHelp));
+        const grid = el('div', 'ed-grid');
+        const box = (bag, id, name) => {
+          const l = el('label', '', stripNotes(name));
+          const f = el('input');
+          f.type = 'number';
+          f.value = bag[id] ?? '';
+          f.addEventListener('input', () => {
+            if (f.value.trim() === '' || Number(f.value) === 0) delete bag[id]; else bag[id] = Number(f.value);
+            markDirty();
+          });
+          l.append(f);
+          return l;
+        };
+        g().resources.forEach(r => grid.append(box(e.resources, r.id, r.name)));
+        g().needs.forEach(n => grid.append(box(e.needs, n.id, n.name)));
+        fs.append(grid);
+        return fs;
+      }
+      function image(img, withCaption) {
+        const fs = el('div');
+        fs.style.display = 'grid';
+        fs.style.gap = '8px';
+        const row = el('div', 'ed-row');
+        const thumb = el('img', 'ed-thumb');
+        thumb.src = img.src || NO_IMAGE();
+        thumb.alt = '';
+        row.append(thumb, btn(E.uploadImage, async () => {
+          const url = await pickImage();
+          if (url) { img.src = url; markDirty(); draw(); }
+        }));
+        if (img.src) row.append(btn(E.removeImage, () => { img.src = ''; markDirty(); draw(); }, 'ed-danger'));
+        fs.append(row, text(img, 'alt', E.imageAlt));
+        if (withCaption) fs.append(text(img, 'caption', E.imageCaption));
+        return fs;
+      }
+      // One item in a list, with a Remove button (kept when only `min` items are left).
+      function item(list, i, kindKey, min, build) {
+        const kind = E.kinds[kindKey];
+        const fs = el('fieldset');
+        fs.append(el('legend', '', E.item(kind, i + 1)));
+        build(fs, list[i]);
+        if (list.length > min) {
+          const row = el('div', 'ed-row');
+          row.append(btn(E.remove + ' ' + kind.toLowerCase() + ' ' + (i + 1), async () => {
+            const name = stripNotes(list[i].name || list[i].title || list[i].label || E.item(kind, i + 1));
+            if (!(await ask(E.remove, E.removeQuestion(name), E.remove, E.cancel, 'ed-danger'))) return;
+            list.splice(i, 1);
+            markDirty(); draw();
+          }, 'ed-danger'));
+          fs.append(row);
+        }
+        return fs;
+      }
+      function addButton(kindKey, make) {
+        return btn(E.add(E.kinds[kindKey]), () => { make(); markDirty(); draw(); });
+      }
+      const blankEffects = () => ({ resources: {}, needs: {} });
+      const newId = prefix => prefix + Math.random().toString(36).slice(2, 8);
+
+      // ----- one function per tab -----
+      const TABS = {
+        settings(out) {
+          const s = g().settings;
+          out.append(number(s, 'days', E.days), number(s, 'rentEvery', E.rentEvery), number(s, 'rentCost', E.rentCost),
+            choice(s, 'rentResource', E.rentResource, g().resources.map(r => [r.id, stripNotes(r.name)])),
+            number(s, 'missedRentAllowed', E.missedRentAllowed));
+        },
+        text(out) {
+          const t = g().text;
+          Object.keys(t).forEach(k => out.append(text(t, k, E.textNames[k] || k, /Text$/.test(k))));
+        },
+        resources(out) {
+          const list = g().resources;
+          list.forEach((r, i) => out.append(item(list, i, 'resources', 0, (fs, r) => {
+            fs.append(text(r, 'name', E.name), number(r, 'start', E.start));
+          })));
+          out.append(addButton('resources', () => list.push({ id: newId('r'), name: '[' + E.kinds.resources + ']', start: 0 })));
+        },
+        needs(out) {
+          const list = g().needs;
+          list.forEach((n, i) => out.append(item(list, i, 'needs', 0, (fs, n) => {
+            const l = el('label', '', E.levels);
+            const f = el('textarea');
+            f.value = n.levels.join('\n');
+            f.addEventListener('input', () => {
+              const steps = f.value.split('\n').map(s => s.trim()).filter(Boolean);
+              if (steps.length) { n.levels = steps; markDirty(); }
+            });
+            l.append(f);
+            fs.append(text(n, 'name', E.name), l, number(n, 'daily', E.daily),
+              choice(n, 'overflowTo', E.overflow, [['', E.overflowLost],
+                ...list.filter(x => x !== n).map(x => [x.id, E.overflowTo(stripNotes(x.name))])]),
+              text(n, 'lostText', E.lostText));
+          })));
+          out.append(addButton('needs', () => list.push({ id: newId('n'), name: '[' + E.kinds.needs + ']', levels: ['[Best step]', '[Middle step]', '[Worst step]'], daily: 0, overflowTo: '', lostText: '[What happens to {name}]' })));
+        },
+        family(out) {
+          const list = g().family;
+          list.forEach((m, i) => out.append(item(list, i, 'family', 1, (fs, m) => {
+            m.image ??= { src: '', alt: '' };
+            m.start ??= {};
+            fs.append(text(m, 'name', E.name), text(m, 'about', E.about, true), el('h4', '', E.portrait), image(m.image, false));
+            const grid = el('div', 'ed-grid');
+            g().needs.forEach(n => {
+              m.start[n.id] ??= 0;
+              grid.append(choice(m.start, n.id, stripNotes(n.name) + ': ' + E.startLevel, n.levels.map((s, li) => [String(li), stripNotes(s)])));
+            });
+            fs.append(grid);
+          })));
+          out.append(addButton('family', () => list.push({ id: newId('m'), name: '[' + E.kinds.family + ']', about: '[Who is this person?]', image: { src: '', alt: '[Portrait description]' }, start: {} })));
+        },
+        tasks(out) {
+          const list = g().tasks;
+          list.forEach((t, i) => out.append(item(list, i, 'tasks', 1, (fs, t) => {
+            fs.append(text(t, 'name', E.name), text(t, 'about', E.about, true), effects(t, 'effects', E.effects));
+          })));
+          out.append(addButton('tasks', () => list.push({ id: newId('t'), name: '[' + E.kinds.tasks + ']', about: '[Describe this task]', effects: blankEffects() })));
+        },
+        evening(out) {
+          const list = g().evening;
+          list.forEach((a, i) => out.append(item(list, i, 'evening', 0, (fs, a) => {
+            fs.append(text(a, 'name', E.name), text(a, 'about', E.about, true), checkbox(a, 'perMember', E.perMember),
+              effects(a, 'effects', E.effects));
+            if (!a.perMember) fs.append(effects(a, 'skipEffects', E.skipEffects));
+          })));
+          out.append(addButton('evening', () => list.push({ id: newId('a'), name: '[' + E.kinds.evening + ']', about: '[Describe this choice]', perMember: false, effects: blankEffects(), skipEffects: blankEffects() })));
+        },
+        events(out) {
+          const list = g().events;
+          list.forEach((ev, i) => out.append(item(list, i, 'events', 0, (fs, ev) => {
+            ev.image ??= { src: '', alt: '', caption: '' };
+            ev.choices ??= [];
+            fs.append(text(ev, 'title', E.title), text(ev, 'text', E.text, true), number(ev, 'day', E.day, true), image(ev.image, true),
+              el('h4', '', E.choices));
+            ev.choices.forEach((c, ci) => fs.append(item(ev.choices, ci, 'choice', 1, (cfs, c) => {
+              cfs.append(text(c, 'label', E.choiceLabel), text(c, 'result', E.result, true),
+                choice(c, 'who', E.who, [['all', E.whoAll], ['one', E.whoOne]]), effects(c, 'effects', E.effects));
+            })));
+            fs.append(addButton('choice', () => ev.choices.push({ label: '[Choice]', result: '[What happens next]', who: 'all', effects: blankEffects() })));
+          })));
+          out.append(addButton('events', () => list.push({ id: newId('e'), title: '[' + E.kinds.events + ' title]', text: '[Describe what happens tonight]', day: null,
+            image: { src: '', alt: '[Image description]', caption: '[Image caption]' },
+            choices: [{ label: '[Choice]', result: '[What happens next]', who: 'all', effects: blankEffects() }] })));
+        }
+      };
+
+      function draw() {
+        const scroll = dlg.scrollTop;
+        form.replaceChildren();
+        const tabs = el('div', 'ed-tabs');
+        E.tabs.forEach(([id, label]) => tabs.append(btn(label, () => { tab = id; draw(); dlg.scrollTop = 0; }, id === tab ? 'ed-primary' : '')));
+        form.append(el('h3', '', E.editGameTitle), el('p', '', E.editGameIntro), tabs,
+          el('p', 'ed-hint', E.footnoteHint), el('p', '', E.tabHelp[tab]));
+        TABS[tab](form);
+        form.append(actions(btn(E.close, () => finish(), 'ed-primary')));
+        dlg.scrollTop = scroll;
+      }
+      draw();
+    }).then(() => { newGame(); renderGame(); });
+  }
+
+  // --- saving: downloads a complete new copy of this single file ---
+  function buildHTML() {
+    const doc = new DOMParser().parseFromString(SNAPSHOT, 'text/html');
+    const out = clone(data);
+    out.auth = JSON.parse(FILE_DATA).auth; // the password hash always comes from the file
+    // "<" is written as < so the content can never close its own script tag.
+    const json = JSON.stringify(out, null, 2).replace(/</g, '\\u003c');
+    doc.getElementById('game-data').textContent = '\n' + json + '\n';
+    return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML + '\n';
+  }
+  function saveFile() {
+    const a = el('a');
+    a.href = URL.createObjectURL(new Blob([buildHTML()], { type: 'text/html' }));
+    a.download = 'index.html';
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    status(EDITOR_TEXT.statusDownloaded);
+  }
+
+  // --- starting and stopping edit mode ---
+  async function startEditing() {
+    editing = true;
+    session.set(EDITING_KEY, '1');
+    document.body.classList.add('ed-on');
+    const bar = el('div', 'ed-ui ed-bar');
+    statusEl = el('span', 'ed-status', loadedSave ? EDITOR_TEXT.statusLoaded : EDITOR_TEXT.statusStart);
+    bar.append(
+      el('strong', '', EDITOR_TEXT.barTitle), statusEl,
+      btn(EDITOR_TEXT.howToEdit, showHelp),
+      btn(EDITOR_TEXT.editGame, editGame),
+      btn(EDITOR_TEXT.otherText, editOtherText),
+      btn(EDITOR_TEXT.discard, discardChanges, 'ed-danger'),
+      btn(EDITOR_TEXT.saveFile, saveFile, 'ed-primary'),
+      btn(EDITOR_TEXT.done, stopEditing)
+    );
+    document.body.append(bar);
+    if ($('#notes').open) $('#notes').close();
+    render();
+    bindPageText(true);
+    addImageTools();
+    // Check that auto-save works here, so students know right away if it doesn't.
+    try { await store.open(); } catch { status(EDITOR_TEXT.statusNoStorage); }
+  }
+  function stopEditing() {
+    if (saveTimer) autoSaveNow();
+    editing = false;
+    session.set(EDITING_KEY, null);
+    document.body.classList.remove('ed-on');
+    document.querySelectorAll('.ed-ui').forEach(n => n.remove());
+    bindPageText(false);
+    statusEl = null;
+    newGame(); // start the game fresh so it uses the latest changes
+    render();
+  }
+
+  /* =====================================================================
+     START
+     ===================================================================== */
+  render();
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'e') { e.preventDefault(); unlock(); }
+  });
+  $('#edit-link').addEventListener('click', e => { e.preventDefault(); unlock(); });
+  const fromHash = () => {
+    if (location.hash !== '#edit') return false;
+    history.replaceState(null, '', location.pathname + location.search);
+    unlock();
+    return true;
+  };
+  window.addEventListener('hashchange', fromHash);
+  // Save right away if the page is closed or hidden in the middle of an edit.
+  window.addEventListener('pagehide', () => { if (saveTimer) autoSaveNow(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && saveTimer) autoSaveNow(); });
+  loadAutoSave().finally(() => {
+    if (fromHash()) return;
+    if (session.get(EDITING_KEY) && session.get(UNLOCK_KEY) === data.auth.hash) unlock(); // still editing after a reload
+  });
+})();
+</script>
+</body>
+</html>
