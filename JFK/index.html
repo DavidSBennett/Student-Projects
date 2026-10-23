@@ -1,0 +1,2255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JFK</title>
+<style>
+/* =====================================================================
+   STYLE SETTINGS
+   Change these variables to restyle the whole page.
+   ===================================================================== */
+:root {
+  --page-bg: #f5f4f0;          /* page background */
+  --surface: #ffffff;          /* cards and panels */
+  --text: #1f2328;             /* main text colour */
+  --muted: #666b72;            /* quieter text (footer, notes) */
+  --accent: #2b4f7e;           /* buttons and highlights */
+  --accent-text: #ffffff;      /* text on accent colour */
+  --border: #d6d3cb;           /* lines and borders */
+  --overlay-bg: rgba(20, 24, 30, 0.55); /* behind pop-ups */
+  --font-body: Georgia, "Times New Roman", serif;
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --base-size: 18px;
+  --max-width: 60rem;          /* how wide the content can get */
+  --radius: 8px;
+  --space: 1rem;
+
+  /* Game colours */
+  --bar-bg: #e6e2d8;           /* empty part of a track */
+  --race: #2b4f7e;             /* filled part of a race track */
+  --danger: #d98a2b;           /* filled part of a danger track */
+  --danger-full: #b3261e;      /* a track that has reached its end */
+  --card-bg: #fffdf8;          /* playing cards */
+  --chip-space: #e3ecf8;       /* card value labels */
+  --chip-pr: #e9e4f6;
+  --chip-invest: #e2f1e6;
+  --chip-danger: #fbe6e1;
+  --zone-hover: #e9f0f8;       /* a drop space when a card is over it */
+
+  /* Editor-only colours (players never see these) */
+  --edit-outline: #c26a00;
+  --edit-bar-bg: #1f2933;
+  --edit-bar-text: #ffffff;
+}
+
+/* ---------- Basic layout ---------- */
+* { box-sizing: border-box; }
+html { font-size: var(--base-size); }
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-wrap: anywhere;     /* long words never cause sideways scrolling */
+}
+.site-header, main, .site-footer {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space);
+}
+.site-header { padding-top: calc(var(--space) * 2); }
+h1 { font-size: clamp(1.8rem, 6vw, 2.6rem); line-height: 1.2; margin: 0.4em 0; }
+h2 { font-size: 1.3rem; margin: 0 0 0.6em; font-family: var(--font-ui); }
+.intro { font-size: 1.1rem; margin: 0; }
+
+/* Text that keeps its line breaks */
+[data-text], [data-label] { white-space: pre-wrap; }
+
+/* ---------- Images ---------- */
+.header-image { margin: 0 0 var(--space); }
+.header-image img { display: block; width: 100%; height: auto; border-radius: var(--radius); }
+
+/* ---------- Game area ---------- */
+.game-area {
+  position: relative;          /* the game-over pop-up sits inside this box */
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space);
+}
+#game-root { min-height: 16rem; }
+.board h2 { margin-bottom: 0.3rem; }
+.board h3 { font: 700 1rem var(--font-ui); margin: 1.2rem 0 0.4rem; }
+.muted { color: var(--muted); }
+.small { font-size: 0.8rem; }
+
+.game-btn {
+  font: 600 0.95rem var(--font-ui);
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: var(--surface);
+  color: var(--accent);
+  cursor: pointer;
+}
+.game-btn.primary { background: var(--accent); color: var(--accent-text); }
+.game-btn.small { font-size: 0.75rem; padding: 0.15rem 0.6rem; }
+.game-btn:disabled { opacity: 0.45; cursor: default; }
+.game-btn:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
+
+/* Whose turn it is, and buying power */
+.turn-bar { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 1rem; font-family: var(--font-ui); }
+.turn-msg { margin: 0; font-weight: 700; color: var(--accent); }
+.buy-power { margin: 0; font-weight: 600; }
+
+/* The two players' tracks */
+.sides { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.8rem; margin-top: 0.6rem; }
+.side { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.6rem 0.8rem; }
+.side.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.side h3 { margin: 0 0 0.4rem; }
+.side p { margin: 0.3rem 0 0; }
+.track { display: grid; grid-template-columns: minmax(6rem, 1.3fr) 2fr 3rem; gap: 0.5rem; align-items: center; font: 0.8rem/1.3 var(--font-ui); margin: 0.3rem 0; }
+.track-value { text-align: right; color: var(--muted); }
+.bar { height: 0.7rem; background: var(--bar-bg); border-radius: 999px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--race); border-radius: 999px; transition: width 0.3s; }
+.track.danger .fill { background: var(--danger); }
+.bar .fill.full { background: var(--danger-full); }
+.badge { display: inline-block; font-size: 0.7rem; background: var(--danger-full); color: #fff; border-radius: 999px; padding: 0 0.45rem; }
+
+/* Cards */
+.card-row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.card {
+  flex: 0 1 10rem; min-width: 8.5rem;
+  display: flex; flex-direction: column; gap: 0.3rem;
+  background: var(--card-bg); border: 2px solid var(--border); border-radius: var(--radius);
+  padding: 0.5rem 0.6rem; font: 0.78rem/1.35 var(--font-ui);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.card-title { margin: 0; font: 700 0.92rem/1.25 var(--font-body); }
+.chips { display: flex; flex-wrap: wrap; gap: 0.2rem; }
+.chip { border-radius: 4px; padding: 0 0.3rem; font-weight: 600; }
+.chip-space { background: var(--chip-space); }
+.chip-pr { background: var(--chip-pr); }
+.chip-invest { background: var(--chip-invest); }
+.chip-danger { background: var(--chip-danger); }
+.card .ability { margin: 0; }
+.card .flavor { margin: 0; font-style: italic; color: var(--muted); }
+.card-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.3rem; margin-top: auto; }
+.card .cost { font-weight: 700; }
+.card .fn-bar { margin: 0; justify-content: flex-start; }
+.card .fn-btn { font-size: 0.7rem; padding: 0.1rem 0.5rem; }
+.card.playable { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
+.card.playable:hover { border-color: var(--accent); }
+.card.playable:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
+.card.selected { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); }
+.card.dragging { opacity: 0.35; }
+.drag-ghost { position: fixed; z-index: 100; margin: 0; pointer-events: none; transform: rotate(3deg); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); }
+
+/* The three drop spaces */
+.zones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+.zone {
+  min-height: 6.5rem; padding: 0.5rem 0.6rem;
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  background: var(--page-bg); font-family: var(--font-ui);
+}
+.zone h4 { margin: 0 0 0.3rem; font-size: 0.9rem; }
+.zone.over, .board.has-selection .zone:hover { border-color: var(--accent); background: var(--zone-hover); }
+.board.has-selection .zone { cursor: pointer; }
+.zone .drop-hint { margin: 0; color: var(--muted); font-size: 0.8rem; }
+.played { margin: 0; padding-left: 1.1rem; font-size: 0.8rem; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.8rem; }
+.log ol { margin: 0; padding-left: 1.4rem; font-size: 0.9rem; }
+
+/* Game-over pop-up */
+.game-overlay {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; justify-content: center; align-items: flex-start;
+  padding: var(--space); background: var(--overlay-bg); border-radius: var(--radius);
+}
+.game-card {
+  position: sticky; top: var(--space);
+  width: 100%; max-width: 30rem;
+  background: var(--surface); border-radius: var(--radius);
+  padding: 1.2rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+.game-card h3 { margin-top: 0; font: 700 1.3rem var(--font-ui); }
+
+/* ---------- Footnotes ---------- */
+.fn-ref { font: 700 0.65em/0 var(--font-ui); color: var(--accent); padding: 0 1px; cursor: pointer; }
+.fn-ref:hover { text-decoration: underline; }
+button .fn-ref, a .fn-ref { color: inherit; cursor: inherit; }
+button .fn-ref:hover, a .fn-ref:hover { text-decoration: none; }
+.fn-bar { display: flex; justify-content: flex-end; margin-bottom: 0.4rem; }
+.fn-bar:empty { display: none; }
+.fn-btn {
+  font: 600 0.8rem var(--font-ui); padding: 0.25rem 0.7rem; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer;
+}
+.fn-btn:hover { color: var(--accent); border-color: var(--accent); }
+.page-fn { margin-top: 0.6rem; }
+.fn-dialog {
+  width: min(32rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--text); padding: 1.2rem;
+}
+.fn-dialog::backdrop { background: var(--overlay-bg); }
+.fn-dialog h2 { margin-top: 0; }
+.fn-dialog ol { padding-left: 1.6em; margin: 0; display: grid; gap: 0.4rem; }
+.fn-dialog li { padding: 0.2rem 0.4rem; border-radius: 4px; }
+.fn-dialog li.current { background: #fff3c4; outline: 2px solid #e0b400; }
+.fn-dialog .fn-close { margin-top: 1rem; }
+
+/* ---------- Footer ---------- */
+.site-footer {
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  padding-bottom: calc(var(--space) * 2);
+}
+.site-footer p { margin: 0.3em 0; }
+.local-note { font-style: italic; }
+.edit-link { color: var(--muted); opacity: 0.45; text-decoration: none; font-size: 0.8rem; }
+.edit-link:hover, .edit-link:focus { opacity: 1; text-decoration: underline; }
+
+@media (max-width: 36rem) {
+  html { font-size: 16px; }
+  .zones { grid-template-columns: 1fr; }
+  .game-area { padding: 0.7rem; }
+  .card { flex-basis: calc(50% - 0.3rem); min-width: 0; }
+}
+
+/* =====================================================================
+   EDITOR STYLES (only used in edit mode)
+   ===================================================================== */
+body.is-editing { padding-bottom: 8rem; }
+body.is-editing .edit-link { display: none; }
+body.is-editing [data-text] {
+  outline: 2px dotted var(--edit-outline);
+  outline-offset: 3px;
+  min-height: 1.4em;
+  min-width: 3em;
+  cursor: text;
+}
+body.is-editing [data-text]:focus { outline-style: solid; background: #fff8ec; }
+body.is-editing [data-image-box] {
+  position: relative;
+  min-height: 6rem;
+  border: 2px dotted var(--edit-outline);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+/* The hint text comes from EDITOR_TEXT in the script (data-upload-hint). */
+body.is-editing [data-image-box]::after {
+  content: attr(data-upload-hint);
+  position: absolute; right: 0.5rem; bottom: 0.5rem;
+  background: var(--edit-bar-bg); color: var(--edit-bar-text);
+  font: 0.75rem var(--font-ui); padding: 0.2rem 0.5rem; border-radius: 4px;
+}
+
+.edit-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+  padding: 0.6rem var(--space);
+  background: var(--edit-bar-bg); color: var(--edit-bar-text);
+  font-family: var(--font-ui); font-size: 0.85rem;
+}
+.edit-bar .status { flex: 1 1 14rem; }
+.edit-bar button, .ed-dialog button, .card-editor button {
+  font: inherit; font-family: var(--font-ui);
+  padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+}
+.edit-bar button.primary, .ed-dialog button.primary, .card-editor button.primary {
+  background: var(--accent); color: var(--accent-text); border-color: var(--accent);
+}
+.ed-dialog {
+  width: min(36rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  font-family: var(--font-ui); font-size: 0.95rem; color: var(--text);
+}
+.ed-dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+.ed-dialog h2 { margin-top: 0; }
+.ed-dialog label { display: block; margin: 0.8rem 0 0.2rem; font-weight: 600; }
+.ed-dialog input, .ed-dialog textarea {
+  width: 100%; font: inherit; padding: 0.4rem; border: 1px solid var(--border); border-radius: 4px;
+}
+.ed-dialog textarea { min-height: 3.2rem; resize: vertical; }
+.ed-dialog .group { margin-top: 1.2rem; font-size: 0.8rem; text-transform: uppercase; color: var(--muted); }
+.ed-dialog .error { color: #b00020; min-height: 1.2em; margin: 0.4rem 0 0; }
+.ed-dialog .buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+.ed-hint { background: #fff8ec; border-left: 3px solid var(--edit-outline); padding: 0.3rem 0.6rem; }
+.ed-dialog button.ed-link { border: 0; background: none; color: var(--accent); text-decoration: underline; padding: 0.4rem 0; }
+
+/* The Game editor (tables under the game) */
+.card-editor {
+  margin-top: calc(var(--space) * 1.5);
+  font-family: var(--font-ui); font-size: 0.85rem;
+  border: 2px solid var(--edit-outline); border-radius: var(--radius);
+  background: var(--surface); padding: var(--space);
+}
+.card-editor h3 { margin: 1.2rem 0 0.4rem; }
+.card-editor p { margin: 0.3rem 0 0.6rem; }
+.table-wrap { overflow-x: auto; margin-bottom: 0.6rem; }
+.card-editor table { border-collapse: collapse; width: 100%; }
+.card-editor th, .card-editor td { border: 1px solid var(--border); padding: 0.25rem; vertical-align: top; text-align: left; }
+.card-editor th { background: #f1f3f7; font-weight: 600; }
+.card-editor input, .card-editor textarea, .card-editor select {
+  width: 100%; font: inherit; padding: 0.3rem; border: 1px solid var(--border); border-radius: 4px; background: #fff;
+}
+.card-editor textarea { min-width: 11rem; min-height: 3.6rem; resize: vertical; }
+.card-editor input[type="number"] { width: 4.5rem; }
+.card-editor select { min-width: 8rem; }
+.card-editor .row-tools { display: flex; gap: 0.2rem; }
+.card-editor .row-tools button { padding: 0.1rem 0.45rem; }
+
+/* "How to edit" help */
+.ed-help h3 { margin: 1rem 0 0.3rem; font-size: 1rem; }
+.ed-help ol, .ed-help ul { margin: 0; padding-left: 1.4em; display: grid; gap: 0.25rem; }
+.ed-help p { margin: 0.3rem 0; }
+.ed-help code { font: 0.85rem/1.4 ui-monospace, Consolas, monospace; background: #f1f3f7; border: 1px solid #e1e4ea; border-radius: 4px; padding: 1px 5px; }
+.ed-help .ed-example { display: block; margin: 0.3rem 0; padding: 0.3rem 0.5rem; }
+</style>
+</head>
+<body>
+
+<!-- =====================================================================
+     PAGE SHELL
+     Elements with data-text="..." show text from the game data below and
+     can be edited in place. Elements with data-label="..." show text that is
+     edited in the "Other text" dialog instead. data-image="..." shows an image.
+     ===================================================================== -->
+<header class="site-header">
+  <figure class="header-image" data-image-box="header" hidden><img data-image="header" alt=""></figure>
+  <h1 data-text="page.title"></h1>
+  <p class="intro" data-text="page.introduction" data-multiline></p>
+</header>
+
+<main>
+  <!-- GAME AREA: the game is drawn inside #game-root by the script below. -->
+  <section id="game-area" class="game-area">
+    <div id="game-root"></div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p class="author" data-text="page.author"></p>
+  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden></p>
+  <a href="#edit" class="edit-link" id="edit-link" data-label="ui.editLink"></a>
+</footer>
+
+<!-- =====================================================================
+     GAME DATA — every word and picture the player sees lives here.
+
+     How it is organized:
+       schemaVersion  A number. Goes up if the layout of this data changes.
+       auth           The editor password check (a random "salt" and a scrambled
+                      "hash"). The real password is NOT stored anywhere.
+       page           Text shown on the page itself: title, introduction,
+                      game area heading, author line. Edited by clicking on it.
+       ui             Buttons, headings and messages, including the footnote
+                      wording. Edited by clicking on them, or in the editor's
+                      "Other text" window. Words in {curly brackets} are filled
+                      in by the game, e.g. {player} or {n}.
+       images         Pictures. Each one has "src" (the picture, stored as a
+                      data URL) and "alt" (a description for screen readers).
+       game           The card game, edited in the editor's "Game editor" tables:
+         players        names of the player and the computer opponent
+         tracks         five tracks, each with a "name" and a "length" (the end):
+                          space, pr          race tracks: reach the end to win
+                          backlash           when full, Public Relations cards are weakened
+                          economy            when full, Space cards are weakened
+                          military           when either player's is full, both lose
+         settings       cards in a hand, cards in the market, and how much
+                        value weakened cards keep (penaltyPercent)
+         cards          every card. Each has a title, ability and flavor text;
+                        "space", "pr" and "invest" (what it does in each drop
+                        space); "raises" + "raiseAmount" (the danger track it
+                        pushes up when played on a race track); "effect" +
+                        "effectAmount" (what its ability does); "cost";
+                        "startCount" (copies in each starting deck) and
+                        "marketCount" (copies that can be bought).
+
+     Footnotes: in ANY text, type {{fn: your citation}} right where the note
+     belongs, e.g.  A sentence that needs a source.{{fn: Author, Title, Year, page}}
+
+     You do not need to edit this by hand: open the editor (the faint "Edit"
+     link at the bottom of the page), make changes, then use "Save file".
+     ===================================================================== -->
+<script type="application/json" id="game-data">
+{
+  "schemaVersion": 1,
+  "auth": {
+    "salt": "83a765026c0d0098a29988f7f628a357",
+    "hash": "654c0186c2a74b08a5f3c1332dd3792448792aa3d579b904aba22e7c3d4c2cbe"
+  },
+  "page": {
+    "title": "[Game title]",
+    "introduction": "[Introduction]",
+    "gameAreaHeading": "[Game area]",
+    "author": "[Your name and class]"
+  },
+  "ui": {
+    "browserTabTitle": "JFK",
+    "editLink": "[Edit]",
+    "localChangesNote": "[Note: this page is showing changes that are not in the uploaded file yet]",
+    "footnotesButton": "[Footnotes]",
+    "footnotesTitle": "[Footnotes]",
+    "footnotesBack": "[Back]",
+    "footnoteNumberLabel": "[Footnote {n}]",
+    "yourTurn": "[Your turn]",
+    "aiTurn": "[{player} is taking a turn…]",
+    "buyingPower": "[Buying power: {n}]",
+    "marketHeading": "[Market]",
+    "emptyMarket": "[The market is empty]",
+    "buy": "[Buy]",
+    "cardCost": "[Cost {n}]",
+    "cardValue": "{name} +{n}",
+    "investZone": "[Investment]",
+    "dropHint": "[Drag a card here]",
+    "handHeading": "[Your hand]",
+    "deckCount": "[Deck: {deck} · Discard: {discard}]",
+    "aiHandCount": "[Cards in hand: {n}]",
+    "weakened": "[Weakened]",
+    "endTurn": "[End turn]",
+    "newGame": "[New game]",
+    "logHeading": "[What happened]",
+    "logPlayed": "[{player} played {card} on {zone}.]",
+    "logBought": "[{player} bought {card}.]",
+    "winTitle": "[{player} wins!]",
+    "winText": "[{player} reached the end of {track}.]",
+    "nuclearTitle": "[Nuclear war]",
+    "nuclearText": "[{player} reached the end of {track}. Both players lose.]",
+    "playAgain": "[Play again]"
+  },
+  "images": {
+    "header": { "src": "", "alt": "[Header image description]" }
+  },
+  "game": {
+    "players": { "human": "[Player]", "ai": "[Computer opponent]" },
+    "tracks": {
+      "space": { "name": "[Space Race]", "length": 15 },
+      "pr": { "name": "[Public Relations]", "length": 15 },
+      "backlash": { "name": "[Domestic backlash]", "length": 10 },
+      "economy": { "name": "[Economic stability]", "length": 10 },
+      "military": { "name": "[Military]", "length": 10 }
+    },
+    "settings": { "handSize": 5, "marketSize": 5, "penaltyPercent": 50 },
+    "cards": [
+      { "id": "c1", "title": "[Starting card 1]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 1, "pr": 0, "invest": 1, "raises": "economy", "raiseAmount": 1, "effect": "none", "effectAmount": 0, "cost": 0, "startCount": 4, "marketCount": 0 },
+      { "id": "c2", "title": "[Starting card 2]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 0, "pr": 1, "invest": 1, "raises": "backlash", "raiseAmount": 1, "effect": "none", "effectAmount": 0, "cost": 0, "startCount": 4, "marketCount": 0 },
+      { "id": "c3", "title": "[Starting card 3]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 0, "pr": 0, "invest": 2, "raises": "", "raiseAmount": 0, "effect": "none", "effectAmount": 0, "cost": 0, "startCount": 2, "marketCount": 0 },
+      { "id": "c4", "title": "[Card 4]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 3, "pr": 0, "invest": 0, "raises": "economy", "raiseAmount": 2, "effect": "none", "effectAmount": 0, "cost": 4, "startCount": 0, "marketCount": 3 },
+      { "id": "c5", "title": "[Card 5]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 0, "pr": 3, "invest": 0, "raises": "backlash", "raiseAmount": 2, "effect": "none", "effectAmount": 0, "cost": 4, "startCount": 0, "marketCount": 3 },
+      { "id": "c6", "title": "[Card 6]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 2, "pr": 2, "invest": 1, "raises": "military", "raiseAmount": 2, "effect": "none", "effectAmount": 0, "cost": 5, "startCount": 0, "marketCount": 2 },
+      { "id": "c7", "title": "[Card 7]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 0, "pr": 0, "invest": 3, "raises": "", "raiseAmount": 0, "effect": "draw", "effectAmount": 1, "cost": 3, "startCount": 0, "marketCount": 3 },
+      { "id": "c8", "title": "[Card 8]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 1, "pr": 1, "invest": 0, "raises": "military", "raiseAmount": 1, "effect": "pushSpace", "effectAmount": 1, "cost": 3, "startCount": 0, "marketCount": 2 },
+      { "id": "c9", "title": "[Card 9]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 0, "pr": 1, "invest": 1, "raises": "", "raiseAmount": 0, "effect": "lowerBacklash", "effectAmount": 2, "cost": 3, "startCount": 0, "marketCount": 2 },
+      { "id": "c10", "title": "[Card 10]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 0, "pr": 0, "invest": 1, "raises": "", "raiseAmount": 0, "effect": "lowerMilitary", "effectAmount": 2, "cost": 3, "startCount": 0, "marketCount": 2 }
+    ]
+  }
+}
+</script>
+
+<script>
+/* =====================================================================
+   JFK — page script
+
+   Sections:
+     1. Start-up: remember the original page and read the game data
+     2. Small helpers
+     3. Footnotes
+     4. SHA-256 (used for the password check and file fingerprints)
+     5. Drawing the page from the game data
+     6. The game: rules (decks, playing cards, buying, winning)
+     7. The game: computer opponent
+     8. The game: the board, cards and drag-and-drop
+     9. Browser storage (unlock + auto-save), all wrapped in try/catch
+    10. The editor
+    11. The Game editor (tables for tracks, rules and cards)
+    12. Getting everything going
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  /* -------------------------------------------------------------------
+     1. START-UP
+     Take a copy of the page exactly as it was loaded, before anything is
+     drawn or edited. "Save file" builds the new file from this copy and
+     only swaps in new game data, so no editor bits can leak into it.
+     ------------------------------------------------------------------- */
+  const ORIGINAL_PAGE = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+  // Default values for every key. When a file (or an auto-save) is missing a
+  // key that was added in a later version, the default is filled in, so older
+  // files keep working. Add new keys here when the game grows.
+  const DEFAULTS = {
+    page: {
+      title: '[Game title]',
+      introduction: '[Introduction]',
+      gameAreaHeading: '[Game area]',
+      author: '[Your name and class]'
+    },
+    ui: {
+      browserTabTitle: 'JFK',
+      editLink: '[Edit]',
+      localChangesNote: '[Note: this page is showing changes that are not in the uploaded file yet]',
+      footnotesButton: '[Footnotes]',
+      footnotesTitle: '[Footnotes]',
+      footnotesBack: '[Back]',
+      footnoteNumberLabel: '[Footnote {n}]',
+      yourTurn: '[Your turn]',
+      aiTurn: '[{player} is taking a turn…]',
+      buyingPower: '[Buying power: {n}]',
+      marketHeading: '[Market]',
+      emptyMarket: '[The market is empty]',
+      buy: '[Buy]',
+      cardCost: '[Cost {n}]',
+      cardValue: '{name} +{n}',
+      investZone: '[Investment]',
+      dropHint: '[Drag a card here]',
+      handHeading: '[Your hand]',
+      deckCount: '[Deck: {deck} · Discard: {discard}]',
+      aiHandCount: '[Cards in hand: {n}]',
+      weakened: '[Weakened]',
+      endTurn: '[End turn]',
+      newGame: '[New game]',
+      logHeading: '[What happened]',
+      logPlayed: '[{player} played {card} on {zone}.]',
+      logBought: '[{player} bought {card}.]',
+      winTitle: '[{player} wins!]',
+      winText: '[{player} reached the end of {track}.]',
+      nuclearTitle: '[Nuclear war]',
+      nuclearText: '[{player} reached the end of {track}. Both players lose.]',
+      playAgain: '[Play again]'
+    },
+    images: {
+      header: { src: '', alt: '[Header image description]' }
+    },
+    game: {
+      players: { human: '[Player]', ai: '[Computer opponent]' },
+      tracks: {
+        space: { name: '[Space Race]', length: 15 },
+        pr: { name: '[Public Relations]', length: 15 },
+        backlash: { name: '[Domestic backlash]', length: 10 },
+        economy: { name: '[Economic stability]', length: 10 },
+        military: { name: '[Military]', length: 10 }
+      },
+      settings: { handSize: 5, marketSize: 5, penaltyPercent: 50 },
+      cards: []
+    }
+  };
+
+  // Fill in any missing keys from DEFAULTS (existing values are never changed).
+  function withDefaults(d) {
+    (function fillIn(target, defaults) {
+      Object.keys(defaults).forEach(k => {
+        const def = defaults[k];
+        if (!(k in target)) target[k] = clone(def);
+        else if (def && typeof def === 'object' && !Array.isArray(def) &&
+                 target[k] && typeof target[k] === 'object') fillIn(target[k], def);
+      });
+    })(d, DEFAULTS);
+    return d;
+  }
+
+  // The file's own data, with defaults merged in BEFORE the fingerprint
+  // (section 4) is taken, so an older file isn't mistaken for having changes.
+  const FILE_DATA = withDefaults(JSON.parse(document.getElementById('game-data').textContent));
+  let data = clone(FILE_DATA);              // the data currently shown (may include edits)
+
+  // A key unique to this page's location, so projects on the same website
+  // (and copies in different folders) never share saves.
+  const PAGE_KEY = location.pathname.replace(/index\.html?$/i, '');
+
+  // Words used by the editor itself (players never see these).
+  const EDITOR_TEXT = {
+    editorLabel: 'Editor',
+    passwordTitle: 'Edit mode',
+    passwordLabel: 'Password',
+    passwordWrong: 'That password is not right.',
+    unlock: 'Unlock',
+    cancel: 'Cancel',
+    otherText: 'Other text…',
+    otherTextTitle: 'Other text',
+    otherTextHelp: 'Text that isn\'t on the screen right now: buttons, messages, image descriptions and footnote wording. Words in {curly brackets} are filled in by the game: keep them as they are. Card text is in the Game editor under the game.',
+    apply: 'Apply',
+    discard: 'Discard changes',
+    discardTitle: 'Discard changes?',
+    discardBody: 'This removes every change that is not in the uploaded file, and clears the auto-save. It cannot be undone.',
+    saveFile: 'Save file',
+    done: 'Done',
+    conflictTitle: 'Auto-saved changes found',
+    conflictBody: 'This browser has auto-saved changes that were made to an older version of this file. The uploaded file has changed since then.',
+    keepSaved: 'Keep auto-saved changes',
+    useUploaded: 'Use uploaded version',
+    statusClean: 'Editing. No changes from the uploaded file.',
+    statusHasChanges: 'Editing. Changes that are not in the uploaded file are auto-saved in this browser.',
+    statusSaving: 'Saving…',
+    statusSaved: 'Changes auto-saved in this browser at {time}. Use "Save file" to download them.',
+    statusNoStorage: 'This browser is blocking storage, so changes are NOT auto-saved. Use "Save file" before leaving.',
+    statusDownloaded: 'Downloaded index.html. Turn it in so it can replace the old file on the website.',
+    statusImageError: 'That file could not be read as an image.',
+    uploadHint: 'Click to upload an image',
+    howToEdit: 'How to edit',
+    howToEditLink: 'How to edit this game',
+    helpTitle: 'How to edit this game',
+    close: 'Close',
+    fnHint: 'Footnotes: in any box, type {{fn: your citation}} right where the note belongs. Example: A sentence that needs a source.{{fn: Author, Title, Year, page}}',
+
+    // The Game editor
+    game: {
+      heading: 'Game editor',
+      intro: 'Everything the card game uses. While you are editing, you can play the game above to test it. Changes to decks and the market start in the next new game.',
+      tracksHeading: 'Tracks',
+      trackCol: 'Track',
+      nameCol: 'Name',
+      lengthCol: 'End value',
+      roles: {
+        space: 'Race track (first drop space)',
+        pr: 'Race track (second drop space)',
+        backlash: 'Danger: when full, cards on the second race track are weakened',
+        economy: 'Danger: when full, cards on the first race track are weakened',
+        military: 'Danger: when EITHER player\'s is full, both players lose'
+      },
+      rulesHeading: 'Players and rules',
+      settingCol: 'Setting',
+      valueCol: 'Value',
+      humanName: 'Player name',
+      aiName: 'Computer opponent name',
+      handSize: 'Cards in each hand',
+      marketSize: 'Cards in the market',
+      penalty: 'Weakened cards keep this % of their value',
+      cardsHeading: 'Cards',
+      cardsHelp: 'One row per card. The three number columns after the flavor text say how much the card does in each drop space. "Raises" is the danger track that goes up when the card is played on a race track.',
+      title: 'Title',
+      ability: 'Ability text',
+      effect: 'Ability effect',
+      amount: 'Amount',
+      flavor: 'Historical flavor text',
+      raises: 'Raises',
+      raiseAmount: 'By',
+      cost: 'Cost',
+      startCount: 'In starting deck',
+      marketCount: 'In market',
+      nothing: 'Nothing',
+      effects: {
+        none: 'No effect',
+        draw: 'Draw cards',
+        gainInvest: 'Gain buying power',
+        lowerBacklash: 'Lower own {track}',
+        lowerEconomy: 'Lower own {track}',
+        lowerMilitary: 'Lower own {track}',
+        pushSpace: 'Push opponent back on {track}',
+        pushPR: 'Push opponent back on {track}'
+      },
+      addCard: 'Add card',
+      moveUp: 'Move up',
+      moveDown: 'Move down',
+      remove: 'Delete',
+      removeTitle: 'Delete this card?',
+      removeBody: 'The card is removed from the game, the decks and the market.'
+    }
+  };
+
+  /* -------------------------------------------------------------------
+     2. SMALL HELPERS
+     ------------------------------------------------------------------- */
+  function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+  // Read or write a value using a dotted path such as "page.title" or "game.cards.0.title".
+  function getPath(obj, path) {
+    return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
+  }
+  function setPath(obj, path, value) {
+    const keys = path.split('.');
+    const last = keys.pop();
+    const target = keys.reduce((o, k) => (o[k] = o[k] || {}), obj);
+    target[last] = value;
+  }
+
+  // JSON with keys in sorted order, so two copies of the same data always
+  // compare equal, whatever order their keys were added in.
+  function stableJson(v) {
+    if (Array.isArray(v)) return '[' + v.map(stableJson).join(',') + ']';
+    if (v && typeof v === 'object') {
+      return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + stableJson(v[k])).join(',') + '}';
+    }
+    return JSON.stringify(v);
+  }
+
+  // The data without the password check (auto-saves never store it).
+  function withoutAuth(d) { const c = clone(d); delete c.auth; return c; }
+
+  // True if the data is the same as the uploaded file's data.
+  function sameAsFile(d) { return stableJson(withoutAuth(d)) === stableJson(withoutAuth(FILE_DATA)); }
+
+  // Put the file's own password check back in, keeping a tidy key order.
+  function withFileAuth(d) {
+    const out = { schemaVersion: d.schemaVersion, auth: clone(FILE_DATA.auth) };
+    Object.keys(d).forEach(k => { if (k !== 'auth' && k !== 'schemaVersion') out[k] = d[k]; });
+    return out;
+  }
+
+  function el(tag, attrs, text) {
+    const e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(k => e.setAttribute(k, attrs[k]));
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  // Fill in {words} in a piece of text, e.g. fill('Footnote {n}', { n: 2 }).
+  function fill(text, values) {
+    return String(text == null ? '' : text).replace(/\{(\w+)\}/g, (m, k) => (values && k in values ? values[k] : m));
+  }
+
+  // A piece of wording from data.ui, e.g. uiText('footnotesTitle').
+  function uiText(key, values) { return fill((data.ui || {})[key], values); }
+
+  // A whole number, never below 0 (blank or nonsense counts as 0).
+  function num(v) { return Math.max(0, Math.round(Number(v) || 0)); }
+
+  // A short random id for new items, e.g. "c4k2x9".
+  function newId(prefix) { return prefix + Math.random().toString(36).slice(2, 8); }
+
+  /* -------------------------------------------------------------------
+     3. FOOTNOTES
+     In any text, {{fn: citation}} becomes a small number, and the citation
+     is added to the list for that screen. Each screen keeps its own list,
+     numbered 1, 2, 3... in reading order. The screens are: the page header +
+     footer, the game board, each card, and the game-over pop-up.
+     In edit mode the raw {{fn: ...}} text is shown instead, so it can be edited.
+
+     To use footnotes on a new screen:
+       const notes = [];                       // one list per screen
+       showText(node, someText, notes);        // or textEl / rich below
+       screen.prepend(notesBar(notes));        // the "Footnotes (n)" button
+     ------------------------------------------------------------------- */
+  // {{ fn : ... }}, any capitals, spaces allowed, up to the FIRST closing }}.
+  // Text with no closing }} doesn't match, so it is shown as typed.
+  const NOTE_RE = /\{\{\s*fn\s*:\s*([\s\S]*?)\s*\}\}/gi;
+
+  // Text with each {{fn: ...}} swapped for a numbered superscript.
+  // The citations are added to `notes` (an array) in reading order.
+  function withNotes(text, notes) {
+    const frag = document.createDocumentFragment();
+    const str = String(text == null ? '' : text);
+    let last = 0;
+    for (const m of str.matchAll(NOTE_RE)) {
+      frag.append(str.slice(last, m.index));
+      notes.push(m[1]);
+      const n = String(notes.length);
+      const sup = el('sup', { class: 'fn-ref', 'data-note': n, title: stripNotes(uiText('footnoteNumberLabel', { n: n })) }, n);
+      sup._notes = notes;               // which list this number belongs to
+      frag.append(sup);
+      last = m.index + m[0].length;
+    }
+    frag.append(str.slice(last));
+    return frag;
+  }
+
+  // Text with the footnotes removed, for places that can't show them
+  // (browser tab title, image descriptions, screen-reader labels).
+  function stripNotes(text) { return String(text == null ? '' : text).replace(NOTE_RE, '').trim(); }
+
+  // Put text into an element: raw while editing, with footnote numbers otherwise.
+  // Always uses text nodes, never HTML, so student text can't break the page.
+  function showText(node, text, notes) {
+    if (editing || !notes) node.textContent = text == null ? '' : String(text);
+    else node.replaceChildren(withNotes(text, notes));
+    return node;
+  }
+
+  // A citation, with web addresses turned into links that open in a new tab.
+  function citation(text) {
+    const frag = document.createDocumentFragment();
+    String(text).split(/(https?:\/\/[^\s<>"]+)/).forEach((part, i) => {
+      if (i % 2 === 0) frag.append(part);
+      else frag.append(el('a', { href: part, target: '_blank', rel: 'noopener' }, part));
+    });
+    return frag;
+  }
+
+  // The "Footnotes (n)" button for a screen. Returns an empty bar if there are none.
+  function notesBar(notes) {
+    const bar = el('div', { class: 'fn-bar' });
+    if (notes.length && !editing) {
+      const b = el('button', { type: 'button', class: 'fn-btn' }, stripNotes(uiText('footnotesButton')) + ' (' + notes.length + ')');
+      b.addEventListener('click', () => openNotes(notes));
+      bar.appendChild(b);
+    }
+    return bar;
+  }
+
+  // The footnotes list, shown on top of the current screen.
+  // `current` (optional) is the number to highlight.
+  function openNotes(notes, current) {
+    const title = stripNotes(uiText('footnotesTitle'));
+    const dlg = el('dialog', { class: 'fn-dialog', 'aria-label': title });
+    const list = el('ol');
+    notes.forEach((n, i) => {
+      const li = el('li');
+      li.append(citation(n));
+      if (i + 1 === Number(current)) li.className = 'current';
+      list.appendChild(li);
+    });
+    const back = el('button', { type: 'button', class: 'game-btn primary fn-close' }, stripNotes(uiText('footnotesBack')));
+    let closed = false;
+    const close = () => { if (closed) return; closed = true; if (dlg.open) dlg.close(); dlg.remove(); };
+    back.addEventListener('click', close);
+    dlg.addEventListener('cancel', e => { e.preventDefault(); close(); });
+    dlg.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); close(); } });
+    dlg.append(el('h2', {}, title), list, back);
+    document.body.appendChild(dlg);
+    dlg.showModal();
+    const cur = list.querySelector('.current');
+    if (cur) cur.scrollIntoView({ block: 'center' });
+    else back.focus();
+  }
+
+  // Clicking a footnote number in body text opens the list with that note highlighted.
+  // (Numbers inside buttons and links don't, so the button still does its job.)
+  document.addEventListener('click', e => {
+    if (editing) return;
+    const ref = e.target.closest && e.target.closest('.fn-ref');
+    if (!ref || !ref._notes || ref.closest('button, a')) return;
+    openNotes(ref._notes, ref.dataset.note);
+  });
+
+  /* -------------------------------------------------------------------
+     4. SHA-256
+     Written out in plain JavaScript (instead of crypto.subtle) so it also
+     works when the file is opened from disk or over plain http.
+     ------------------------------------------------------------------- */
+  const SHA_K = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+  ];
+
+  function sha256(text) {
+    const bytes = new TextEncoder().encode(text);
+    const len = bytes.length;
+    // Pad: the message, a 1 bit, zeros, then the length in bits (64-bit big-endian).
+    const total = Math.ceil((len + 9) / 64) * 64;
+    const buf = new Uint8Array(total);
+    buf.set(bytes);
+    buf[len] = 0x80;
+    const view = new DataView(buf.buffer);
+    view.setUint32(total - 8, Math.floor(len / 0x20000000));
+    view.setUint32(total - 4, (len * 8) >>> 0);
+
+    const h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+    const w = new Int32Array(64);
+    const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+
+    for (let off = 0; off < total; off += 64) {
+      for (let i = 0; i < 16; i++) w[i] = view.getInt32(off + i * 4);
+      for (let i = 16; i < 64; i++) {
+        const s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+        const s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+        w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+      }
+      let [a, b, c, d, e, f, g, hh] = h;
+      for (let i = 0; i < 64; i++) {
+        const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+        const ch = (e & f) ^ (~e & g);
+        const t1 = (hh + S1 + ch + SHA_K[i] + w[i]) | 0;
+        const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+        const maj = (a & b) ^ (a & c) ^ (b & c);
+        const t2 = (S0 + maj) | 0;
+        hh = g; g = f; f = e; e = (d + t1) | 0;
+        d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      h[0] = (h[0] + a) | 0; h[1] = (h[1] + b) | 0; h[2] = (h[2] + c) | 0; h[3] = (h[3] + d) | 0;
+      h[4] = (h[4] + e) | 0; h[5] = (h[5] + f) | 0; h[6] = (h[6] + g) | 0; h[7] = (h[7] + hh) | 0;
+    }
+    return h.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+  }
+
+  // A fingerprint of the uploaded file's content (defaults already merged in),
+  // stored with each auto-save so we can tell later if the uploaded file changed.
+  const FILE_FINGERPRINT = sha256(stableJson(FILE_DATA));
+
+  /* -------------------------------------------------------------------
+     5. DRAWING THE PAGE
+     Everything the player reads comes from `data`.
+     ------------------------------------------------------------------- */
+  let editing = false;
+
+  function render() {
+    document.title = stripNotes(uiText('browserTabTitle')) || document.title;
+
+    renderPageText();
+
+    // Images: fill every <img data-image="name"> from data.images.name.
+    document.querySelectorAll('img[data-image]').forEach(img => {
+      const info = (data.images || {})[img.dataset.image] || {};
+      if (info.src) img.src = info.src; else img.removeAttribute('src');
+      img.alt = stripNotes(info.alt);
+      const box = img.closest('[data-image-box]');
+      if (box) box.hidden = !info.src && !editing;   // empty images only show while editing
+    });
+
+    renderGame();
+    if (editing) makeEditable();
+  }
+
+  // The page header and footer: one footnote group with its own "Footnotes" button.
+  let pageNotesBar = null;
+  function renderPageText() {
+    const pageNotes = [];
+    document.querySelectorAll('[data-text], [data-label]').forEach(node => {
+      if (node.closest('#game-root')) return;                 // the game draws its own text
+      if (editing && node === document.activeElement) return; // don't disturb typing
+      const value = getPath(data, node.dataset.text || node.dataset.label);
+      // Hidden text (e.g. the footer note when it's not showing) doesn't add numbers.
+      showText(node, value, node.hidden ? [] : pageNotes);
+    });
+    const bar = notesBar(pageNotes);
+    bar.classList.add('page-fn');
+    if (pageNotesBar) pageNotesBar.replaceWith(bar);
+    else document.querySelector('.site-header').appendChild(bar);
+    pageNotesBar = bar;
+  }
+
+  // Footer note: shown when the page has changes that aren't in the uploaded file.
+  function updateLocalNote() {
+    const note = document.getElementById('local-note');
+    const hide = sameAsFile(data);
+    if (note.hidden !== hide) { note.hidden = hide; renderPageText(); }
+  }
+
+  /* -------------------------------------------------------------------
+     6. THE GAME: RULES
+     A deckbuilder race between the player ("human") and the computer ("ai").
+     Each player has a deck, a hand, a discard pile, five track values and
+     some buying power. On your turn you play cards from your hand onto one
+     of three drop spaces:
+       space / pr   move your race track forward by the card's value
+                    (less if you are weakened), and push up the danger
+                    track the card "raises"
+       invest       add the card's invest value to your buying power
+     Every card's ability effect happens wherever it is played. Buying power
+     buys cards from the market; bought cards go to your discard pile.
+     At the end of a turn, every card goes to the discard pile and you draw
+     a new hand (the discard pile is shuffled into a new deck when needed).
+     ------------------------------------------------------------------- */
+  const RACES = ['space', 'pr'];
+  const DANGERS = ['backlash', 'economy', 'military'];
+  const TRACKS = RACES.concat(DANGERS);
+  const ZONES = ['space', 'pr', 'invest'];
+  const EFFECTS = ['none', 'draw', 'gainInvest', 'lowerBacklash', 'lowerEconomy', 'lowerMilitary', 'pushSpace', 'pushPR'];
+  const EFFECT_TRACK = { lowerBacklash: 'backlash', lowerEconomy: 'economy', lowerMilitary: 'military', pushSpace: 'space', pushPR: 'pr' };
+
+  function game() { return data.game; }
+  function settings() { return Object.assign({ handSize: 5, marketSize: 5, penaltyPercent: 50 }, game().settings); }
+  function trackLength(key) { return Math.max(1, num((game().tracks[key] || {}).length)); }
+  function trackName(key) { return stripNotes((game().tracks[key] || {}).name); }
+  function zoneName(zone) { return zone === 'invest' ? stripNotes(uiText('investZone')) : trackName(zone); }
+  function playerName(who) { return stripNotes(game().players[who]); }
+  function cardById(id) { return (game().cards || []).find(c => c.id === id); }
+  function other(who) { return who === 'human' ? 'ai' : 'human'; }
+
+  function shuffle(list) {
+    const a = list.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // A shuffled pile of card ids, with as many copies as each card's `field` says.
+  function copies(field) {
+    const out = [];
+    (game().cards || []).forEach(c => { for (let i = 0; i < Math.min(num(c[field]), 50); i++) out.push(c.id); });
+    return shuffle(out);
+  }
+
+  let match = null;        // the game being played right now (not saved anywhere)
+  let matchCount = 0;      // goes up with each new game, so an old computer turn knows to stop
+
+  function newPlayer() {
+    const p = { deck: copies('startCount'), hand: [], discard: [], played: { space: [], pr: [], invest: [] }, buy: 0 };
+    TRACKS.forEach(t => { p[t] = 0; });
+    drawCards(p, num(settings().handSize));
+    return p;
+  }
+
+  function newMatch() {
+    match = {
+      id: ++matchCount,
+      turn: 'human',
+      players: { human: newPlayer(), ai: newPlayer() },
+      supply: copies('marketCount'),   // cards waiting to go into the market
+      market: [],                      // cards that can be bought right now
+      log: [],
+      over: null,                      // { kind: 'win' or 'nuclear', who, track } once the game ends
+      selected: null                   // hand position of a card picked by click/tap
+    };
+    refillMarket();
+  }
+
+  function refillMarket() {
+    const size = num(settings().marketSize);
+    while (match.market.length < size && match.supply.length) match.market.push(match.supply.pop());
+  }
+
+  function drawCards(p, n) {
+    for (let i = 0; i < n; i++) {
+      if (!p.deck.length) { p.deck = shuffle(p.discard); p.discard = []; }
+      if (!p.deck.length) return;
+      p.hand.push(p.deck.pop());
+    }
+  }
+
+  function addLog(text) {
+    match.log.push(text);
+    if (match.log.length > 50) match.log.shift();
+  }
+
+  // A full danger track weakens one race track: full economy weakens space,
+  // full backlash weakens public relations.
+  function isWeakened(p, zone) {
+    if (zone === 'space') return p.economy >= trackLength('economy');
+    if (zone === 'pr') return p.backlash >= trackLength('backlash');
+    return false;
+  }
+
+  // How far a card moves a race track for this player right now.
+  function effectiveValue(p, card, zone) {
+    const base = num(card[zone]);
+    return isWeakened(p, zone) ? Math.floor(base * Math.min(100, num(settings().penaltyPercent)) / 100) : base;
+  }
+
+  function playCard(who, index, zone) {
+    const p = match.players[who];
+    const card = cardById(p.hand[index]);
+    if (!card || match.over || !ZONES.includes(zone)) return;
+    p.hand.splice(index, 1);
+    p.played[zone].push(card.id);
+    if (zone === 'invest') {
+      p.buy += num(card.invest);
+    } else {
+      p[zone] = Math.min(trackLength(zone), p[zone] + effectiveValue(p, card, zone));
+      if (DANGERS.includes(card.raises)) {
+        p[card.raises] = Math.min(trackLength(card.raises), p[card.raises] + num(card.raiseAmount));
+      }
+    }
+    applyAbility(p, match.players[other(who)], card);
+    addLog(uiText('logPlayed', { player: playerName(who), card: stripNotes(card.title), zone: zoneName(zone) }));
+    checkForEnd(who);
+  }
+
+  // What a card's ability effect does (chosen in the Game editor).
+  function applyAbility(p, opp, card) {
+    const n = num(card.effectAmount);
+    const t = EFFECT_TRACK[card.effect];
+    if (card.effect === 'draw') drawCards(p, n);
+    else if (card.effect === 'gainInvest') p.buy += n;
+    else if (DANGERS.includes(t)) p[t] = Math.max(0, p[t] - n);
+    else if (RACES.includes(t)) opp[t] = Math.max(0, opp[t] - n);
+  }
+
+  // Nuclear war (either military track full) ends the game for both players
+  // first; otherwise the first player to fill a race track wins.
+  function checkForEnd(who) {
+    for (const w of ['human', 'ai']) {
+      if (match.players[w].military >= trackLength('military')) { match.over = { kind: 'nuclear', who: w, track: 'military' }; return; }
+    }
+    for (const w of [who, other(who)]) {
+      for (const t of RACES) {
+        if (match.players[w][t] >= trackLength(t)) { match.over = { kind: 'win', who: w, track: t }; return; }
+      }
+    }
+  }
+
+  function buyCard(who, index) {
+    const p = match.players[who];
+    const card = cardById(match.market[index]);
+    if (!card || match.over || num(card.cost) > p.buy) return false;
+    p.buy -= num(card.cost);
+    p.discard.push(card.id);
+    match.market.splice(index, 1);
+    refillMarket();
+    addLog(uiText('logBought', { player: playerName(who), card: stripNotes(card.title) }));
+    return true;
+  }
+
+  function endTurn(who) {
+    const p = match.players[who];
+    ZONES.forEach(z => { p.discard.push(...p.played[z]); p.played[z] = []; });
+    p.discard.push(...p.hand);
+    p.hand = [];
+    p.buy = 0;
+    drawCards(p, num(settings().handSize));
+    match.turn = other(who);
+    match.selected = null;
+  }
+
+  // What the player's clicks and drags do.
+  function humanPlay(index, zone) {
+    if (match.turn !== 'human' || match.over) return;
+    match.selected = null;
+    playCard('human', index, zone);
+    renderGame();
+  }
+  function humanBuy(index) {
+    if (match.turn !== 'human' || match.over) return;
+    buyCard('human', index);
+    renderGame();
+  }
+  function humanEndTurn() {
+    if (match.turn !== 'human' || match.over) return;
+    endTurn('human');
+    renderGame();
+    runAiTurn();
+  }
+  function startNewGame() {
+    newMatch();
+    renderGame();
+  }
+
+  /* -------------------------------------------------------------------
+     7. THE GAME: COMPUTER OPPONENT
+     The computer plays one card at a time, with a short pause so the
+     player can watch. For every card in its hand and every drop space it
+     works out a score, and plays the best one. Then it buys the most
+     useful cards it can afford, and ends its turn.
+     It never makes a move that would fill its own military track.
+     ------------------------------------------------------------------- */
+  const AI_PAUSE = 800;        // milliseconds between the computer's moves
+
+  function pause(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+  async function runAiTurn() {
+    const id = match.id;
+    const stillGoing = () => match && match.id === id && !match.over && match.turn === 'ai';
+    await pause(AI_PAUSE);
+    let move;
+    while (stillGoing() && (move = aiChoosePlay())) {
+      playCard('ai', move.index, move.zone);
+      renderGame();
+      await pause(AI_PAUSE);
+    }
+    let buys = 0, pick;
+    while (stillGoing() && buys < 3 && (pick = aiChooseBuy()) !== null) {
+      buyCard('ai', pick);
+      buys += 1;
+      renderGame();
+      await pause(AI_PAUSE);
+    }
+    if (!stillGoing()) { renderGame(); return; }
+    endTurn('ai');
+    renderGame();
+  }
+
+  // How close the computer is to winning (0 = start, 1 = at the end).
+  function aiProgress(p) { return Math.max(p.space / trackLength('space'), p.pr / trackLength('pr')); }
+
+  // Buying power matters early in the game, less near the end.
+  function investWorth(p) { return Math.max(0.2, 1.2 - aiProgress(p)); }
+
+  function aiScore(p, opp, card, zone) {
+    let score = 0;
+    if (zone === 'invest') {
+      score += num(card.invest) * investWorth(p);
+    } else {
+      const len = trackLength(zone);
+      const gain = effectiveValue(p, card, zone);
+      if (gain && p[zone] + gain >= len) score += 100;            // this move wins
+      score += gain * (1 + p[zone] / len);
+      const danger = card.raises, rise = num(card.raiseAmount);
+      if (DANGERS.includes(danger) && rise) {
+        const dlen = trackLength(danger), after = p[danger] + rise;
+        if (danger === 'military' && after >= dlen) return -1000;  // never start a nuclear war
+        score -= rise * (after / dlen) * 1.5;
+        if (after >= dlen && p[danger] < dlen) score -= 4;         // would become weakened
+      }
+    }
+    const n = num(card.effectAmount), t = EFFECT_TRACK[card.effect];
+    if (card.effect === 'draw') score += n * 1.2;
+    else if (card.effect === 'gainInvest') score += n * investWorth(p);
+    else if (DANGERS.includes(t)) score += Math.min(n, p[t]) * (p[t] / trackLength(t)) * 1.5;
+    else if (RACES.includes(t)) score += Math.min(n, opp[t]) * (0.5 + opp[t] / trackLength(t));
+    return score;
+  }
+
+  function aiChoosePlay() {
+    const p = match.players.ai, opp = match.players.human;
+    let best = null;
+    p.hand.forEach((id, index) => {
+      const card = cardById(id);
+      if (!card) return;
+      ZONES.forEach(zone => {
+        const score = aiScore(p, opp, card, zone);
+        if (!best || score > best.score) best = { index, zone, score };
+      });
+    });
+    return best && best.score > -100 ? best : null;
+  }
+
+  // A rough idea of how good a card is to own.
+  function cardWorth(card) {
+    let worth = num(card.space) + num(card.pr) + num(card.invest) * 0.8;
+    if (card.effect && card.effect !== 'none') worth += num(card.effectAmount);
+    if (DANGERS.includes(card.raises)) worth -= num(card.raiseAmount) * 0.5;
+    return worth;
+  }
+
+  function aiChooseBuy() {
+    const p = match.players.ai;
+    let best = null;
+    match.market.forEach((id, index) => {
+      const card = cardById(id);
+      if (!card || num(card.cost) > p.buy) return;
+      const worth = cardWorth(card);
+      if (worth <= 1) return;
+      const score = worth + num(card.cost) * 0.1;
+      if (!best || score > best.score) best = { index, score };
+    });
+    return best ? best.index : null;
+  }
+
+  /* -------------------------------------------------------------------
+     8. THE GAME: THE BOARD, CARDS AND DRAG-AND-DROP
+     The whole board is drawn again after every move. Footnote groups:
+     the board's own text is one group; every card is its own group (with
+     its own small Footnotes button); the game-over pop-up is another.
+     ------------------------------------------------------------------- */
+
+  // An element showing editable text from the data, e.g. textEl('h3', 'ui.marketHeading', notes).
+  function textEl(tag, path, notes, attrs) {
+    const node = el(tag, Object.assign({ 'data-text': path }, attrs || {}));
+    return showText(node, getPath(data, path), notes);
+  }
+  // An element showing any text (not editable in place), with footnotes.
+  function rich(tag, text, notes, attrs) {
+    return showText(el(tag, attrs || {}), text, notes);
+  }
+  function gameButton(label, onClick, cls, notes) {
+    const b = el('button', { type: 'button', class: 'game-btn' + (cls ? ' ' + cls : '') });
+    showText(b, label, notes);
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function renderGame() {
+    const root = document.getElementById('game-root');
+    const active = document.activeElement;
+    // Don't redraw while someone is typing into text on the board.
+    if (editing && active && active.closest && active.closest('[data-text]') && root.contains(active)) return;
+    if (!match) newMatch();
+
+    const notes = [];                        // footnotes for the board
+    const human = match.players.human;
+    const current = match.players[match.turn];
+    const yourTurn = match.turn === 'human' && !match.over;
+    const board = el('div', { class: 'board' + (yourTurn && match.selected != null ? ' has-selection' : '') });
+
+    board.append(textEl('h2', 'page.gameAreaHeading', notes));
+
+    // Whose turn, and how much buying power they have.
+    const turnBar = el('div', { class: 'turn-bar' });
+    turnBar.append(
+      rich('p', yourTurn ? uiText('yourTurn') : uiText('aiTurn', { player: playerName('ai') }), notes, { class: 'turn-msg', 'aria-live': 'polite' }),
+      rich('p', uiText('buyingPower', { n: current.buy }), notes, { class: 'buy-power' })
+    );
+    board.append(turnBar);
+
+    // Both players' tracks.
+    const sides = el('div', { class: 'sides' });
+    sides.append(sideEl('human', notes), sideEl('ai', notes));
+    board.append(sides);
+
+    // The market.
+    board.append(textEl('h3', 'ui.marketHeading', notes));
+    const market = el('div', { class: 'card-row market' });
+    match.market.forEach((id, index) => {
+      const card = cardById(id);
+      if (card) market.append(cardEl(card, { market: true, index: index, canBuy: yourTurn && num(card.cost) <= human.buy }));
+    });
+    if (!market.children.length) market.append(rich('p', uiText('emptyMarket'), notes, { class: 'muted' }));
+    board.append(market);
+
+    // The three drop spaces (showing what whoever's turn it is has played).
+    const zones = el('div', { class: 'zones' });
+    zones.style.marginTop = '1rem';
+    ZONES.forEach(z => zones.append(zoneEl(z, current, yourTurn, notes)));
+    board.append(zones);
+
+    // The player's hand.
+    board.append(textEl('h3', 'ui.handHeading', notes));
+    board.append(rich('p', uiText('deckCount', { deck: human.deck.length, discard: human.discard.length }), notes, { class: 'muted small' }));
+    const hand = el('div', { class: 'card-row hand' });
+    human.hand.forEach((id, index) => {
+      const card = cardById(id);
+      if (card) hand.append(cardEl(card, { hand: true, index: index, playable: yourTurn }));
+    });
+    board.append(hand);
+
+    const actions = el('div', { class: 'actions' });
+    const end = gameButton(uiText('endTurn'), humanEndTurn, 'primary', notes);
+    end.disabled = !yourTurn;
+    actions.append(end, gameButton(uiText('newGame'), startNewGame, '', notes));
+    board.append(actions);
+
+    // The most recent moves.
+    if (match.log.length) {
+      const log = el('section', { class: 'log' });
+      log.append(textEl('h3', 'ui.logHeading', notes));
+      const list = el('ol');
+      list.start = Math.max(1, match.log.length - 7);
+      match.log.slice(-8).forEach(line => list.append(rich('li', line, notes)));
+      log.append(list);
+      board.append(log);
+    }
+
+    board.prepend(notesBar(notes));
+    root.replaceChildren(board);
+    if (match.over) root.append(gameOverEl());
+    if (editing) makeEditable();
+  }
+
+  // One player's name and five tracks.
+  function sideEl(who, notes) {
+    const p = match.players[who];
+    const box = el('div', { class: 'side' + (match.turn === who && !match.over ? ' active' : '') });
+    box.append(textEl('h3', 'game.players.' + who, notes));
+    TRACKS.forEach(t => {
+      const len = trackLength(t), value = Math.min(p[t], len);
+      const row = el('div', { class: 'track ' + (RACES.includes(t) ? 'race' : 'danger') });
+      const label = el('div', { class: 'track-label' });
+      label.append(textEl('span', 'game.tracks.' + t + '.name', notes));
+      if (isWeakened(p, t)) label.append(' ', rich('span', uiText('weakened'), notes, { class: 'badge' }));
+      const bar = el('div', { class: 'bar', 'aria-hidden': 'true' });
+      const fillBar = el('div', { class: 'fill' + (value >= len ? ' full' : '') });
+      fillBar.style.width = (100 * value / len) + '%';
+      bar.append(fillBar);
+      row.append(label, bar, el('span', { class: 'track-value' }, value + ' / ' + len));
+      box.append(row);
+    });
+    if (who === 'ai') box.append(rich('p', uiText('aiHandCount', { n: p.hand.length }), notes, { class: 'muted small' }));
+    return box;
+  }
+
+  // One drop space. Cards are dropped here, or picked with a click/tap and then this is clicked.
+  function zoneEl(zone, p, yourTurn, notes) {
+    const box = el('div', { class: 'zone', 'data-zone': zone });
+    if (yourTurn) { box.tabIndex = 0; box.setAttribute('role', 'button'); }
+    box.append(zone === 'invest' ? textEl('h4', 'ui.investZone', notes) : textEl('h4', 'game.tracks.' + zone + '.name', notes));
+    const played = p.played[zone].map(cardById).filter(Boolean);
+    if (played.length) {
+      const list = el('ul', { class: 'played' });
+      played.forEach(c => list.append(el('li', {}, stripNotes(c.title))));
+      box.append(list);
+    } else {
+      box.append(rich('p', uiText('dropHint'), notes, { class: 'drop-hint' }));
+    }
+    box.addEventListener('click', () => { if (match.selected != null) humanPlay(match.selected, zone); });
+    box.addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && match.selected != null && e.target === box) { e.preventDefault(); humanPlay(match.selected, zone); }
+    });
+    return box;
+  }
+
+  // One card. Every card has its own footnote list and Footnotes button.
+  function cardEl(card, opts) {
+    const notes = [];
+    const node = el('div', { class: 'card' });
+    if (opts.hand) {
+      node.dataset.index = opts.index;
+      if (opts.playable) {
+        node.classList.add('playable');
+        node.tabIndex = 0;
+        node.setAttribute('role', 'button');
+        node.setAttribute('aria-pressed', String(match.selected === opts.index));
+        node.addEventListener('keydown', e => {
+          if ((e.key === 'Enter' || e.key === ' ') && e.target === node) { e.preventDefault(); toggleSelected(opts.index); }
+        });
+      }
+      if (match.selected === opts.index) node.classList.add('selected');
+    }
+    node.append(rich('h4', card.title, notes, { class: 'card-title' }));
+
+    const chips = el('div', { class: 'chips' });
+    ZONES.forEach(z => {
+      if (num(card[z])) chips.append(rich('span', uiText('cardValue', { name: zoneName(z), n: num(card[z]) }), notes, { class: 'chip chip-' + z }));
+    });
+    if (DANGERS.includes(card.raises) && num(card.raiseAmount)) {
+      chips.append(rich('span', uiText('cardValue', { name: trackName(card.raises), n: num(card.raiseAmount) }), notes, { class: 'chip chip-danger' }));
+    }
+    node.append(chips);
+    if (card.ability) node.append(rich('p', card.ability, notes, { class: 'ability' }));
+    if (card.flavor) node.append(rich('p', card.flavor, notes, { class: 'flavor' }));
+
+    if (opts.market) {
+      const foot = el('div', { class: 'card-foot' });
+      foot.append(rich('span', uiText('cardCost', { n: num(card.cost) }), notes, { class: 'cost' }));
+      const buy = gameButton(uiText('buy'), () => humanBuy(opts.index), 'small', notes);
+      buy.disabled = !opts.canBuy;
+      foot.append(buy);
+      node.append(foot);
+    }
+    node.append(notesBar(notes));
+    return node;
+  }
+
+  function toggleSelected(index) {
+    match.selected = match.selected === index ? null : index;
+    renderGame();
+    const again = document.querySelector('#game-root .hand .card[data-index="' + index + '"]');
+    if (again) again.focus({ preventScroll: true });
+  }
+
+  function gameOverEl() {
+    const notes = [];
+    const over = match.over;
+    const values = { player: playerName(over.who), track: trackName(over.track) };
+    const overlay = el('div', { class: 'game-overlay' });
+    const card = el('div', { class: 'game-card', role: 'alertdialog' });
+    card.append(
+      rich('h3', uiText(over.kind === 'nuclear' ? 'nuclearTitle' : 'winTitle', values), notes),
+      rich('p', uiText(over.kind === 'nuclear' ? 'nuclearText' : 'winText', values), notes),
+      gameButton(uiText('playAgain'), startNewGame, 'primary', notes)
+    );
+    card.prepend(notesBar(notes));
+    overlay.append(card);
+    return overlay;
+  }
+
+  /* --- Drag-and-drop ---
+     Uses pointer events, so it works with a mouse, a finger or a pen.
+     A press that doesn't move is a click/tap instead: it picks the card,
+     and clicking a drop space then plays it (this also works by keyboard). */
+  let drag = null;
+
+  function zoneAt(x, y) {
+    const target = document.elementFromPoint(x, y);
+    return target && target.closest ? target.closest('#game-root [data-zone]') : null;
+  }
+
+  document.addEventListener('pointerdown', e => {
+    const node = e.target.closest && e.target.closest('#game-root .card.playable');
+    if (!node || e.button > 0 || e.target.closest('button, a, .fn-ref')) return;
+    drag = { node: node, index: Number(node.dataset.index), x: e.clientX, y: e.clientY, lastY: e.clientY, moved: false, ghost: null, over: null };
+    // Keep getting this pointer's moves even if it leaves the card.
+    try { node.setPointerCapture(e.pointerId); } catch (err) { /* not supported */ }
+  });
+
+  // Stop the browser starting its own drag (of text or the card), which would cancel ours.
+  document.addEventListener('dragstart', e => { if (e.target.closest && e.target.closest('#game-root .card')) e.preventDefault(); });
+
+  // While dragging near the top or bottom of the screen, scroll the page,
+  // so the drop spaces can be reached on a small screen.
+  function autoScroll() {
+    if (!drag || !drag.moved) return;
+    const edge = 70;
+    if (drag.lastY < edge) window.scrollBy(0, -12);
+    else if (drag.lastY > window.innerHeight - edge) window.scrollBy(0, 12);
+    requestAnimationFrame(autoScroll);
+  }
+
+  document.addEventListener('pointermove', e => {
+    if (!drag) return;
+    if (!drag.moved) {
+      if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+      drag.moved = true;
+      const box = drag.node.getBoundingClientRect();
+      drag.dx = drag.x - box.left;
+      drag.dy = drag.y - box.top;
+      drag.ghost = drag.node.cloneNode(true);       // a copy of the card that follows the pointer
+      drag.ghost.classList.add('drag-ghost');
+      drag.ghost.setAttribute('aria-hidden', 'true');
+      drag.ghost.style.width = box.width + 'px';
+      document.body.appendChild(drag.ghost);
+      drag.node.classList.add('dragging');
+      requestAnimationFrame(autoScroll);
+    }
+    e.preventDefault();
+    drag.lastY = e.clientY;
+    drag.ghost.style.left = (e.clientX - drag.dx) + 'px';
+    drag.ghost.style.top = (e.clientY - drag.dy) + 'px';
+    const zone = zoneAt(e.clientX, e.clientY);
+    if (zone !== drag.over) {
+      if (drag.over) drag.over.classList.remove('over');
+      if (zone) zone.classList.add('over');
+      drag.over = zone;
+    }
+  });
+
+  function endDrag(e, cancelled) {
+    if (!drag) return;
+    const d = drag;
+    drag = null;
+    if (d.ghost) d.ghost.remove();
+    d.node.classList.remove('dragging');
+    if (d.over) d.over.classList.remove('over');
+    if (cancelled) return;
+    if (d.moved) {
+      const zone = zoneAt(e.clientX, e.clientY);
+      if (zone) humanPlay(d.index, zone.dataset.zone);
+    } else {
+      toggleSelected(d.index);
+    }
+  }
+  document.addEventListener('pointerup', e => endDrag(e, false));
+  document.addEventListener('pointercancel', e => endDrag(e, true));
+
+  /* -------------------------------------------------------------------
+     9. BROWSER STORAGE
+     Every storage call is wrapped in try/catch: if the browser blocks
+     storage, the game still plays and the editor still works (it just
+     can't auto-save). Everything is kept under this page's own path.
+     ------------------------------------------------------------------- */
+
+  // "Unlocked" lasts for this browser tab only (sessionStorage).
+  const unlockStore = {
+    key: 'unlocked:' + PAGE_KEY,
+    isUnlocked() { try { return sessionStorage.getItem(this.key) === FILE_DATA.auth.hash; } catch (e) { return false; } },
+    remember() { try { sessionStorage.setItem(this.key, FILE_DATA.auth.hash); } catch (e) { /* storage blocked */ } }
+  };
+
+  // Auto-saves live in IndexedDB (it can hold large images).
+  const autoSaveStore = (function () {
+    const DB_NAME = 'student-project-editor';
+    const STORE = 'autosave';
+    let dbPromise = null;
+
+    function openDb() {
+      if (!dbPromise) {
+        dbPromise = new Promise(resolve => {
+          try {
+            const req = indexedDB.open(DB_NAME, 1);
+            req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+            req.onblocked = () => resolve(null);
+          } catch (e) { resolve(null); }
+        });
+      }
+      return dbPromise;
+    }
+
+    // Run one request; resolves with its result, or `fallback` if anything fails.
+    async function run(mode, makeRequest, fallback) {
+      const db = await openDb();
+      if (!db) return fallback;
+      return new Promise(resolve => {
+        try {
+          const req = makeRequest(db.transaction(STORE, mode).objectStore(STORE));
+          req.onsuccess = () => resolve(mode === 'readonly' ? (req.result || null) : true);
+          req.onerror = () => resolve(fallback);
+        } catch (e) { resolve(fallback); }
+      });
+    }
+
+    return {
+      available: async () => !!(await openDb()),
+      get: () => run('readonly', s => s.get(PAGE_KEY), null),
+      put: value => run('readwrite', s => s.put(value, PAGE_KEY), false),
+      clear: () => run('readwrite', s => s.delete(PAGE_KEY), false)
+    };
+  })();
+
+  let saveTimer = null;
+  let unsaved = false;        // true when there are changes not yet auto-saved
+  let pendingConflict = null; // an auto-save made for an older version of the file
+
+  // Call after every change: auto-saves about half a second later.
+  function changed() {
+    unsaved = true;
+    setStatus(EDITOR_TEXT.statusSaving);
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(autoSaveNow, 500);
+  }
+
+  async function autoSaveNow() {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    if (!unsaved) return;
+    unsaved = false;
+    updateLocalNote();
+    if (sameAsFile(data)) {
+      await autoSaveStore.clear();
+      setStatus(EDITOR_TEXT.statusClean);
+      return;
+    }
+    const ok = await autoSaveStore.put({
+      fingerprint: FILE_FINGERPRINT,
+      savedAt: Date.now(),
+      data: withoutAuth(data)
+    });
+    const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    setStatus(ok ? fill(EDITOR_TEXT.statusSaved, { time: time }) : EDITOR_TEXT.statusNoStorage);
+  }
+
+  // Redraw everything after the whole data has been swapped.
+  function refreshAll() {
+    render();
+    updateLocalNote();
+    if (editing) buildCardEditor();
+  }
+
+  // Use an auto-save's data (the password check always comes from the file).
+  function useSaved(savedData) {
+    data = withFileAuth(savedData);
+    refreshAll();
+  }
+
+  // On page load: bring back auto-saved changes, if any.
+  async function loadAutoSave() {
+    const saved = await autoSaveStore.get();
+    if (!saved || !saved.data) return;
+    const savedData = withDefaults(saved.data);  // fill in keys added since it was saved
+    if (sameAsFile(savedData)) {                 // the uploaded file already has these changes
+      await autoSaveStore.clear();
+    } else if (saved.fingerprint === FILE_FINGERPRINT) {
+      useSaved(savedData);                       // same file as before: just load them
+    } else {
+      pendingConflict = savedData;               // file has changed: ask when the editor opens
+      if (editing) await resolveConflict();
+    }
+  }
+
+  async function resolveConflict() {
+    const savedData = pendingConflict;
+    if (!savedData) return;
+    pendingConflict = null;
+    const choice = await showDialog(EDITOR_TEXT.conflictTitle, [el('p', {}, EDITOR_TEXT.conflictBody)], [
+      { label: EDITOR_TEXT.useUploaded, value: 'uploaded' },
+      { label: EDITOR_TEXT.keepSaved, value: 'keep', primary: true }
+    ]);
+    if (choice === 'keep') {
+      useSaved(savedData);
+      changed();                                 // re-save, now linked to the current file
+    } else if (choice === 'uploaded') {
+      await autoSaveStore.clear();
+      setStatus(EDITOR_TEXT.statusClean);
+    } else {
+      pendingConflict = savedData;               // closed without choosing: ask again later
+    }
+  }
+
+  // Save straight away if the page is closed or hidden.
+  window.addEventListener('pagehide', autoSaveNow);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') autoSaveNow(); });
+
+  /* -------------------------------------------------------------------
+     10. THE EDITOR
+     ------------------------------------------------------------------- */
+  let editBar = null;
+  let statusEl = null;
+
+  function setStatus(message) { if (statusEl) statusEl.textContent = message; }
+
+  // A simple pop-up window. `buttons` is a list of { label, value, primary }.
+  // Resolves with the value of the button pressed (or null for Escape).
+  // It resolves straight from its own buttons and the Escape key, not only
+  // from the dialog's "close" event (which doesn't always fire in background tabs).
+  function showDialog(title, bodyNodes, buttons, onSubmit) {
+    return new Promise(resolve => {
+      const dlg = el('dialog', { class: 'ed-dialog' });
+      const form = el('form');
+      let finished = false;
+
+      // Close the dialog, remove it from the page and report which button was used.
+      function finish(value) {
+        if (finished) return;
+        finished = true;
+        if (dlg.open) dlg.close();
+        dlg.remove();
+        resolve(value);
+      }
+
+      form.appendChild(el('h2', {}, title));
+      bodyNodes.forEach(n => form.appendChild(n));
+      const row = el('div', { class: 'buttons' });
+      buttons.forEach(b => {
+        const btn = el('button', { type: b.primary ? 'submit' : 'button', class: b.primary ? 'primary' : '' }, b.label);
+        if (!b.primary) btn.addEventListener('click', () => finish(b.value));
+        row.appendChild(btn);
+      });
+      form.appendChild(row);
+      // The primary button (or Enter) submits the form; onSubmit can return false to keep the dialog open.
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        if (onSubmit && onSubmit() === false) return;
+        const primary = buttons.find(b => b.primary);
+        finish(primary ? primary.value : null);
+      });
+      // Escape closes without choosing.
+      dlg.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(null); } });
+      dlg.addEventListener('cancel', e => { e.preventDefault(); finish(null); });
+      dlg.addEventListener('close', () => finish(null));
+      dlg.appendChild(form);
+      document.body.appendChild(dlg);
+      dlg.showModal();
+    });
+  }
+
+  /* --- "How to edit" instructions for students ---
+     This is editor help, not game content, so it lives here in the code.
+     IMPORTANT: whenever the editor changes (new buttons, fields or game
+     mechanics), update these steps IN THE SAME CHANGE so they always match
+     what students see. Button names in <b> must match the real buttons. */
+  const HELP_HTML = `
+    <h3>1. Getting started</h3>
+    <ol>
+      <li>Click the faint <b>Edit</b> link at the very bottom of the page.</li>
+      <li>Type the password your teacher gives you.</li>
+      <li>Click <b>Unlock</b>.</li>
+      <li>A dark bar appears at the bottom of the screen. That means you're in edit mode.</li>
+    </ol>
+
+    <h3>2. Editing text on the page</h3>
+    <ol>
+      <li>Click any text with a dotted orange outline and type. This works for the title,
+        the introduction, headings and track names on the game board, and your name at the bottom.</li>
+      <li>For text that isn't on the screen right now (button words, messages, picture descriptions),
+        click <b>Other text…</b> in the dark bar, change the boxes, then click <b>Apply</b>.</li>
+      <li>Words in {curly brackets}, like <code>{player}</code> or <code>{n}</code>, are filled in by the game.
+        Leave them as they are.</li>
+      <li>The words on the cards are changed in the <b>Game editor</b> (see step 3), not on the cards.</li>
+      <li>To add a picture at the top of the page, click the dotted box above the title that says
+        <b>Click to upload an image</b>, and pick an image. Click the picture again to replace it.
+        Describe the picture in <b>Other text…</b>.</li>
+    </ol>
+
+    <h3>3. Editing the game</h3>
+    <p>Scroll down to the <b>Game editor</b> box under the game. It has three tables.</p>
+    <ol>
+      <li><b>Tracks:</b> type each track's <b>Name</b> and its <b>End value</b> (how many points
+        it takes to reach the end). The first two are the race tracks. The last three are danger tracks.</li>
+      <li><b>Players and rules:</b> the names of the player and the computer opponent, how many
+        cards are in each hand, how many cards are in the market, and how much a weakened card keeps.</li>
+      <li><b>Cards:</b> each row is one card.
+        <ul>
+          <li>Type the card's <b>Title</b>, <b>Ability text</b> and <b>Historical flavor text</b>.</li>
+          <li>Pick an <b>Ability effect</b> and type an <b>Amount</b>, so the ability really does
+            something in the game (for example, draw 1 card).</li>
+          <li>The next three numbers say how much the card does in each drop space: the two race tracks
+            and investment (buying power).</li>
+          <li><b>Raises</b> and <b>By</b>: which danger track goes up when the card is played on a
+            race track, and by how much.</li>
+          <li><b>Cost</b>: how much buying power it takes to buy the card from the market.</li>
+          <li><b>In starting deck</b>: how many copies each player starts with.
+            <b>In market</b>: how many copies can be bought.</li>
+        </ul></li>
+      <li>Click <b>Add card</b> for a new row. The <b>↑</b> and <b>↓</b> buttons move a card.
+        The <b>✕</b> button deletes it (it asks first).</li>
+      <li><b>Testing:</b> while you edit, you can play the game above. Changes to the decks and the
+        market start when you start a new game with the new game button on the board.</li>
+    </ol>
+
+    <h3>4. Adding footnotes</h3>
+    <p>You can add a footnote to <b>any</b> text, including the text on cards.</p>
+    <ol>
+      <li>Click right after the sentence that needs a source.</li>
+      <li>Type two curly brackets, the letters <code>fn</code>, a colon, your citation, and two closing curly brackets:
+        <code class="ed-example">A sentence that needs a source.{{fn: Author, Title, Year, page}}</code></li>
+      <li>A small number appears there instead.</li>
+      <li>A <b>Footnotes</b> button appears at the top of that part of the page. Each card has its own
+        <b>Footnotes</b> button for the notes on that card. Click it, or click the small number,
+        to see the citations.</li>
+    </ol>
+    <ul>
+      <li>In edit mode you'll see the <code>{{fn: ...}}</code> code. That's normal. It turns into a number when you click <b>Done</b>.</li>
+      <li>A web address that starts with <code>https://</code> or <code>http://</code> becomes a clickable link.</li>
+      <li>Every footnote needs <code>{{</code> at the start and <code>}}</code> at the end, or it won't work.</li>
+    </ul>
+
+    <h3>5. Saving your work</h3>
+    <ol>
+      <li>Your work saves automatically, but only in this browser on this computer.</li>
+      <li>When you're finished, click <b>Save file</b>. A file called <b>index.html</b> downloads.</li>
+      <li><b>Turn in that index.html file</b> the way your teacher tells you. That's the only way your work
+        gets onto the real website.</li>
+      <li>Click <b>Done</b> to leave edit mode.</li>
+    </ol>
+
+    <h3>6. Tips</h3>
+    <ul>
+      <li>Replace everything in <b>[square brackets]</b> with your own research.</li>
+      <li>Cite your sources with footnotes, and give the source for every image.</li>
+      <li>Ask your teacher before you click <b>Discard changes</b>.
+        It erases everything back to the last uploaded version.</li>
+    </ul>`;
+
+  function showHelp() {
+    const content = el('div', { class: 'ed-help' });
+    content.innerHTML = HELP_HTML;   // fixed text written above, never student text
+    return showDialog(EDITOR_TEXT.helpTitle, [content], [{ label: EDITOR_TEXT.close, value: 'close', primary: true }]);
+  }
+
+  // Ask for the password. Resolves true if it's right.
+  async function askPassword() {
+    const input = el('input', { type: 'password', id: 'ed-password', autocomplete: 'current-password' });
+    const error = el('p', { class: 'error', role: 'alert' });
+    const label = el('label', { for: 'ed-password' }, EDITOR_TEXT.passwordLabel);
+    const help = el('button', { type: 'button', class: 'ed-link' }, EDITOR_TEXT.howToEditLink);
+    help.addEventListener('click', showHelp);
+    let ok = false;
+    const shown = showDialog(EDITOR_TEXT.passwordTitle, [label, input, error, help], [
+      { label: EDITOR_TEXT.cancel, value: 'cancel' },
+      { label: EDITOR_TEXT.unlock, value: 'unlock', primary: true }
+    ], () => {
+      ok = sha256(FILE_DATA.auth.salt + ':' + input.value) === FILE_DATA.auth.hash;
+      if (!ok) { error.textContent = EDITOR_TEXT.passwordWrong; input.select(); }
+      return ok;
+    });
+    input.focus();
+    await shown;
+    return ok;
+  }
+
+  let asking = false;          // true while the password window is open
+
+  async function startEditing() {
+    if (editing || asking) return;
+    if (!unlockStore.isUnlocked()) {
+      asking = true;
+      const ok = await askPassword();
+      asking = false;
+      if (!ok) { clearEditHash(); return; }
+      unlockStore.remember();
+    }
+    editing = true;
+    document.body.classList.add('is-editing');
+    document.querySelectorAll('[data-image-box]').forEach(b => b.setAttribute('data-upload-hint', EDITOR_TEXT.uploadHint));
+    buildEditBar();
+    render();
+    buildCardEditor();
+    const canSave = await autoSaveStore.available();
+    if (!canSave) setStatus(EDITOR_TEXT.statusNoStorage);
+    else setStatus(sameAsFile(data) ? EDITOR_TEXT.statusClean : EDITOR_TEXT.statusHasChanges);
+    if (pendingConflict) await resolveConflict();
+  }
+
+  async function stopEditing() {
+    if (document.activeElement) document.activeElement.blur();
+    await autoSaveNow();
+    editing = false;
+    document.body.classList.remove('is-editing');
+    document.querySelectorAll('[data-text]').forEach(n => { n.removeAttribute('contenteditable'); n.removeAttribute('spellcheck'); });
+    document.querySelectorAll('[data-image-box]').forEach(b => b.removeAttribute('data-upload-hint'));
+    if (editBar) { editBar.remove(); editBar = null; statusEl = null; }
+    removeCardEditor();
+    render();
+    clearEditHash();
+  }
+
+  function clearEditHash() {
+    if (location.hash === '#edit') {
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* not allowed here */ }
+    }
+  }
+
+  function buildEditBar() {
+    editBar = el('div', { class: 'edit-bar', role: 'region', 'aria-label': EDITOR_TEXT.editorLabel });
+    statusEl = el('span', { class: 'status', 'aria-live': 'polite' });
+    const buttons = [
+      [EDITOR_TEXT.howToEdit, showHelp],
+      [EDITOR_TEXT.otherText, editOtherText],
+      [EDITOR_TEXT.discard, discardChanges],
+      [EDITOR_TEXT.saveFile, saveFile],
+      [EDITOR_TEXT.done, stopEditing, true]
+    ];
+    editBar.appendChild(statusEl);
+    buttons.forEach(([label, action, primary]) => {
+      const b = el('button', { type: 'button', class: primary ? 'primary' : '' }, label);
+      b.addEventListener('click', action);
+      editBar.appendChild(b);
+    });
+    document.body.appendChild(editBar);
+  }
+
+  // Can this browser do "plain text only" editing? (Most can.)
+  const PLAIN_ONLY = (function () {
+    try { const d = document.createElement('div'); d.contentEditable = 'plaintext-only'; return d.contentEditable === 'plaintext-only'; }
+    catch (e) { return false; }
+  })();
+
+  // Turn on click-and-type editing for every data-text element.
+  // Safe to call again after re-drawing (listeners are only added once).
+  function makeEditable() {
+    document.querySelectorAll('[data-text]').forEach(node => {
+      node.setAttribute('contenteditable', PLAIN_ONLY ? 'plaintext-only' : 'true');
+      node.setAttribute('spellcheck', 'true');
+      if (node._editBound) return;
+      node._editBound = true;
+
+      node.addEventListener('input', () => {
+        if (!editing) return;
+        const value = node.innerText.replace(/ /g, ' ');
+        setPath(data, node.dataset.text, value);
+        // Keep the matching box in the Game editor up to date.
+        const twin = tableInputs.get(node.dataset.text);
+        if (twin) twin.value = value;
+        changed();
+      });
+      // Single-line text: Enter finishes editing instead of adding a line.
+      node.addEventListener('keydown', e => {
+        if (editing && e.key === 'Enter' && !node.hasAttribute('data-multiline')) { e.preventDefault(); node.blur(); }
+      });
+      // Clicking text inside something clickable (like a drop space) shouldn't also trigger it.
+      node.addEventListener('click', e => { if (editing) e.stopPropagation(); });
+      // Pasting always pastes plain text (no fonts, colours or links).
+      node.addEventListener('paste', e => {
+        if (!editing) return;
+        e.preventDefault();
+        let text = (e.clipboardData || window.clipboardData).getData('text/plain') || '';
+        if (!node.hasAttribute('data-multiline')) text = text.replace(/\s*\n\s*/g, ' ');
+        document.execCommand('insertText', false, text);
+      });
+      // When leaving a field, tidy its contents to match the saved text.
+      node.addEventListener('blur', () => {
+        if (!editing) return;
+        const value = getPath(data, node.dataset.text);
+        node.textContent = value == null ? '' : String(value);
+        // The same text may show twice on the board (e.g. a track name): redraw it.
+        if (node.closest('#game-root')) setTimeout(renderGame, 0);
+      });
+    });
+  }
+
+  // Clicking an image box in edit mode lets you upload a replacement.
+  document.addEventListener('click', async e => {
+    const box = editing && e.target.closest('[data-image-box]');
+    if (!box) return;
+    const name = box.dataset.imageBox;
+    const src = await uploadImage();
+    if (!src) return;
+    data.images = data.images || {};
+    data.images[name] = Object.assign({ alt: '' }, data.images[name], { src: src });
+    render();
+    changed();
+  });
+
+  // Ask for an image file and return it shrunk, as a data URL (or null).
+  async function uploadImage() {
+    const file = await pickFile();
+    if (!file) return null;
+    try { return await shrinkImage(file, 1600); }
+    catch (err) { setStatus(EDITOR_TEXT.statusImageError); return null; }
+  }
+
+  function pickFile() {
+    return new Promise(resolve => {
+      const input = el('input', { type: 'file', accept: 'image/*' });
+      input.addEventListener('change', () => resolve(input.files[0] || null));
+      input.click();
+    });
+  }
+
+  // Scale an uploaded photo down (longest side about `max` px) and store it as JPEG.
+  function shrinkImage(file, max) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const w = Math.max(1, Math.round(img.naturalWidth * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';               // JPEG has no transparency
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Not an image')); };
+      img.src = url;
+    });
+  }
+
+  // Parts of the data that are not listed in the "Other text" window:
+  // settings rather than words, and the cards (edited in the Game editor's table).
+  const NOT_TEXT_KEYS = ['auth', 'schemaVersion', 'src', 'id', 'type', 'cards', 'raises', 'effect'];
+
+  // List every piece of text in the data that is NOT currently visible on the
+  // page (visible text is edited in place). Returns [{ path, value }].
+  // New text added to the data later is picked up automatically.
+  function hiddenTextFields() {
+    const visible = new Set();
+    document.querySelectorAll('[data-text]').forEach(n => { if (n.getClientRects().length) visible.add(n.dataset.text); });
+    const fields = [];
+    (function walk(obj, prefix) {
+      Object.keys(obj).forEach(k => {
+        if (NOT_TEXT_KEYS.includes(k)) return;
+        const path = prefix ? prefix + '.' + k : k;
+        const v = obj[k];
+        if (typeof v === 'string') { if (!visible.has(path)) fields.push({ path, value: v }); }
+        else if (v && typeof v === 'object') walk(v, path);
+      });
+    })(data, '');
+    return fields;
+  }
+
+  // "camelCase" -> "Camel case" for labels in the dialog.
+  function niceName(part) {
+    if (part === 'alt') return 'Description (alt text)';
+    const s = part.replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase();
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  async function editOtherText() {
+    const fields = hiddenTextFields();
+    const body = [el('p', { class: 'ed-hint' }, EDITOR_TEXT.fnHint), el('p', {}, EDITOR_TEXT.otherTextHelp)];
+    const inputs = [];
+    let group = null;
+    fields.forEach((f, i) => {
+      const parts = f.path.split('.');
+      if (parts[0] !== group) { group = parts[0]; body.push(el('div', { class: 'group' }, niceName(group))); }
+      const id = 'ed-field-' + i;
+      body.push(el('label', { for: id }, parts.slice(1).map(niceName).join(' › ') || niceName(parts[0])));
+      const box = el('textarea', { id: id, rows: '2' });
+      box.value = f.value;
+      body.push(box);
+      inputs.push([f.path, box]);
+    });
+    const choice = await showDialog(EDITOR_TEXT.otherTextTitle, body, [
+      { label: EDITOR_TEXT.cancel, value: 'cancel' },
+      { label: EDITOR_TEXT.apply, value: 'apply', primary: true }
+    ]);
+    if (choice !== 'apply') return;
+    let any = false;
+    inputs.forEach(([path, box]) => {
+      if (getPath(data, path) !== box.value) { setPath(data, path, box.value); any = true; }
+    });
+    if (any) { render(); changed(); }
+  }
+
+  async function discardChanges() {
+    const choice = await showDialog(EDITOR_TEXT.discardTitle, [el('p', {}, EDITOR_TEXT.discardBody)], [
+      { label: EDITOR_TEXT.cancel, value: 'cancel' },
+      { label: EDITOR_TEXT.discard, value: 'discard', primary: true }
+    ]);
+    if (choice !== 'discard') return;
+    clearTimeout(saveTimer);
+    unsaved = false;
+    pendingConflict = null;
+    if (document.activeElement) document.activeElement.blur();
+    data = clone(FILE_DATA);
+    await autoSaveStore.clear();
+    refreshAll();
+    setStatus(EDITOR_TEXT.statusClean);
+  }
+
+  // Build a complete new index.html: the original page (as it was before
+  // anything was drawn) with only the game-data block replaced.
+  function buildFile() {
+    const doc = new DOMParser().parseFromString(ORIGINAL_PAGE, 'text/html');
+    // "<" is written as < so the data can never close its <script> tag early.
+    const json = JSON.stringify(withFileAuth(data), null, 2).replace(/</g, '\\u003c');
+    doc.getElementById('game-data').textContent = '\n' + json + '\n';
+    return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML + '\n';
+  }
+
+  function saveFile() {
+    const blob = new Blob([buildFile()], { type: 'text/html' });
+    const a = el('a', { href: URL.createObjectURL(blob), download: 'index.html' });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    setStatus(EDITOR_TEXT.statusDownloaded);
+  }
+
+  /* -------------------------------------------------------------------
+     11. THE GAME EDITOR
+     Three tables under the game: tracks, players and rules, and cards.
+     Every box is linked to one place in the data by its path, e.g.
+     "game.cards.2.title". Typing in a box changes the data straight away.
+     ------------------------------------------------------------------- */
+  let cardEditor = null;
+  const tableInputs = new Map();   // data path -> box, so in-place edits on the board update the table too
+
+  function removeCardEditor() {
+    if (cardEditor) { cardEditor.remove(); cardEditor = null; }
+    tableInputs.clear();
+  }
+
+  // A table with a header row. `rows` is a list of lists of cell contents.
+  function editorTable(headers, rows) {
+    const wrap = el('div', { class: 'table-wrap' });
+    const table = el('table');
+    const head = el('tr');
+    headers.forEach(h => head.append(el('th', { scope: 'col' }, h)));
+    table.append(el('thead'), el('tbody'));
+    table.tHead.append(head);
+    rows.forEach(cells => {
+      const tr = el('tr');
+      cells.forEach(c => { const td = el('td'); td.append(c); tr.append(td); });
+      table.tBodies[0].append(tr);
+    });
+    wrap.append(table);
+    return wrap;
+  }
+
+  // Link a box to a place in the data.
+  function bindBox(box, path, label, read) {
+    const value = getPath(data, path);
+    box.value = value == null ? '' : value;
+    box.setAttribute('aria-label', label);
+    tableInputs.set(path, box);
+    box.addEventListener(box.tagName === 'SELECT' ? 'change' : 'input', () => {
+      setPath(data, path, read(box.value));
+      changed();
+      renderGame();
+    });
+    return box;
+  }
+  function textBox(path, label, multiline) {
+    return bindBox(el(multiline ? 'textarea' : 'input', multiline ? { rows: '3' } : { type: 'text' }), path, label, v => v);
+  }
+  function numberBox(path, label, min, max) {
+    return bindBox(el('input', { type: 'number', min: String(min), max: String(max), step: '1' }), path, label,
+      v => Math.min(max, Math.max(min, num(v))));
+  }
+  function selectBox(path, label, options) {
+    const box = el('select');
+    options.forEach(([value, text]) => { const o = el('option', { value: value }, text); box.append(o); });
+    return bindBox(box, path, label, v => v);
+  }
+
+  function buildCardEditor() {
+    removeCardEditor();
+    const T = EDITOR_TEXT.game;
+    const panel = el('section', { class: 'card-editor' });
+    panel.append(el('h2', {}, T.heading), el('p', {}, T.intro), el('p', { class: 'ed-hint' }, EDITOR_TEXT.fnHint));
+
+    // Tracks
+    panel.append(el('h3', {}, T.tracksHeading));
+    panel.append(editorTable([T.trackCol, T.nameCol, T.lengthCol], TRACKS.map(t => [
+      el('span', {}, T.roles[t]),
+      textBox('game.tracks.' + t + '.name', T.nameCol),
+      numberBox('game.tracks.' + t + '.length', T.lengthCol, 1, 100)
+    ])));
+
+    // Players and rules
+    panel.append(el('h3', {}, T.rulesHeading));
+    panel.append(editorTable([T.settingCol, T.valueCol], [
+      [el('span', {}, T.humanName), textBox('game.players.human', T.humanName)],
+      [el('span', {}, T.aiName), textBox('game.players.ai', T.aiName)],
+      [el('span', {}, T.handSize), numberBox('game.settings.handSize', T.handSize, 1, 10)],
+      [el('span', {}, T.marketSize), numberBox('game.settings.marketSize', T.marketSize, 1, 12)],
+      [el('span', {}, T.penalty), numberBox('game.settings.penaltyPercent', T.penalty, 0, 100)]
+    ]));
+
+    // Cards
+    panel.append(el('h3', {}, T.cardsHeading), el('p', {}, T.cardsHelp));
+    const effectOptions = EFFECTS.map(e => [e, fill(T.effects[e], { track: EFFECT_TRACK[e] ? trackName(EFFECT_TRACK[e]) : '' })]);
+    const raiseOptions = [['', T.nothing]].concat(DANGERS.map(d => [d, trackName(d)]));
+    const cards = game().cards;
+    panel.append(editorTable(
+      [T.title, T.ability, T.effect, T.amount, T.flavor, zoneName('space'), zoneName('pr'), zoneName('invest'),
+       T.raises, T.raiseAmount, T.cost, T.startCount, T.marketCount, ''],
+      cards.map((c, i) => {
+        const p = 'game.cards.' + i + '.';
+        return [
+          textBox(p + 'title', T.title, true),
+          textBox(p + 'ability', T.ability, true),
+          selectBox(p + 'effect', T.effect, effectOptions),
+          numberBox(p + 'effectAmount', T.amount, 0, 20),
+          textBox(p + 'flavor', T.flavor, true),
+          numberBox(p + 'space', zoneName('space'), 0, 20),
+          numberBox(p + 'pr', zoneName('pr'), 0, 20),
+          numberBox(p + 'invest', zoneName('invest'), 0, 20),
+          selectBox(p + 'raises', T.raises, raiseOptions),
+          numberBox(p + 'raiseAmount', T.raiseAmount, 0, 20),
+          numberBox(p + 'cost', T.cost, 0, 50),
+          numberBox(p + 'startCount', T.startCount, 0, 20),
+          numberBox(p + 'marketCount', T.marketCount, 0, 20),
+          rowTools(i, cards.length)
+        ];
+      })));
+    const add = el('button', { type: 'button', class: 'primary' }, T.addCard);
+    add.addEventListener('click', addCard);
+    panel.append(add);
+
+    document.querySelector('main').appendChild(panel);
+    cardEditor = panel;
+  }
+
+  // ↑ ↓ ✕ buttons for one card row.
+  function rowTools(i, count) {
+    const T = EDITOR_TEXT.game;
+    const tools = el('div', { class: 'row-tools' });
+    [['↑', T.moveUp, () => moveCard(i, -1), i === 0],
+     ['↓', T.moveDown, () => moveCard(i, 1), i === count - 1],
+     ['✕', T.remove, () => deleteCard(i), false]].forEach(([symbol, title, action, disabled]) => {
+      const b = el('button', { type: 'button', title: title, 'aria-label': title }, symbol);
+      b.disabled = disabled;
+      b.addEventListener('click', action);
+      tools.append(b);
+    });
+    return tools;
+  }
+
+  function cardsChanged() {
+    buildCardEditor();
+    changed();
+    renderGame();
+  }
+
+  function addCard() {
+    game().cards.push({
+      id: newId('c'), title: '[Card title]', ability: '[Ability]', flavor: '[Historical flavor text]',
+      space: 1, pr: 0, invest: 0, raises: '', raiseAmount: 0, effect: 'none', effectAmount: 0,
+      cost: 3, startCount: 0, marketCount: 2
+    });
+    cardsChanged();
+    const box = tableInputs.get('game.cards.' + (game().cards.length - 1) + '.title');
+    if (box) { box.focus(); box.select(); }
+  }
+
+  function moveCard(i, step) {
+    const cards = game().cards, j = i + step;
+    if (j < 0 || j >= cards.length) return;
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+    cardsChanged();
+  }
+
+  async function deleteCard(i) {
+    const T = EDITOR_TEXT.game;
+    const choice = await showDialog(T.removeTitle, [el('p', {}, T.removeBody)], [
+      { label: EDITOR_TEXT.cancel, value: 'cancel' },
+      { label: T.remove, value: 'delete', primary: true }
+    ]);
+    if (choice !== 'delete') return;
+    game().cards.splice(i, 1);
+    cardsChanged();
+  }
+
+  /* -------------------------------------------------------------------
+     12. GETTING EVERYTHING GOING
+     ------------------------------------------------------------------- */
+
+  // Three ways into edit mode: the footer link, Ctrl+Shift+E, or #edit in the address.
+  document.getElementById('edit-link').addEventListener('click', e => { e.preventDefault(); startEditing(); });
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.shiftKey && (e.key === 'E' || e.key === 'e')) { e.preventDefault(); startEditing(); }
+  });
+  window.addEventListener('hashchange', () => { if (location.hash === '#edit') startEditing(); });
+
+  render();
+  loadAutoSave().then(() => {
+    updateLocalNote();
+    if (location.hash === '#edit') startEditing();
+  });
+})();
+</script>
+</body>
+</html>
