@@ -1,0 +1,2623 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Civil Rights Life</title>
+<style>
+/* =====================================================================
+   STYLE SETTINGS
+   Change these variables to restyle the whole page.
+   ===================================================================== */
+:root {
+  --page-bg: #f6f4ef;          /* page background */
+  --surface: #ffffff;          /* cards and panels */
+  --text: #222222;             /* main text colour */
+  --muted: #6b6b6b;            /* quieter text (footer, notes) */
+  --accent: #2f5d8a;           /* buttons and highlights */
+  --accent-text: #ffffff;      /* text on accent colour */
+  --border: #d8d2c4;           /* lines and borders */
+  --bar-bg: #e6e1d6;           /* empty part of stat bars */
+  --bar-fill: #3d8a5a;         /* filled part of stat bars */
+  --bar-low: #c0392b;          /* stat bars when low (under 20) */
+  --overlay-bg: rgba(30, 30, 30, 0.55); /* behind pop-ups in the game */
+  --font-body: Georgia, "Times New Roman", serif;
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --base-size: 18px;
+  --max-width: 52rem;          /* how wide the content can get */
+  --radius: 8px;
+  --space: 1rem;
+
+  /* Editor-only colours (players never see these) */
+  --edit-outline: #c26a00;
+  --edit-bar-bg: #1f2933;
+  --edit-bar-text: #ffffff;
+}
+
+/* ---------- Basic layout ---------- */
+* { box-sizing: border-box; }
+html { font-size: var(--base-size); }
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+}
+.site-header, main, .site-footer {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space);
+}
+.site-header { padding-top: calc(var(--space) * 2); }
+h1 { font-size: clamp(1.8rem, 6vw, 2.6rem); line-height: 1.2; margin: 0.4em 0; }
+h2 { font-size: 1.3rem; margin: 0 0 0.6em; font-family: var(--font-ui); }
+.intro { font-size: 1.1rem; margin: 0; }
+
+/* Text that keeps its line breaks */
+[data-text], [data-label] { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* ---------- Images ---------- */
+.header-image { margin: 0 0 var(--space); }
+.header-image img { display: block; width: 100%; height: auto; border-radius: var(--radius); }
+
+/* ---------- Game area ---------- */
+.game-area {
+  position: relative;          /* game pop-ups sit inside this box */
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space);
+}
+#game-root { min-height: 24rem; }
+.game-area h3 { font-family: var(--font-ui); font-size: 1.1rem; margin: 1.2em 0 0.5em; }
+.game-area h3:first-child { margin-top: 0; }
+.game-area h4 { font-family: var(--font-ui); font-size: 0.95rem; margin: 1em 0 0.4em; color: var(--muted); }
+
+.game-btn {
+  font: 600 0.95rem var(--font-ui);
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: var(--surface);
+  color: var(--accent);
+  cursor: pointer;
+}
+.game-btn.primary { background: var(--accent); color: var(--accent-text); }
+.game-btn:disabled { opacity: 0.5; cursor: default; }
+.game-btn:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
+
+/* Character setup */
+.name-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.name-row input {
+  flex: 1 1 12rem; font: inherit; padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border); border-radius: 6px;
+}
+.bg-list { display: grid; gap: 0.6rem; }
+.bg-card {
+  display: flex; gap: 0.6rem; align-items: flex-start;
+  border: 2px solid var(--border); border-radius: var(--radius);
+  padding: 0.7rem; cursor: pointer;
+}
+.bg-card.selected { border-color: var(--accent); }
+.bg-card input { margin-top: 0.4rem; }
+.bg-card strong { display: block; font-family: var(--font-ui); }
+.bg-card p { margin: 0.2em 0 0; color: var(--muted); }
+.setup-start { margin-top: 1.2rem; }
+
+/* Life screen */
+.life-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 0.8rem; font-family: var(--font-ui); }
+.life-top .who { font-size: 1.25rem; font-weight: 700; }
+.life-top .age { font-weight: 600; color: var(--accent); }
+.life-top .bg { color: var(--muted); font-size: 0.9rem; }
+.stats { display: grid; gap: 0.35rem; }
+.stat { display: grid; grid-template-columns: minmax(6rem, 10rem) 1fr 2.5rem; gap: 0.6rem; align-items: center; font-family: var(--font-ui); font-size: 0.9rem; }
+.stat .value { text-align: right; color: var(--muted); }
+.bar { height: 0.75rem; background: var(--bar-bg); border-radius: 999px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--bar-fill); border-radius: 999px; transition: width 0.3s; }
+.bar .fill.low { background: var(--bar-low); }
+.log-box {
+  max-height: 18rem; overflow-y: auto;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.5rem 0.8rem; background: var(--page-bg);
+}
+.log { list-style: none; margin: 0; padding: 0; }
+.log .log-age { font: 700 0.85rem var(--font-ui); color: var(--accent); margin-top: 0.6rem; }
+.log .log-age:first-child { margin-top: 0; }
+.log .log-entry { margin: 0.1rem 0 0.1rem 0.6rem; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; align-items: center; }
+.actions .age-up { font-size: 1.1rem; padding: 0.7rem 1.6rem; }
+.actions .quiet { margin-left: auto; border-color: var(--border); color: var(--muted); }
+
+/* Pop-ups inside the game (events, results, activities, people) */
+.game-overlay {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; justify-content: center; align-items: flex-start;
+  padding: var(--space); background: var(--overlay-bg); border-radius: var(--radius);
+}
+.game-card {
+  position: sticky; top: var(--space);
+  width: 100%; max-width: 30rem; max-height: calc(100vh - 2 * var(--space)); overflow-y: auto;
+  background: var(--surface); border-radius: var(--radius);
+  padding: 1.2rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+.game-card h3 { margin-top: 0; }
+.game-card .event-image { display: block; width: 100%; height: auto; border-radius: 6px; margin-bottom: 0.6rem; }
+.card-buttons { display: grid; gap: 0.5rem; margin-top: 1rem; }
+.person { border-top: 1px solid var(--border); padding: 0.6rem 0; }
+.person:first-of-type { border-top: 0; }
+.person strong { font-family: var(--font-ui); }
+.person .role { color: var(--muted); font-size: 0.9rem; margin-left: 0.4rem; }
+.person p { margin: 0.2em 0 0.4em; }
+.muted { color: var(--muted); }
+
+/* Ending screen */
+.ending-title { font-size: 1.4rem; margin: 0.2em 0; }
+
+/* ---------- Footnotes ---------- */
+.fn-ref { font: 700 0.65em/0 var(--font-ui); color: var(--accent); padding: 0 1px; cursor: pointer; }
+.fn-ref:hover { text-decoration: underline; }
+button .fn-ref, a .fn-ref { color: inherit; cursor: inherit; }
+button .fn-ref:hover, a .fn-ref:hover { text-decoration: none; }
+.fn-bar { display: flex; justify-content: flex-end; margin-bottom: 0.4rem; }
+.fn-bar:empty { display: none; }
+.fn-btn {
+  font: 600 0.8rem var(--font-ui); padding: 0.25rem 0.7rem; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer;
+}
+.fn-btn:hover { color: var(--accent); border-color: var(--accent); }
+.page-fn { margin-top: 0.6rem; }
+.fn-dialog {
+  width: min(32rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--text); padding: 1.2rem;
+}
+.fn-dialog::backdrop { background: var(--overlay-bg); }
+.fn-dialog h2 { margin-top: 0; }
+.fn-dialog ol { padding-left: 1.6em; margin: 0; display: grid; gap: 0.4rem; }
+.fn-dialog li { overflow-wrap: anywhere; padding: 0.2rem 0.4rem; border-radius: 4px; }
+.fn-dialog li.current { background: #fff3c4; outline: 2px solid #e0b400; }
+.fn-dialog .fn-close { margin-top: 1rem; }
+
+/* ---------- Footer ---------- */
+.site-footer {
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  padding-bottom: calc(var(--space) * 2);
+}
+.site-footer p { margin: 0.3em 0; }
+.local-note { font-style: italic; }
+.edit-link { color: var(--muted); opacity: 0.45; text-decoration: none; font-size: 0.8rem; }
+.edit-link:hover, .edit-link:focus { opacity: 1; text-decoration: underline; }
+
+@media (max-width: 30rem) {
+  html { font-size: 16px; }
+  .stat { grid-template-columns: minmax(5rem, 7rem) 1fr 2rem; }
+  .game-overlay { padding: 0.5rem; }
+}
+
+/* =====================================================================
+   EDITOR STYLES (only used in edit mode)
+   ===================================================================== */
+body.is-editing { padding-bottom: 6rem; }
+body.is-editing .edit-link { display: none; }
+body.is-editing [data-text] {
+  outline: 2px dotted var(--edit-outline);
+  outline-offset: 3px;
+  min-height: 1.4em;
+  min-width: 3em;
+  cursor: text;
+}
+body.is-editing [data-text]:focus { outline-style: solid; background: #fff8ec; }
+body.is-editing [data-image-box] {
+  position: relative;
+  min-height: 6rem;
+  border: 2px dotted var(--edit-outline);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+body.is-editing [data-image-box]::after {
+  content: "Click to upload an image";
+  position: absolute; right: 0.5rem; bottom: 0.5rem;
+  background: var(--edit-bar-bg); color: var(--edit-bar-text);
+  font: 0.75rem var(--font-ui); padding: 0.2rem 0.5rem; border-radius: 4px;
+}
+
+.edit-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+  padding: 0.6rem var(--space);
+  background: var(--edit-bar-bg); color: var(--edit-bar-text);
+  font-family: var(--font-ui); font-size: 0.85rem;
+}
+.edit-bar .status { flex: 1 1 14rem; }
+.edit-bar button, .ed-dialog button, .game-editor button {
+  font: inherit; font-family: var(--font-ui);
+  padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+}
+.edit-bar button.primary, .ed-dialog button.primary, .game-editor button.primary {
+  background: var(--accent); color: var(--accent-text); border-color: var(--accent);
+}
+.game-editor button:disabled { opacity: 0.4; cursor: default; }
+.ed-dialog {
+  width: min(36rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  font-family: var(--font-ui); font-size: 0.95rem; color: var(--text);
+}
+.ed-dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+.ed-dialog h2 { margin-top: 0; }
+.ed-dialog label { display: block; margin: 0.8rem 0 0.2rem; font-weight: 600; }
+.ed-dialog input, .ed-dialog textarea, .ed-dialog select {
+  width: 100%; font: inherit; padding: 0.4rem; border: 1px solid var(--border); border-radius: 4px;
+}
+.ed-dialog textarea { min-height: 3.2rem; resize: vertical; }
+.ed-dialog .group { margin-top: 1.2rem; font-size: 0.8rem; text-transform: uppercase; color: var(--muted); }
+.ed-dialog .error { color: #b00020; min-height: 1.2em; margin: 0.4rem 0 0; }
+.ed-dialog .buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+
+/* Game editor panels */
+.game-editor {
+  margin-top: calc(var(--space) * 1.5);
+  font-family: var(--font-ui); font-size: 0.9rem;
+  border: 2px solid var(--edit-outline); border-radius: var(--radius);
+  background: var(--surface); padding: var(--space);
+}
+.game-editor > h2 { margin-bottom: 0.3em; }
+.game-editor p { margin: 0.3em 0 0.8em; color: var(--muted); }
+.game-editor details { border: 1px solid var(--border); border-radius: 6px; margin: 0.6rem 0; background: var(--surface); }
+.game-editor details details { background: var(--page-bg); }
+.game-editor summary { cursor: pointer; padding: 0.55rem 0.8rem; font-weight: 700; }
+.game-editor summary .sub { font-weight: 400; color: var(--muted); margin-left: 0.4rem; }
+.game-editor .ge-body { padding: 0 0.8rem 0.8rem; }
+.ge-item { border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem; margin: 0.6rem 0; background: var(--surface); }
+.ge-item .ge-item { background: var(--page-bg); }
+.ge-tools { display: flex; gap: 0.3rem; justify-content: flex-end; }
+.ge-tools button { padding: 0.15rem 0.5rem; }
+.ge-field { margin: 0.4rem 0; }
+.ge-field label { display: block; font-weight: 600; margin-bottom: 0.15rem; }
+.ge-field input, .ge-field textarea, .ge-field select, .ge-row input, .ge-row select {
+  width: 100%; font: inherit; padding: 0.35rem; border: 1px solid var(--border); border-radius: 4px; background: #fff;
+}
+.ge-field textarea { min-height: 3rem; resize: vertical; }
+.ge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: 0 0.8rem; }
+.ge-sub { border-left: 3px solid var(--border); padding-left: 0.6rem; margin: 0.6rem 0; }
+.ge-subhead { font-weight: 700; margin-bottom: 0.3rem; }
+.ge-row { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; margin: 0.3rem 0; }
+.ge-row > select { flex: 2 1 9rem; width: auto; }
+.ge-row > input { flex: 1 1 4.5rem; width: auto; }
+.ge-thumb { display: block; max-width: 12rem; max-height: 8rem; border-radius: 4px; margin: 0.3rem 0; }
+.ge-top { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.game-editor .ge-hint, .ed-dialog .ge-hint { color: var(--text); background: #fff8ec; border-left: 3px solid var(--edit-outline); padding: 0.3rem 0.6rem; }
+.ed-dialog button.ed-link { border: 0; background: none; color: var(--accent); text-decoration: underline; padding: 0.4rem 0; }
+
+/* "How to edit" help */
+.ed-help h3 { margin: 1rem 0 0.3rem; font-size: 1rem; }
+.ed-help ol, .ed-help ul { margin: 0; padding-left: 1.4em; display: grid; gap: 0.25rem; }
+.ed-help p { margin: 0.3rem 0; }
+.ed-help code { font: 0.85rem/1.4 ui-monospace, Consolas, monospace; background: #f1f3f7; border: 1px solid #e1e4ea; border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+.ed-help .ed-example { display: block; margin: 0.3rem 0; padding: 0.3rem 0.5rem; }
+</style>
+</head>
+<body>
+
+<!-- =====================================================================
+     PAGE SHELL
+     Elements with data-text="..." show text from the game data below and
+     can be edited in place. Elements with data-label="..." show text that is
+     edited in the "Other text" dialog instead. data-image="..." shows an image.
+     ===================================================================== -->
+<header class="site-header">
+  <figure class="header-image" data-image-box="header" hidden=""><img data-image="header" alt=""></figure>
+  <h1 data-text="page.title"></h1>
+  <p class="intro" data-text="page.introduction" data-multiline=""></p>
+</header>
+
+<main>
+  <!-- GAME AREA: the game is drawn inside #game-root by the script below. -->
+  <section id="game-area" class="game-area" aria-labelledby="game-area-heading">
+    <h2 id="game-area-heading" data-text="page.gameAreaHeading"></h2>
+    <div id="game-root"></div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p class="author" data-text="page.author"></p>
+  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden=""></p>
+  <a href="#edit" class="edit-link" id="edit-link" data-label="ui.editLink"></a>
+</footer>
+
+<!-- =====================================================================
+     GAME DATA — every word and picture the player sees lives here.
+
+     How it is organized:
+       schemaVersion  A number. Goes up if the layout of this data changes.
+       auth           The editor password check (a random "salt" and a scrambled
+                      "hash"). The real password is NOT stored anywhere.
+       page           Text shown on the page itself (title, introduction,
+                      game area heading, author line). Edited by clicking on it.
+       ui             The game's buttons, headings and messages. Words in
+                      {curly brackets} are filled in by the game, e.g. {age}.
+                      Edited by clicking on them, or in the editor's
+                      "Other text" window.
+       images         Pictures for the page. Each one has "src" (the picture,
+                      stored as a data URL) and "alt" (a description for screen
+                      readers).
+       game           The game itself, edited in the editor's "Game editor":
+         settings       maximum age, chance of a random event, etc.
+         stats          the bars (e.g. 0–100) that choices push up and down
+         names          names used by the "random name" button
+         backgrounds    starting situations the player picks from
+         people         characters in the player's life, each with a
+                        relationship bar
+         events         things that happen. "fixed" events happen at one exact
+                        age; "random" events may happen within an age range.
+                        Each has choices, and each choice has effects.
+         activities     things the player may choose to do in any year
+         endings        checked top to bottom when a life ends; the first one
+                        whose conditions all match is shown
+       Effects look like  { "kind": "stat" or "person", "ref": id, "change": 5 }
+       Conditions look like { "kind": "age" / "stat" / "person" / "background" /
+                        "choice", "ref": id, "op": ..., "value": number }
+
+     Footnotes: in ANY text, type {{fn: your citation}} right where the note
+     belongs, e.g.  A sentence that needs a source.{{fn: Author, Title, Year, page}}
+     The game shows a small number there, and a "Footnotes" button lists them.
+
+     You do not need to edit this by hand: open the editor (the faint "Edit"
+     link at the bottom of the page), make changes, then use "Save file".
+     ===================================================================== -->
+<script type="application/json" id="game-data">
+{
+  "schemaVersion": 1,
+  "auth": {
+    "salt": "ba511b05c17d986041fac973d9a279a7",
+    "hash": "2eafb235205dde64e25259eb55bd183d1c8da6f6d62c215cf4b1a0d1b888221a"
+  },
+  "page": {
+    "title": "[Game title]",
+    "introduction": "[Introduction]",
+    "gameAreaHeading": "[Game area]",
+    "author": "[Your name and class]"
+  },
+  "ui": {
+    "footnotesButton": "[Footnotes]",
+    "footnotesTitle": "[Footnotes]",
+    "footnotesBack": "[Back]",
+    "browserTabTitle": "Civil Rights Life",
+    "editLink": "[Edit]",
+    "localChangesNote": "[Note: this page is showing changes that are not in the uploaded file yet]",
+    "setupHeading": "[Start a new life]",
+    "nameLabel": "[Your name]",
+    "randomName": "[Random name]",
+    "backgroundHeading": "[Choose a background]",
+    "startLife": "[Start life]",
+    "ageLabel": "[Age {age}]",
+    "statsHeading": "[Stats]",
+    "logHeading": "[Life log]",
+    "ageUp": "[Age up]",
+    "activities": "[Activities]",
+    "people": "[People]",
+    "startOver": "[Start over]",
+    "startOverQuestion": "[Start a new life? This one will be lost.]",
+    "yes": "[Yes]",
+    "no": "[No]",
+    "continue": "[Continue]",
+    "close": "[Close]",
+    "logStart": "[{name}'s life begins.]",
+    "logMetPerson": "[{person} came into your life.]",
+    "logQuietYear": "[A quiet year.]",
+    "activitiesHeading": "[Things to do]",
+    "noActivities": "[There is nothing to do right now.]",
+    "activityLimitReached": "[You have done all you can this year.]",
+    "peopleHeading": "[People in your life]",
+    "noPeople": "[No one yet.]",
+    "relationship": "[Relationship]",
+    "endingHeading": "[The end]",
+    "finalStats": "[Final stats]",
+    "playAgain": "[Play again]"
+  },
+  "images": {
+    "header": {
+      "src": "",
+      "alt": "[Header image description]"
+    }
+  },
+  "game": {
+    "settings": {
+      "maxAge": 80,
+      "randomEventChance": 60,
+      "activitiesPerYear": 1,
+      "endStat": ""
+    },
+    "stats": [
+      {
+        "id": "s1",
+        "name": "[Stat 1]",
+        "start": 50
+      },
+      {
+        "id": "s2",
+        "name": "[Stat 2]",
+        "start": 50
+      },
+      {
+        "id": "s3",
+        "name": "[Stat 3]",
+        "start": 50
+      },
+      {
+        "id": "s4",
+        "name": "[Stat 4]",
+        "start": 50
+      }
+    ],
+    "names": [
+      "[Name 1]",
+      "[Name 2]",
+      "[Name 3]"
+    ],
+    "backgrounds": [
+      {
+        "id": "b1",
+        "name": "[Background 1]",
+        "description": "[Background 1 description]",
+        "effects": []
+      },
+      {
+        "id": "b2",
+        "name": "[Background 2]",
+        "description": "[Background 2 description]",
+        "effects": []
+      }
+    ],
+    "people": [
+      {
+        "id": "p1",
+        "name": "[Person 1]",
+        "role": "[Role]",
+        "description": "[Person 1 description]",
+        "start": 50,
+        "fromAge": 0,
+        "conditions": []
+      },
+      {
+        "id": "p2",
+        "name": "[Person 2]",
+        "role": "[Role]",
+        "description": "[Person 2 description]",
+        "start": 50,
+        "fromAge": 6,
+        "conditions": []
+      }
+    ],
+    "events": [
+      {
+        "id": "e1",
+        "type": "fixed",
+        "age": 5,
+        "minAge": 0,
+        "maxAge": 80,
+        "title": "[Fixed event title]",
+        "text": "[What happens]",
+        "image": {
+          "src": "",
+          "alt": "[Image description]"
+        },
+        "conditions": [],
+        "choices": [
+          {
+            "id": "c1",
+            "label": "[Choice 1]",
+            "result": "[What happens after choice 1]",
+            "effects": [
+              {
+                "kind": "stat",
+                "ref": "s1",
+                "change": 5
+              }
+            ],
+            "conditions": []
+          },
+          {
+            "id": "c2",
+            "label": "[Choice 2]",
+            "result": "[What happens after choice 2]",
+            "effects": [
+              {
+                "kind": "stat",
+                "ref": "s1",
+                "change": -5
+              }
+            ],
+            "conditions": []
+          }
+        ]
+      },
+      {
+        "id": "e2",
+        "type": "random",
+        "age": 10,
+        "minAge": 1,
+        "maxAge": 80,
+        "title": "[Random event title]",
+        "text": "[What happens]",
+        "image": {
+          "src": "",
+          "alt": "[Image description]"
+        },
+        "conditions": [],
+        "choices": [
+          {
+            "id": "c3",
+            "label": "[Choice 1]",
+            "result": "[What happens after choice 1]",
+            "effects": [
+              {
+                "kind": "stat",
+                "ref": "s2",
+                "change": 5
+              }
+            ],
+            "conditions": []
+          },
+          {
+            "id": "c4",
+            "label": "[Choice 2]",
+            "result": "[What happens after choice 2]",
+            "effects": [
+              {
+                "kind": "person",
+                "ref": "p1",
+                "change": -5
+              }
+            ],
+            "conditions": []
+          }
+        ]
+      }
+    ],
+    "activities": [
+      {
+        "id": "a1",
+        "name": "[Activity 1]",
+        "result": "[What happens]",
+        "minAge": 5,
+        "maxAge": 80,
+        "effects": [
+          {
+            "kind": "stat",
+            "ref": "s3",
+            "change": 3
+          }
+        ],
+        "conditions": []
+      }
+    ],
+    "endings": [
+      {
+        "id": "end1",
+        "title": "[Ending 1 title]",
+        "text": "[Ending 1 text]",
+        "conditions": [
+          {
+            "kind": "stat",
+            "ref": "s1",
+            "op": "min",
+            "value": 70
+          }
+        ]
+      },
+      {
+        "id": "end2",
+        "title": "[Ending 2 title]",
+        "text": "[Ending 2 text]",
+        "conditions": []
+      }
+    ]
+  }
+}
+</script>
+
+<script>
+/* =====================================================================
+   CIVIL RIGHTS LIFE — page script
+
+   Sections:
+     1. Start-up: remember the original page and read the game data
+     2. Small helpers
+     3. SHA-256 (used for the password check and file fingerprints)
+     4. Drawing the page from the game data
+     5. The game: rules (ageing, events, choices, endings)
+     6. The game: screens and pop-ups
+     7. Browser storage (unlock + auto-save), all wrapped in try/catch
+     8. The editor
+     9. The game editor (panels for stats, events, people, ...)
+    10. Getting everything going
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  /* -------------------------------------------------------------------
+     1. START-UP
+     Take a copy of the page exactly as it was loaded, before anything is
+     drawn or edited. "Save file" builds the new file from this copy and
+     only swaps in new game data, so no editor bits can leak into it.
+     ------------------------------------------------------------------- */
+  const ORIGINAL_PAGE = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+  // Wording added in later versions of the game. Merged in when loading,
+  // so older saved files that don't have these keys still work.
+  const DEFAULT_UI = { footnotesButton: '[Footnotes]', footnotesTitle: '[Footnotes]', footnotesBack: '[Back]' };
+  function withDefaults(d) { d.ui = Object.assign({}, DEFAULT_UI, d.ui); return d; }
+
+  const FILE_DATA = withDefaults(JSON.parse(document.getElementById('game-data').textContent));
+  let data = clone(FILE_DATA);              // the data currently shown (may include edits)
+
+  // A key unique to this page's location, so copies of the game in different
+  // folders on the same website keep separate saves.
+  const PAGE_KEY = 'civilrightslife:' + location.pathname.replace(/index\.html?$/i, '');
+
+  // Words used by the editor itself (players never see these).
+  const EDITOR_TEXT = {
+    passwordTitle: 'Edit mode',
+    passwordLabel: 'Password',
+    passwordWrong: 'That password is not right.',
+    unlock: 'Unlock',
+    cancel: 'Cancel',
+    otherText: 'Other text…',
+    otherTextTitle: 'Other text',
+    otherTextHelp: 'Buttons, headings, messages and image descriptions. Words in {curly brackets} are filled in by the game: keep them as they are. Game content (events, people, etc.) is in the Game editor.',
+    apply: 'Apply',
+    discard: 'Discard changes',
+    discardTitle: 'Discard changes?',
+    discardBody: 'This removes every change that is not in the uploaded file, and clears the auto-save. It cannot be undone.',
+    saveFile: 'Save file',
+    done: 'Done',
+    conflictTitle: 'Auto-saved changes found',
+    conflictBody: 'This browser has auto-saved changes that were made to an older version of this file. The uploaded file has changed since then.',
+    keepSaved: 'Keep auto-saved changes',
+    useUploaded: 'Use uploaded version',
+    statusClean: 'Editing. No changes from the uploaded file.',
+    statusHasChanges: 'Editing. Changes that are not in the uploaded file are auto-saved in this browser.',
+    statusSaving: 'Saving…',
+    statusSaved: 'Changes auto-saved in this browser at {time}. Use "Save file" to download them.',
+    statusNoStorage: 'This browser is blocking storage, so changes are NOT auto-saved. Use "Save file" before leaving.',
+    statusDownloaded: 'Downloaded index.html. Upload it to the website to replace the old file.',
+    statusImageError: 'That file could not be read as an image.',
+    howToEdit: 'How to edit',
+    howToEditLink: 'How to edit this game',
+    helpTitle: 'How to edit this game',
+    close: 'Close',
+    fnHint: 'Footnotes: in any box, type {{fn: your citation}} right where the note belongs. Example: A sentence that needs a source.{{fn: Author, Title, Year, page}}',
+
+    // The game editor
+    game: {
+      heading: 'Game editor',
+      intro: 'Everything the game uses. While you are editing, the game above is a test run: it does not change anyone\'s saved game.',
+      preview: 'Preview from an age…',
+      resetPreview: 'Restart test run',
+      previewTitle: 'Preview',
+      previewHelp: 'Start a test life at any age, with the stats you choose. That year\'s events happen straight away.',
+      previewName: 'Name',
+      previewBackground: 'Background',
+      previewAge: 'Start at age',
+      startPreview: 'Start preview',
+      settings: 'Settings',
+      maxAge: 'Maximum age (the life ends after this year)',
+      randomChance: 'Chance of a random event each year (%)',
+      activitiesPerYear: 'Activities allowed per year (0 = no limit)',
+      endStat: 'The life also ends when this stat reaches 0',
+      noEndStat: '(none: only at the maximum age)',
+      stats: 'Stats',
+      statsHelp: 'Bars from 0 to 100. Choices, activities and backgrounds push them up and down.',
+      statName: 'Name',
+      statStart: 'Starting value (0–100)',
+      addStat: 'Add stat',
+      setup: 'Character setup',
+      names: 'Names for the "random name" button (one per line)',
+      backgrounds: 'Backgrounds',
+      backgroundsHelp: 'The player picks one at the start. Its effects change the starting stats and relationships.',
+      bgName: 'Name',
+      bgDescription: 'Description',
+      addBackground: 'Add background',
+      people: 'People',
+      peopleHelp: 'Characters in the player\'s life. Each has a relationship bar (0–100).',
+      personName: 'Name',
+      personRole: 'Role',
+      personDescription: 'Description',
+      personStart: 'Starting relationship (0–100)',
+      personFrom: 'Comes into the life at age',
+      addPerson: 'Add person',
+      events: 'Events',
+      eventsHelp: 'Each year: fixed events for that exact age happen first (in this order). If there are none, a random event whose age range fits may happen. Each event happens at most once per life.',
+      eventType: 'Type',
+      fixed: 'Fixed: always happens at one exact age',
+      random: 'Random: may happen within an age range',
+      eventAge: 'Age',
+      eventMinAge: 'From age',
+      eventMaxAge: 'To age',
+      eventTitle: 'Title',
+      eventText: 'What happens',
+      uploadImage: 'Upload image',
+      removeImage: 'Remove image',
+      imageAlt: 'Image description (for screen readers)',
+      choices: 'Choices (up to 4; with none, the player just presses Continue)',
+      choice: 'Choice',
+      choiceLabel: 'Button text',
+      choiceResult: 'What happens after this choice',
+      addChoice: 'Add choice',
+      addEvent: 'Add event',
+      summaryFixed: 'Fixed, age {age}',
+      summaryRandom: 'Random, ages {min}–{max}',
+      activities: 'Activities',
+      activitiesHelp: 'Things the player may choose to do in any year, from the Activities button.',
+      activityName: 'Name (button text)',
+      activityResult: 'What happens',
+      addActivity: 'Add activity',
+      endings: 'Endings',
+      endingsHelp: 'When a life ends, endings are checked from top to bottom and the first one whose conditions all match is shown. Keep one at the bottom with no conditions, to catch everyone else.',
+      endingTitle: 'Title',
+      endingText: 'Text',
+      addEnding: 'Add ending',
+      effects: 'Effects',
+      addEffect: 'Add effect',
+      effectTarget: 'What changes',
+      effectChange: 'Change (use a minus sign to lower it)',
+      statPrefix: 'Stat: ',
+      personPrefix: 'Relationship: ',
+      conditions: 'Conditions (only if ALL are true)',
+      addCondition: 'Add condition',
+      condAge: 'Age',
+      condStat: 'Stat',
+      condPerson: 'Relationship',
+      condBackground: 'Background',
+      condChoice: 'Earlier choice',
+      atLeast: 'is at least',
+      atMost: 'is at most',
+      is: 'is',
+      isNot: 'is not',
+      made: 'was chosen',
+      notMade: 'was not chosen',
+      moveUp: 'Move up',
+      moveDown: 'Move down',
+      remove: 'Delete',
+      removeTitle: 'Delete this?',
+      removeBody: 'Any effects or conditions that point to it are removed too.'
+    }
+  };
+
+  /* -------------------------------------------------------------------
+     2. SMALL HELPERS
+     ------------------------------------------------------------------- */
+  function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+  // Read or write a value using a dotted path such as "page.title" or "game.events.0.title".
+  function getPath(obj, path) {
+    return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
+  }
+  function setPath(obj, path, value) {
+    const keys = path.split('.');
+    const last = keys.pop();
+    const target = keys.reduce((o, k) => (o[k] = o[k] || {}), obj);
+    target[last] = value;
+  }
+
+  // The data without the password check (auto-saves never store it).
+  function withoutAuth(d) { const c = clone(d); delete c.auth; return c; }
+
+  // True if the current data is the same as the uploaded file's data.
+  function sameAsFile(d) { return JSON.stringify(withoutAuth(d)) === JSON.stringify(withoutAuth(FILE_DATA)); }
+
+  // Put the file's own password check back in, keeping a tidy key order.
+  function withFileAuth(d) {
+    const out = { schemaVersion: d.schemaVersion, auth: clone(FILE_DATA.auth) };
+    Object.keys(d).forEach(k => { if (k !== 'auth' && k !== 'schemaVersion') out[k] = d[k]; });
+    return out;
+  }
+
+  function el(tag, attrs, text) {
+    const e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(k => e.setAttribute(k, attrs[k]));
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  // Fill in {words} in a piece of text, e.g. fill('Age {age}', { age: 5 }).
+  function fill(text, values) {
+    return String(text || '').replace(/\{(\w+)\}/g, (m, k) => (values && k in values ? values[k] : m));
+  }
+
+  // Keep a number between two limits.
+  function limit(n, min, max) { return Math.min(max, Math.max(min, Math.round(Number(n) || 0))); }
+
+  // A short random id for new items, e.g. "e4k2x9".
+  function newId(prefix) { return prefix + Math.random().toString(36).slice(2, 8); }
+
+  /* -------------------------------------------------------------------
+     FOOTNOTES
+     In any text, {{fn: citation}} becomes a small number, and the citation
+     is added to the list for that screen. Each screen (a game step, a pop-up,
+     or the page header + footer) keeps its own list, numbered 1, 2, 3...
+     In edit mode the raw {{fn: ...}} text is shown instead, so it can be edited.
+     ------------------------------------------------------------------- */
+  const NOTE_RE = /\{\{\s*fn\s*:\s*([\s\S]*?)\s*\}\}/gi;
+
+  // Text with each {{fn: ...}} swapped for a numbered superscript.
+  // The citations are added to `notes` (an array) in reading order.
+  function withNotes(text, notes) {
+    const frag = document.createDocumentFragment();
+    const str = String(text == null ? '' : text);
+    let last = 0;
+    for (const m of str.matchAll(NOTE_RE)) {
+      frag.append(str.slice(last, m.index));
+      notes.push(m[1]);
+      const sup = el('sup', { class: 'fn-ref', 'data-note': String(notes.length), title: 'Footnote ' + notes.length }, String(notes.length));
+      sup._notes = notes;               // which list this number belongs to
+      frag.append(sup);
+      last = m.index + m[0].length;
+    }
+    frag.append(str.slice(last));
+    return frag;
+  }
+
+  // Text with the footnotes removed, for places that can't show them
+  // (browser tab title, image descriptions, screen-reader labels).
+  function stripNotes(text) { return String(text == null ? '' : text).replace(NOTE_RE, '').trim(); }
+
+  // Put text into an element: raw while editing, with footnote numbers otherwise.
+  function showText(node, text, notes) {
+    if (editing || !notes) node.textContent = text == null ? '' : String(text);
+    else node.replaceChildren(withNotes(text, notes));
+    return node;
+  }
+
+  // A citation, with web addresses turned into links that open in a new tab.
+  function citation(text) {
+    const frag = document.createDocumentFragment();
+    String(text).split(/(https?:\/\/[^\s<>"]+)/).forEach((part, i) => {
+      if (i % 2 === 0) { frag.append(part); return; }
+      const a = el('a', { href: part, target: '_blank', rel: 'noopener' }, part);
+      frag.append(a);
+    });
+    return frag;
+  }
+
+  // The "Footnotes (n)" button for a screen. Returns an empty bar if there are none.
+  function notesBar(notes) {
+    const bar = el('div', { class: 'fn-bar' });
+    if (notes.length && !editing) {
+      const b = el('button', { type: 'button', class: 'fn-btn' }, stripNotes(uiText('footnotesButton')) + ' (' + notes.length + ')');
+      b.addEventListener('click', () => openNotes(notes));
+      bar.appendChild(b);
+    }
+    return bar;
+  }
+
+  // The footnotes list, shown on top of the current screen.
+  // `current` (optional) is the number to highlight.
+  function openNotes(notes, current) {
+    const dlg = el('dialog', { class: 'fn-dialog', 'aria-label': stripNotes(uiText('footnotesTitle')) });
+    const list = el('ol');
+    notes.forEach((n, i) => {
+      const li = el('li');
+      li.append(citation(n));
+      if (i + 1 === Number(current)) li.className = 'current';
+      list.appendChild(li);
+    });
+    const back = el('button', { type: 'button', class: 'game-btn primary fn-close' }, stripNotes(uiText('footnotesBack')));
+    const close = () => { if (dlg.open) dlg.close(); dlg.remove(); };
+    back.addEventListener('click', close);
+    dlg.addEventListener('cancel', e => { e.preventDefault(); close(); });
+    dlg.append(el('h2', {}, stripNotes(uiText('footnotesTitle'))), list, back);
+    document.body.appendChild(dlg);
+    dlg.showModal();
+    const cur = list.querySelector('.current');
+    if (cur) cur.scrollIntoView({ block: 'center' });
+    else back.focus();
+  }
+
+  // Clicking a footnote number in body text opens the list with that note highlighted.
+  // (Numbers inside buttons and links don't, so the button still does its job.)
+  document.addEventListener('click', e => {
+    if (editing) return;
+    const ref = e.target.closest && e.target.closest('.fn-ref');
+    if (!ref || !ref._notes || ref.closest('button, a')) return;
+    openNotes(ref._notes, ref.dataset.note);
+  });
+
+  /* -------------------------------------------------------------------
+     3. SHA-256
+     Written out in plain JavaScript (instead of crypto.subtle) so it also
+     works when the file is opened from disk or over plain http.
+     ------------------------------------------------------------------- */
+  const SHA_K = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+  ];
+
+  function sha256(text) {
+    const bytes = new TextEncoder().encode(text);
+    const len = bytes.length;
+    // Pad: the message, a 1 bit, zeros, then the length in bits (64-bit big-endian).
+    const total = Math.ceil((len + 9) / 64) * 64;
+    const buf = new Uint8Array(total);
+    buf.set(bytes);
+    buf[len] = 0x80;
+    const view = new DataView(buf.buffer);
+    view.setUint32(total - 8, Math.floor(len / 0x20000000));
+    view.setUint32(total - 4, (len * 8) >>> 0);
+
+    const h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+    const w = new Int32Array(64);
+    const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+
+    for (let off = 0; off < total; off += 64) {
+      for (let i = 0; i < 16; i++) w[i] = view.getInt32(off + i * 4);
+      for (let i = 16; i < 64; i++) {
+        const s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+        const s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+        w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+      }
+      let [a, b, c, d, e, f, g, hh] = h;
+      for (let i = 0; i < 64; i++) {
+        const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+        const ch = (e & f) ^ (~e & g);
+        const t1 = (hh + S1 + ch + SHA_K[i] + w[i]) | 0;
+        const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+        const maj = (a & b) ^ (a & c) ^ (b & c);
+        const t2 = (S0 + maj) | 0;
+        hh = g; g = f; f = e; e = (d + t1) | 0;
+        d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      h[0] = (h[0] + a) | 0; h[1] = (h[1] + b) | 0; h[2] = (h[2] + c) | 0; h[3] = (h[3] + d) | 0;
+      h[4] = (h[4] + e) | 0; h[5] = (h[5] + f) | 0; h[6] = (h[6] + g) | 0; h[7] = (h[7] + hh) | 0;
+    }
+    return h.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+  }
+
+  // A fingerprint of the uploaded file's content, stored with each auto-save
+  // so we can tell later if the uploaded file has changed.
+  const FILE_FINGERPRINT = sha256(JSON.stringify(FILE_DATA));
+
+  /* -------------------------------------------------------------------
+     4. DRAWING THE PAGE
+     Everything the player reads comes from `data`.
+     ------------------------------------------------------------------- */
+  let editing = false;
+
+  function render() {
+    if (data.ui && data.ui.browserTabTitle) document.title = stripNotes(data.ui.browserTabTitle);
+
+    renderPageText();
+
+    // Images: fill every <img data-image="name"> from data.images.name.
+    document.querySelectorAll('img[data-image]').forEach(img => {
+      const info = (data.images || {})[img.dataset.image] || {};
+      if (info.src) img.src = info.src; else img.removeAttribute('src');
+      img.alt = stripNotes(info.alt);
+      const box = img.closest('[data-image-box]');
+      if (box) box.hidden = !info.src && !editing;   // empty images only show while editing
+    });
+
+    renderGame();
+  }
+
+  // The page header and footer: their text, and their own "Footnotes" button.
+  let pageNotesBar = null;
+  function renderPageText() {
+    const pageNotes = [];
+    document.querySelectorAll('[data-text], [data-label]').forEach(node => {
+      if (node.closest('#game-root')) return;                 // the game draws its own text
+      if (editing && node === document.activeElement) return; // don't disturb typing
+      const value = getPath(data, node.dataset.text || node.dataset.label);
+      // Hidden text (e.g. the footer note) doesn't get numbers in the list.
+      showText(node, value, node.hidden ? [] : pageNotes);
+    });
+    const bar = notesBar(pageNotes);
+    bar.classList.add('page-fn');
+    if (pageNotesBar) pageNotesBar.replaceWith(bar);
+    else document.querySelector('.site-header').appendChild(bar);
+    pageNotesBar = bar;
+  }
+
+  // Footer note: shown when the page has changes that aren't in the uploaded file.
+  function updateLocalNote() {
+    const note = document.getElementById('local-note');
+    const hide = sameAsFile(data);
+    if (note.hidden !== hide) { note.hidden = hide; renderPageText(); }
+  }
+
+  /* -------------------------------------------------------------------
+     5. THE GAME: RULES
+     A "life" is a plain object holding everything about one play-through:
+       name, background, age, stats {id: value}, people {id: value},
+       met [person ids], seen [event ids], chosen [choice ids],
+       log [{ age, text }], activitiesUsed (this year),
+       pending [event ids still to show this year], result (a pop-up to
+       show after a choice), dying (true once the "end stat" hits 0),
+       ending (id of the ending, once the life is over).
+     ------------------------------------------------------------------- */
+  const LIFE_KEY = PAGE_KEY + ':life';
+  let playerLife = loadPlayerLife();   // the player's own game (kept in this browser)
+  let previewLife = null;              // a test run while editing (never kept)
+
+  function game() { return data.game; }
+  function settings() {
+    return Object.assign({ maxAge: 80, randomEventChance: 60, activitiesPerYear: 1, endStat: '' }, game().settings);
+  }
+  function byId(list, id) { return (list || []).find(x => x.id === id); }
+  function uiText(key, values) { return fill((data.ui || {})[key], values); }
+
+  // While editing, the game uses the test run; otherwise the player's game.
+  function getLife() { return editing ? previewLife : playerLife; }
+  function setLife(life) {
+    if (editing) previewLife = life;
+    else { playerLife = life; storePlayerLife(); }
+  }
+  function saveLife() { if (!editing) storePlayerLife(); }
+
+  function loadPlayerLife() {
+    try { const s = localStorage.getItem(LIFE_KEY); return s ? JSON.parse(s) : null; }
+    catch (e) { return null; }
+  }
+  function storePlayerLife() {
+    try {
+      if (playerLife) localStorage.setItem(LIFE_KEY, JSON.stringify(playerLife));
+      else localStorage.removeItem(LIFE_KEY);
+    } catch (e) { /* storage blocked: the game still plays, it just isn't kept */ }
+  }
+
+  function statValue(life, id) {
+    if (id in life.stats) return life.stats[id];
+    const s = byId(game().stats, id);
+    return s ? limit(s.start, 0, 100) : 0;
+  }
+  function personValue(life, id) {
+    if (id in life.people) return life.people[id];
+    const p = byId(game().people, id);
+    return p ? limit(p.start, 0, 100) : 0;
+  }
+
+  // True if every condition in the list is true for this life (an empty list is always true).
+  function conditionsMet(life, conditions) {
+    return (conditions || []).every(c => {
+      const atLeast = (value) => (c.op === 'max' ? value <= Number(c.value) : value >= Number(c.value));
+      switch (c.kind) {
+        case 'age': return atLeast(life.age);
+        case 'stat': return atLeast(statValue(life, c.ref));
+        case 'person': return atLeast(personValue(life, c.ref));
+        case 'background': return (life.background === c.ref) === (c.op !== 'not');
+        case 'choice': return life.chosen.includes(c.ref) === (c.op !== 'not');
+        default: return true;
+      }
+    });
+  }
+
+  // Apply a list of effects (stat and relationship changes), keeping values 0–100.
+  function applyEffects(life, effects) {
+    (effects || []).forEach(e => {
+      const change = Number(e.change) || 0;
+      if (e.kind === 'stat' && byId(game().stats, e.ref)) life.stats[e.ref] = limit(statValue(life, e.ref) + change, 0, 100);
+      if (e.kind === 'person' && byId(game().people, e.ref)) life.people[e.ref] = limit(personValue(life, e.ref) + change, 0, 100);
+    });
+    const endStat = settings().endStat;
+    if (endStat && byId(game().stats, endStat) && statValue(life, endStat) <= 0) life.dying = true;
+  }
+
+  function addLog(life, text) { if (text) life.log.push({ age: life.age, text: text }); }
+
+  // "Title — what happened" for the life log.
+  function logLine(a, b) { return [a, b].filter(Boolean).join(' — '); }
+
+  // Start a new life. `statValues` (optional) sets the stats directly, for previews.
+  function newLife(name, backgroundId, startAge, statValues) {
+    const life = {
+      name: name, background: backgroundId || '', age: startAge || 0,
+      stats: {}, people: {}, met: [], seen: [], chosen: [], log: [],
+      activitiesUsed: 0, pending: [], result: null, dying: false, ending: null
+    };
+    game().stats.forEach(s => { life.stats[s.id] = limit(statValues && s.id in statValues ? statValues[s.id] : s.start, 0, 100); });
+    game().people.forEach(p => { life.people[p.id] = limit(p.start, 0, 100); });
+    const background = byId(game().backgrounds, backgroundId);
+    if (background && !statValues) applyEffects(life, background.effects);
+    addLog(life, uiText('logStart', { name: name }));
+    runYear(life);
+    return life;
+  }
+
+  // Everything that happens at the start of a year.
+  function runYear(life) {
+    life.activitiesUsed = 0;
+    let somethingHappened = false;
+
+    // New people come into the life.
+    game().people.forEach(p => {
+      if (!life.met.includes(p.id) && (Number(p.fromAge) || 0) <= life.age && conditionsMet(life, p.conditions)) {
+        life.met.push(p.id);
+        addLog(life, uiText('logMetPerson', { person: p.name }));
+        somethingHappened = true;
+      }
+    });
+
+    // Fixed events for this exact age, in list order...
+    const queue = game().events
+      .filter(e => e.type === 'fixed' && Number(e.age) === life.age && !life.seen.includes(e.id) && conditionsMet(life, e.conditions))
+      .map(e => e.id);
+
+    // ...or, if there are none, maybe one random event whose age range fits.
+    if (!queue.length && Math.random() * 100 < Number(settings().randomEventChance)) {
+      const pool = game().events.filter(e => e.type !== 'fixed' &&
+        life.age >= Number(e.minAge) && life.age <= Number(e.maxAge) &&
+        !life.seen.includes(e.id) && conditionsMet(life, e.conditions));
+      if (pool.length) queue.push(pool[Math.floor(Math.random() * pool.length)].id);
+    }
+
+    life.pending = queue;
+    if (!queue.length && !somethingHappened) addLog(life, uiText('logQuietYear'));
+  }
+
+  // The big button.
+  function ageUp() {
+    const life = getLife();
+    if (!life || life.pending.length || life.result || life.ending) return;
+    if (life.age >= Number(settings().maxAge)) {
+      endLife(life);
+    } else {
+      life.age += 1;
+      runYear(life);
+    }
+    saveLife();
+    renderGame();
+  }
+
+  // The player picked a choice in an event (choiceId is null for "Continue").
+  function choose(eventId, choiceId) {
+    const life = getLife();
+    const event = byId(game().events, eventId);
+    life.pending.shift();
+    life.seen.push(eventId);
+    const choice = event && byId(event.choices, choiceId);
+    if (choice) {
+      applyEffects(life, choice.effects);
+      life.chosen.push(choice.id);
+      addLog(life, logLine(event.title, choice.result));
+      life.result = { title: event.title, text: choice.result };
+    } else {
+      if (event) addLog(life, logLine(event.title, event.text));
+      if (life.dying) endLife(life);
+    }
+    saveLife();
+    renderGame();
+  }
+
+  // "Continue" after reading what happened.
+  function closeResult() {
+    const life = getLife();
+    life.result = null;
+    if (life.dying) endLife(life);
+    saveLife();
+    renderGame();
+  }
+
+  function availableActivities(life) {
+    return game().activities.filter(a =>
+      life.age >= Number(a.minAge) && life.age <= Number(a.maxAge) && conditionsMet(life, a.conditions));
+  }
+  function activityLimitReached(life) {
+    const max = Number(settings().activitiesPerYear) || 0;
+    return max > 0 && life.activitiesUsed >= max;
+  }
+
+  function doActivity(id) {
+    const life = getLife();
+    const activity = byId(game().activities, id);
+    if (!activity || activityLimitReached(life)) return;
+    applyEffects(life, activity.effects);
+    life.activitiesUsed += 1;
+    addLog(life, logLine(activity.name, activity.result));
+    life.result = { title: activity.name, text: activity.result };
+    openPanel = null;
+    saveLife();
+    renderGame();
+  }
+
+  // Pick the first ending whose conditions all match (or the last ending).
+  function endLife(life) {
+    const endings = game().endings || [];
+    const ending = endings.find(e => conditionsMet(life, e.conditions)) || endings[endings.length - 1];
+    life.pending = [];
+    life.result = null;
+    life.ending = ending ? ending.id : 'none';
+  }
+
+  /* -------------------------------------------------------------------
+     6. THE GAME: SCREENS AND POP-UPS
+     Game text shown with data-text="..." can be edited in place while in
+     edit mode. Buttons are edited in the Game editor or "Other text".
+     ------------------------------------------------------------------- */
+  let openPanel = null;          // 'activities', 'people', 'startOver' or null
+  let setupDraft = { name: '', background: '' };
+  let lastPopupKey = '';         // so we only move keyboard focus when a new pop-up opens
+
+  // Every function below that builds a screen is given `notes`: the footnote
+  // list for that screen. Text added with textEl / rich / gameButton puts its
+  // footnotes into that list, in reading order.
+
+  // An element showing editable text from the data, e.g. textEl('h3', 'ui.setupHeading', notes).
+  function textEl(tag, path, notes, attrs) {
+    const node = el(tag, Object.assign({ 'data-text': path }, attrs || {}));
+    return showText(node, getPath(data, path), notes);
+  }
+  // An element showing any text (not editable in place), with footnotes.
+  function rich(tag, text, notes, attrs) {
+    return showText(el(tag, attrs || {}), text, notes);
+  }
+  function gameButton(label, onClick, cls, notes) {
+    const b = el('button', { type: 'button', class: 'game-btn' + (cls ? ' ' + cls : '') });
+    showText(b, label, notes);
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function renderGame() {
+    const root = document.getElementById('game-root');
+    if (!root || !data.game) return;
+    const life = getLife();
+    const notes = [];      // footnotes on the main game screen
+    root.replaceChildren();
+    let popup = null;
+    let screen;
+    if (!life) screen = setupScreen(notes);
+    else if (life.ending) screen = endingScreen(life, notes);
+    else screen = lifeScreen(life, notes);
+    screen.prepend(notesBar(notes));
+    root.appendChild(screen);
+    if (life && !life.ending) {
+      popup = popupFor(life);
+      if (popup) root.appendChild(popup.node);
+    }
+    root.querySelectorAll('.log-box').forEach(box => { box.scrollTop = box.scrollHeight; });
+
+    // Move keyboard focus into a pop-up when a new one opens.
+    const key = popup ? popup.key : '';
+    if (popup && key !== lastPopupKey && !editing) {
+      const first = popup.node.querySelector('.card-buttons button');
+      if (first) first.focus({ preventScroll: true });
+      popup.node.querySelector('.game-card').scrollIntoView({ block: 'nearest' });
+    }
+    lastPopupKey = key;
+
+    if (editing) makeEditable();
+  }
+
+  // --- Screen 1: character setup ---
+  function setupScreen(notes) {
+    const wrap = el('div', { class: 'game-setup' });
+    const backgrounds = game().backgrounds || [];
+    if (!byId(backgrounds, setupDraft.background)) setupDraft.background = backgrounds.length ? backgrounds[0].id : '';
+
+    wrap.appendChild(textEl('h3', 'ui.setupHeading', notes));
+    // (A <div> rather than a <label>, so the label text can be edited in place.)
+    wrap.appendChild(textEl('div', 'ui.nameLabel', notes, { id: 'game-name-label' }));
+    const row = el('div', { class: 'name-row' });
+    const input = el('input', { id: 'game-name', type: 'text', maxlength: '60', autocomplete: 'off', 'aria-labelledby': 'game-name-label' });
+    input.value = setupDraft.name;
+    input.addEventListener('input', () => { setupDraft.name = input.value; });
+    row.appendChild(input);
+    row.appendChild(gameButton(uiText('randomName'), () => { input.value = setupDraft.name = randomName(); }, '', notes));
+    wrap.appendChild(row);
+
+    if (backgrounds.length) {
+      wrap.appendChild(textEl('h3', 'ui.backgroundHeading', notes));
+      const list = el('div', { class: 'bg-list', role: 'radiogroup' });
+      backgrounds.forEach((b, i) => {
+        const card = el('div', { class: 'bg-card' + (b.id === setupDraft.background ? ' selected' : '') });
+        const radio = el('input', { type: 'radio', name: 'game-background', 'aria-label': stripNotes(b.name) });
+        radio.checked = b.id === setupDraft.background;
+        const text = el('div');
+        text.appendChild(textEl('strong', 'game.backgrounds.' + i + '.name', notes));
+        text.appendChild(textEl('p', 'game.backgrounds.' + i + '.description', notes, { 'data-multiline': '' }));
+        card.append(radio, text);
+        card.addEventListener('click', () => {
+          setupDraft.background = b.id;
+          list.querySelectorAll('.bg-card').forEach((c, j) => {
+            c.classList.toggle('selected', j === i);
+            c.querySelector('input').checked = j === i;
+          });
+        });
+        list.appendChild(card);
+      });
+      wrap.appendChild(list);
+    }
+
+    const start = gameButton(uiText('startLife'), () => {
+      const name = setupDraft.name.trim() || randomName();
+      setupDraft.name = '';
+      setLife(newLife(name, setupDraft.background, 0));
+      renderGame();
+    }, 'primary setup-start', notes);
+    wrap.appendChild(start);
+    return wrap;
+  }
+
+  function randomName() {
+    const names = (game().names || []).filter(n => n.trim());
+    return names.length ? names[Math.floor(Math.random() * names.length)] : '?';
+  }
+
+  // --- Screen 2: living a life ---
+  // The top line: name, age and background.
+  function lifeTop(life, notes) {
+    const top = el('div', { class: 'life-top' });
+    top.appendChild(rich('span', life.name, notes, { class: 'who' }));
+    top.appendChild(rich('span', uiText('ageLabel', { age: life.age }), notes, { class: 'age' }));
+    const background = byId(game().backgrounds, life.background);
+    if (background) top.appendChild(rich('span', background.name, notes, { class: 'bg' }));
+    return top;
+  }
+
+  function lifeScreen(life, notes) {
+    const wrap = el('div', { class: 'life' });
+    wrap.appendChild(lifeTop(life, notes));
+
+    wrap.appendChild(textEl('h4', 'ui.statsHeading', notes));
+    wrap.appendChild(statBars(life, notes));
+
+    wrap.appendChild(textEl('h4', 'ui.logHeading', notes));
+    wrap.appendChild(logList(life, notes));
+
+    const actions = el('div', { class: 'actions' });
+    actions.appendChild(gameButton(uiText('ageUp'), ageUp, 'primary age-up', notes));
+    actions.appendChild(gameButton(uiText('activities'), () => { openPanel = 'activities'; renderGame(); }, '', notes));
+    actions.appendChild(gameButton(uiText('people'), () => { openPanel = 'people'; renderGame(); }, '', notes));
+    actions.appendChild(gameButton(uiText('startOver'), () => { openPanel = 'startOver'; renderGame(); }, 'quiet', notes));
+    wrap.appendChild(actions);
+    return wrap;
+  }
+
+  function bar(value, label) {
+    const outer = el('div', { class: 'bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(value), 'aria-label': stripNotes(label) });
+    const inner = el('div', { class: 'fill' + (value < 20 ? ' low' : '') });
+    inner.style.width = value + '%';
+    outer.appendChild(inner);
+    return outer;
+  }
+
+  function statBars(life, notes) {
+    const list = el('div', { class: 'stats' });
+    game().stats.forEach((s, i) => {
+      const row = el('div', { class: 'stat' });
+      const value = statValue(life, s.id);
+      row.appendChild(textEl('span', 'game.stats.' + i + '.name', notes, { class: 'name' }));
+      row.appendChild(bar(value, s.name));
+      row.appendChild(el('span', { class: 'value' }, value));
+      list.appendChild(row);
+    });
+    return list;
+  }
+
+  function logList(life, notes) {
+    const box = el('div', { class: 'log-box' });
+    const list = el('ol', { class: 'log' });
+    let lastAge = null;
+    life.log.forEach(entry => {
+      if (entry.age !== lastAge) {
+        list.appendChild(rich('li', uiText('ageLabel', { age: entry.age }), notes, { class: 'log-age' }));
+        lastAge = entry.age;
+      }
+      list.appendChild(rich('li', entry.text, notes, { class: 'log-entry' }));
+    });
+    box.appendChild(list);
+    return box;
+  }
+
+  function peopleList(life, notes) {
+    const wrap = el('div');
+    const met = game().people.filter(p => life.met.includes(p.id));
+    if (!met.length) wrap.appendChild(textEl('p', 'ui.noPeople', notes, { class: 'muted' }));
+    met.forEach(p => {
+      const i = game().people.indexOf(p);
+      const item = el('div', { class: 'person' });
+      const head = el('div');
+      head.appendChild(textEl('strong', 'game.people.' + i + '.name', notes));
+      head.appendChild(textEl('span', 'game.people.' + i + '.role', notes, { class: 'role' }));
+      item.appendChild(head);
+      item.appendChild(textEl('p', 'game.people.' + i + '.description', notes, { 'data-multiline': '' }));
+      item.appendChild(bar(personValue(life, p.id), uiText('relationship')));
+      wrap.appendChild(item);
+    });
+    return wrap;
+  }
+
+  // A pop-up card over the game, with its own footnotes. Returns { node, key }.
+  function popup(key, content, buttons, notes) {
+    const overlay = el('div', { class: 'game-overlay' });
+    const card = el('div', { class: 'game-card', role: 'dialog', 'aria-modal': 'true' });
+    card.appendChild(notesBar(notes));
+    content.forEach(n => card.appendChild(n));
+    const row = el('div', { class: 'card-buttons' });
+    buttons.forEach(b => row.appendChild(b));
+    card.appendChild(row);
+    overlay.appendChild(card);
+    return { node: overlay, key: key };
+  }
+
+  // Which pop-up (if any) should show right now.
+  function popupFor(life) {
+    const notes = [];      // each pop-up has its own footnotes
+
+    // 1. What happened after a choice or activity.
+    if (life.result) {
+      const content = [rich('h3', life.result.title, notes), rich('p', life.result.text, notes)];
+      return popup('result' + life.log.length, content, [gameButton(uiText('continue'), closeResult, 'primary', notes)], notes);
+    }
+
+    // 2. The next event this year.
+    while (life.pending.length) {
+      const event = byId(game().events, life.pending[0]);
+      if (!event) { life.pending.shift(); continue; }   // event was deleted in the editor
+      const i = game().events.indexOf(event);
+      const content = [textEl('h3', 'game.events.' + i + '.title', notes)];
+      if (event.image && event.image.src) content.push(el('img', { class: 'event-image', src: event.image.src, alt: stripNotes(event.image.alt) }));
+      content.push(textEl('p', 'game.events.' + i + '.text', notes, { 'data-multiline': '' }));
+      const choices = (event.choices || []).filter(c => conditionsMet(life, c.conditions));
+      const buttons = choices.length
+        ? choices.map(c => gameButton(c.label, () => choose(event.id, c.id), '', notes))
+        : [gameButton(uiText('continue'), () => choose(event.id, null), 'primary', notes)];
+      return popup('event' + event.id, content, buttons, notes);
+    }
+
+    // 3. A panel the player opened.
+    const close = () => gameButton(uiText('close'), () => { openPanel = null; renderGame(); }, '', notes);
+    if (openPanel === 'activities') {
+      const content = [textEl('h3', 'ui.activitiesHeading', notes)];
+      const buttons = [];
+      const list = availableActivities(life);
+      if (activityLimitReached(life)) content.push(textEl('p', 'ui.activityLimitReached', notes, { class: 'muted' }));
+      else if (!list.length) content.push(textEl('p', 'ui.noActivities', notes, { class: 'muted' }));
+      else list.forEach(a => buttons.push(gameButton(a.name, () => doActivity(a.id), '', notes)));
+      buttons.push(close());
+      return popup('activities', content, buttons, notes);
+    }
+    if (openPanel === 'people') {
+      const content = [textEl('h3', 'ui.peopleHeading', notes), peopleList(life, notes)];
+      return popup('people', content, [close()], notes);
+    }
+    if (openPanel === 'startOver') {
+      const content = [textEl('p', 'ui.startOverQuestion', notes)];
+      return popup('startOver', content, [
+        gameButton(uiText('yes'), () => { openPanel = null; setLife(null); renderGame(); }, 'primary', notes),
+        gameButton(uiText('no'), () => { openPanel = null; renderGame(); }, '', notes)
+      ], notes);
+    }
+    return null;
+  }
+
+  // --- Screen 3: the end of a life ---
+  function endingScreen(life, notes) {
+    const wrap = el('div', { class: 'ending' });
+    wrap.appendChild(textEl('h3', 'ui.endingHeading', notes));
+    wrap.appendChild(lifeTop(life, notes));
+
+    const ending = byId(game().endings, life.ending);
+    if (ending) {
+      const i = game().endings.indexOf(ending);
+      wrap.appendChild(textEl('p', 'game.endings.' + i + '.title', notes, { class: 'ending-title' }));
+      wrap.appendChild(textEl('p', 'game.endings.' + i + '.text', notes, { 'data-multiline': '' }));
+    }
+
+    wrap.appendChild(textEl('h4', 'ui.finalStats', notes));
+    wrap.appendChild(statBars(life, notes));
+    wrap.appendChild(textEl('h4', 'ui.peopleHeading', notes));
+    wrap.appendChild(peopleList(life, notes));
+    wrap.appendChild(textEl('h4', 'ui.logHeading', notes));
+    wrap.appendChild(logList(life, notes));
+
+    const actions = el('div', { class: 'actions' });
+    actions.appendChild(gameButton(uiText('playAgain'), () => { setLife(null); renderGame(); }, 'primary', notes));
+    wrap.appendChild(actions);
+    return wrap;
+  }
+
+  /* -------------------------------------------------------------------
+     7. BROWSER STORAGE
+     Every storage call is wrapped in try/catch: if the browser blocks
+     storage, the game still plays and the editor still works (it just
+     can't auto-save).
+     ------------------------------------------------------------------- */
+
+  // "Unlocked" lasts for this browser tab only (sessionStorage).
+  const unlockStore = {
+    key: PAGE_KEY + ':unlocked',
+    isUnlocked() { try { return sessionStorage.getItem(this.key) === FILE_DATA.auth.hash; } catch (e) { return false; } },
+    remember() { try { sessionStorage.setItem(this.key, FILE_DATA.auth.hash); } catch (e) { /* storage blocked */ } }
+  };
+
+  // Auto-saves live in IndexedDB (it can hold large images).
+  const autoSaveStore = (function () {
+    const DB_NAME = 'civilrightslife-editor';
+    const STORE = 'autosave';
+    let dbPromise = null;
+
+    function openDb() {
+      if (!dbPromise) {
+        dbPromise = new Promise(resolve => {
+          try {
+            const req = indexedDB.open(DB_NAME, 1);
+            req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+            req.onblocked = () => resolve(null);
+          } catch (e) { resolve(null); }
+        });
+      }
+      return dbPromise;
+    }
+
+    // Run one request; resolves with its result, or `fallback` if anything fails.
+    async function run(mode, makeRequest, fallback) {
+      const db = await openDb();
+      if (!db) return fallback;
+      return new Promise(resolve => {
+        try {
+          const req = makeRequest(db.transaction(STORE, mode).objectStore(STORE));
+          req.onsuccess = () => resolve(mode === 'readonly' ? (req.result || null) : true);
+          req.onerror = () => resolve(fallback);
+        } catch (e) { resolve(fallback); }
+      });
+    }
+
+    return {
+      get: () => run('readonly', s => s.get(PAGE_KEY), null),
+      put: value => run('readwrite', s => s.put(value, PAGE_KEY), false),
+      clear: () => run('readwrite', s => s.delete(PAGE_KEY), false)
+    };
+  })();
+
+  let saveTimer = null;
+  let unsaved = false;        // true when there are changes not yet auto-saved
+  let pendingConflict = null; // an auto-save made for an older version of the file
+
+  // Call after every change: auto-saves about half a second later.
+  function changed() {
+    unsaved = true;
+    setStatus(EDITOR_TEXT.statusSaving);
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(autoSaveNow, 500);
+  }
+
+  async function autoSaveNow() {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    if (!unsaved) return;
+    unsaved = false;
+    updateLocalNote();
+    if (sameAsFile(data)) {
+      await autoSaveStore.clear();
+      setStatus(EDITOR_TEXT.statusClean);
+      return;
+    }
+    const ok = await autoSaveStore.put({
+      fingerprint: FILE_FINGERPRINT,
+      savedAt: Date.now(),
+      data: withoutAuth(data)
+    });
+    const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    setStatus(ok ? EDITOR_TEXT.statusSaved.replace('{time}', time) : EDITOR_TEXT.statusNoStorage);
+  }
+
+  // Redraw everything after the whole data has been swapped.
+  function refreshAll() {
+    render();
+    if (editing) { makeEditable(); buildGameEditor(); }
+    updateLocalNote();
+  }
+
+  // Use an auto-save's data (the password check always comes from the file).
+  function useSaved(saved) {
+    data = withDefaults(withFileAuth(saved.data));
+    refreshAll();
+  }
+
+  // On page load: bring back auto-saved changes, if any.
+  async function loadAutoSave() {
+    const saved = await autoSaveStore.get();
+    if (!saved || !saved.data) return;
+    if (sameAsFile(saved.data)) {               // the uploaded file already has these changes
+      await autoSaveStore.clear();
+    } else if (saved.fingerprint === FILE_FINGERPRINT) {
+      useSaved(saved);                           // same file as before: just load them
+    } else {
+      pendingConflict = saved;                   // file has changed: ask next time the editor opens
+      if (editing) await resolveConflict();
+    }
+  }
+
+  async function resolveConflict() {
+    const saved = pendingConflict;
+    if (!saved) return;
+    pendingConflict = null;
+    const choice = await showDialog(EDITOR_TEXT.conflictTitle, [el('p', {}, EDITOR_TEXT.conflictBody)], [
+      { label: EDITOR_TEXT.useUploaded, value: 'uploaded' },
+      { label: EDITOR_TEXT.keepSaved, value: 'keep', primary: true }
+    ]);
+    if (choice === 'keep') {
+      useSaved(saved);
+      changed();                                 // re-save, now linked to the current file
+    } else if (choice === 'uploaded') {
+      await autoSaveStore.clear();
+    } else {
+      pendingConflict = saved;                   // closed without choosing: ask again later
+    }
+  }
+
+  // Save straight away if the page is closed or hidden.
+  window.addEventListener('pagehide', autoSaveNow);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') autoSaveNow(); });
+
+  /* -------------------------------------------------------------------
+     8. THE EDITOR
+     ------------------------------------------------------------------- */
+  let editBar = null;
+  let statusEl = null;
+
+  function setStatus(message) { if (statusEl) statusEl.textContent = message; }
+
+  // A simple pop-up window. `buttons` is a list of { label, value, primary }.
+  // Resolves with the value of the button pressed (or null if closed).
+  function showDialog(title, bodyNodes, buttons, onSubmit) {
+    return new Promise(resolve => {
+      const dlg = el('dialog', { class: 'ed-dialog' });
+      const form = el('form');
+      let finished = false;
+
+      // Close the dialog, remove it from the page and report which button was used.
+      function finish(value) {
+        if (finished) return;
+        finished = true;
+        if (dlg.open) dlg.close();
+        dlg.remove();
+        resolve(value);
+      }
+
+      form.appendChild(el('h2', {}, title));
+      bodyNodes.forEach(n => form.appendChild(n));
+      const row = el('div', { class: 'buttons' });
+      buttons.forEach(b => {
+        const btn = el('button', { type: b.primary ? 'submit' : 'button', class: b.primary ? 'primary' : '' }, b.label);
+        if (!b.primary) btn.addEventListener('click', () => finish(b.value));
+        row.appendChild(btn);
+      });
+      form.appendChild(row);
+      // The primary button (or Enter) submits the form; onSubmit can return false to keep the dialog open.
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        if (onSubmit && onSubmit() === false) return;
+        const primary = buttons.find(b => b.primary);
+        finish(primary ? primary.value : null);
+      });
+      // Escape key closes without choosing.
+      dlg.addEventListener('cancel', e => { e.preventDefault(); finish(null); });
+      dlg.addEventListener('close', () => finish(null));
+      dlg.appendChild(form);
+      document.body.appendChild(dlg);
+      dlg.showModal();
+    });
+  }
+
+  /* --- "How to edit" instructions for students ---
+     This is editor help, not game content, so it lives here in the code.
+     IMPORTANT: whenever the editor changes (new buttons, fields or game
+     parts), update these steps in the same change so they always match
+     what students see. Button names in <b> must match the real buttons. */
+  const HELP_HTML = `
+    <h3>1. Getting started</h3>
+    <ol>
+      <li>Click the faint <b>Edit</b> link at the very bottom of the page.</li>
+      <li>Type the password your teacher gives you and click <b>Unlock</b>.</li>
+      <li>A dark bar appears at the bottom of the screen. That means you're in edit mode.</li>
+    </ol>
+
+    <h3>2. Editing text on the page</h3>
+    <ol>
+      <li>Click any text with a dotted orange outline and type. This works for the title, the introduction,
+        headings, and text inside the game (like the words on an event).</li>
+      <li>For text that isn't on the screen right now (button words, messages, picture descriptions),
+        click <b>Other text…</b> in the dark bar, change the boxes, then click <b>Apply</b>.</li>
+      <li>Words in {curly brackets}, like <code>{age}</code>, are filled in by the game. Leave them as they are.</li>
+      <li>To add a picture at the top of the page, click the dotted box above the title and pick an image.</li>
+    </ol>
+
+    <h3>3. Editing the game</h3>
+    <p>Scroll down to the <b>Game editor</b> box under the game. Click a section name to open it.</p>
+    <ol>
+      <li><b>Settings:</b> the maximum age, the chance of a random event each year, how many activities
+        a player can do each year, and (if you want) a stat that ends the life when it reaches 0.</li>
+      <li><b>Stats:</b> the bars, like a score from 0 to 100. Type a name and a starting value.
+        Click <b>Add stat</b> for another one.</li>
+      <li><b>Character setup:</b> type names for the random name button, one per line. Then fill in each
+        background (name and description). Click <b>Add background</b> for another one.</li>
+      <li><b>People:</b> the characters in the player's life. Fill in name, role, description, starting
+        relationship, and the age they come into the life. Click <b>Add person</b> for another one.</li>
+      <li><b>Events:</b> click an event to open it.
+        <ol>
+          <li>Pick the <b>Type</b>: <b>Fixed</b> (always happens at one exact age) or
+            <b>Random</b> (may happen between two ages).</li>
+          <li>Type the age (or the <b>From age</b> and <b>To age</b>), the <b>Title</b>, and <b>What happens</b>.</li>
+          <li>To add a picture, click <b>Upload image</b>, then describe the picture in the box below it.
+            <b>Remove image</b> takes it away.</li>
+          <li>Under <b>Choices</b>, type the <b>Button text</b> and <b>What happens after this choice</b>.
+            Click <b>Add choice</b> for more (up to 4).</li>
+          <li>Click <b>Add event</b> at the bottom of the list to make a new event.</li>
+        </ol></li>
+      <li><b>Activities:</b> things the player can choose to do in a year. Fill in the name, what happens,
+        and the ages. Click <b>Add activity</b> for another one.</li>
+      <li><b>Endings:</b> the game checks endings from top to bottom and shows the first one that matches.
+        Keep one at the bottom with no conditions. Click <b>Add ending</b> for another one.</li>
+    </ol>
+    <p>Many items also have:</p>
+    <ul>
+      <li><b>Effects:</b> click <b>Add effect</b>, pick the stat or relationship that changes, and type how much
+        (for example 5, or -5 to lower it).</li>
+      <li><b>Conditions:</b> click <b>Add condition</b> to make something happen only sometimes, for example
+        only if a stat is at least 50, or only if the player picked an earlier choice.</li>
+      <li>The <b>↑</b> and <b>↓</b> buttons move an item up or down. The <b>✕</b> button deletes it
+        (it asks first).</li>
+    </ul>
+    <p><b>Testing:</b> while you edit, you can play the game above. It's only a test and doesn't change
+      anyone's saved game. Click <b>Preview from an age…</b>, choose an age and stats, then click
+      <b>Start preview</b> to jump straight there. <b>Restart test run</b> starts over.</p>
+
+    <h3>4. Adding footnotes</h3>
+    <p>You can add a footnote to <b>any</b> text in the game.</p>
+    <ol>
+      <li>Click right after the sentence that needs a source.</li>
+      <li>Type two curly brackets, the letters <code>fn</code>, a colon, your citation, and two closing curly brackets:
+        <code class="ed-example">A sentence that needs a source.{{fn: Author, Title, Year, page}}</code></li>
+      <li>When you play the game, a small number appears there instead.</li>
+      <li>A <b>Footnotes</b> button appears at the top of that screen. Click it, or click the small number,
+        to see all the citations.</li>
+    </ol>
+    <ul>
+      <li>In edit mode you'll see the <code>{{fn: ...}}</code> code. That's normal. It turns into a number when you click <b>Done</b>.</li>
+      <li>A web address that starts with <code>https://</code> becomes a clickable link.</li>
+      <li>Every footnote needs <code>{{</code> at the start and <code>}}</code> at the end, or it won't work.</li>
+    </ul>
+
+    <h3>5. Saving your work</h3>
+    <ol>
+      <li>Your work saves automatically, but only in this browser on this computer.</li>
+      <li>When you're finished, click <b>Save file</b>. A file called <b>index.html</b> downloads.</li>
+      <li><b>Turn in that index.html file</b> the way your teacher tells you. That's the only way your work
+        gets onto the real website.</li>
+      <li>Click <b>Done</b> to leave edit mode.</li>
+    </ol>
+
+    <h3>6. Tips</h3>
+    <ul>
+      <li>Replace everything in <b>[square brackets]</b> with your own research.</li>
+      <li>Cite your sources with footnotes, and give the source for every image.</li>
+      <li>If you make a mistake you can't fix, ask your teacher before you click <b>Discard changes</b>.
+        It erases everything back to the last uploaded version.</li>
+    </ul>`;
+
+  function showHelp() {
+    const content = el('div', { class: 'ed-help' });
+    content.innerHTML = HELP_HTML;   // fixed text written above, never student text
+    showDialog(EDITOR_TEXT.helpTitle, [content], [{ label: EDITOR_TEXT.close, value: 'close', primary: true }]);
+  }
+
+  // Ask for the password. Resolves true if it's right.
+  async function askPassword() {
+    const input = el('input', { type: 'password', id: 'ed-password', autocomplete: 'current-password' });
+    const error = el('p', { class: 'error', role: 'alert' });
+    const label = el('label', { for: 'ed-password' }, EDITOR_TEXT.passwordLabel);
+    const help = el('button', { type: 'button', class: 'ed-link' }, EDITOR_TEXT.howToEditLink);
+    help.addEventListener('click', showHelp);
+    let ok = false;
+    const shown = showDialog(EDITOR_TEXT.passwordTitle, [label, input, error, help], [
+      { label: EDITOR_TEXT.cancel, value: 'cancel' },
+      { label: EDITOR_TEXT.unlock, value: 'unlock', primary: true }
+    ], () => {
+      ok = sha256(FILE_DATA.auth.salt + ':' + input.value) === FILE_DATA.auth.hash;
+      if (!ok) { error.textContent = EDITOR_TEXT.passwordWrong; input.select(); }
+      return ok;
+    });
+    input.focus();
+    await shown;
+    return ok;
+  }
+
+  let asking = false;          // true while the password window is open
+
+  async function startEditing() {
+    if (editing || asking) return;
+    if (!unlockStore.isUnlocked()) {
+      asking = true;
+      const ok = await askPassword();
+      asking = false;
+      if (!ok) { clearEditHash(); return; }
+      unlockStore.remember();
+    }
+    editing = true;
+    openPanel = null;
+    document.body.classList.add('is-editing');
+    buildEditBar();
+    render();
+    makeEditable();
+    buildGameEditor();
+    setStatus(sameAsFile(data) ? EDITOR_TEXT.statusClean : EDITOR_TEXT.statusHasChanges);
+    if (pendingConflict) await resolveConflict();
+  }
+
+  async function stopEditing() {
+    await autoSaveNow();
+    editing = false;
+    openPanel = null;
+    document.body.classList.remove('is-editing');
+    document.querySelectorAll('[data-text]').forEach(n => { n.removeAttribute('contenteditable'); n.removeAttribute('spellcheck'); });
+    if (editBar) { editBar.remove(); editBar = null; statusEl = null; }
+    removeGameEditor();
+    render();
+    clearEditHash();
+  }
+
+  function clearEditHash() {
+    if (location.hash === '#edit') {
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* not allowed here */ }
+    }
+  }
+
+  function buildEditBar() {
+    editBar = el('div', { class: 'edit-bar', role: 'region', 'aria-label': 'Editor' });
+    statusEl = el('span', { class: 'status', 'aria-live': 'polite' });
+    const buttons = [
+      [EDITOR_TEXT.howToEdit, showHelp],
+      [EDITOR_TEXT.otherText, editOtherText],
+      [EDITOR_TEXT.discard, discardChanges],
+      [EDITOR_TEXT.saveFile, saveFile],
+      [EDITOR_TEXT.done, stopEditing, true]
+    ];
+    editBar.appendChild(statusEl);
+    buttons.forEach(([label, action, primary]) => {
+      const b = el('button', { type: 'button', class: primary ? 'primary' : '' }, label);
+      b.addEventListener('click', action);
+      editBar.appendChild(b);
+    });
+    document.body.appendChild(editBar);
+  }
+
+  // Can this browser do "plain text only" editing? (Most can.)
+  const PLAIN_ONLY = (function () {
+    try { const d = document.createElement('div'); d.contentEditable = 'plaintext-only'; return d.contentEditable === 'plaintext-only'; }
+    catch (e) { return false; }
+  })();
+
+  // Turn on click-and-type editing for every data-text element.
+  // Safe to call again after re-drawing (listeners are only added once).
+  function makeEditable() {
+    document.querySelectorAll('[data-text]').forEach(node => {
+      node.setAttribute('contenteditable', PLAIN_ONLY ? 'plaintext-only' : 'true');
+      node.setAttribute('spellcheck', 'true');
+      if (node._editBound) return;
+      node._editBound = true;
+
+      node.addEventListener('input', () => {
+        if (!editing) return;
+        const value = node.innerText.replace(/ /g, ' ');
+        setPath(data, node.dataset.text, value);
+        // Keep the matching box in the Game editor up to date.
+        const twin = panelInputs.get(node.dataset.text);
+        if (twin) twin.value = value;
+        changed();
+      });
+      // Single-line text: Enter finishes editing instead of adding a line.
+      node.addEventListener('keydown', e => {
+        if (editing && e.key === 'Enter' && !node.hasAttribute('data-multiline')) { e.preventDefault(); node.blur(); }
+      });
+      // Clicking text inside a button-like card shouldn't also trigger it.
+      node.addEventListener('click', e => { if (editing) e.stopPropagation(); });
+      // Pasting always pastes plain text (no fonts, colours or links).
+      node.addEventListener('paste', e => {
+        if (!editing) return;
+        e.preventDefault();
+        let text = (e.clipboardData || window.clipboardData).getData('text/plain') || '';
+        if (!node.hasAttribute('data-multiline')) text = text.replace(/\s*\n\s*/g, ' ');
+        document.execCommand('insertText', false, text);
+      });
+      // When leaving a field, tidy its contents to match the saved text.
+      node.addEventListener('blur', () => {
+        if (!editing) return;
+        const value = getPath(data, node.dataset.text);
+        node.textContent = value == null ? '' : String(value);
+      });
+    });
+  }
+
+  // Clicking an image box in edit mode lets you upload a replacement.
+  document.addEventListener('click', async e => {
+    const box = editing && e.target.closest('[data-image-box]');
+    if (!box) return;
+    const name = box.dataset.imageBox;
+    const src = await uploadImage();
+    if (!src) return;
+    data.images = data.images || {};
+    data.images[name] = Object.assign({ alt: '' }, data.images[name], { src: src });
+    render();
+    changed();
+  });
+
+  // Ask for an image file and return it shrunk, as a data URL (or null).
+  async function uploadImage() {
+    const file = await pickFile();
+    if (!file) return null;
+    try { return await shrinkImage(file, 1600); }
+    catch (err) { setStatus(EDITOR_TEXT.statusImageError); return null; }
+  }
+
+  function pickFile() {
+    return new Promise(resolve => {
+      const input = el('input', { type: 'file', accept: 'image/*' });
+      input.addEventListener('change', () => resolve(input.files[0] || null));
+      input.click();
+    });
+  }
+
+  // Scale an uploaded photo down (longest side about `max` px) and store it as JPEG.
+  function shrinkImage(file, max) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const w = Math.max(1, Math.round(img.naturalWidth * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';               // JPEG has no transparency
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Not an image')); };
+      img.src = url;
+    });
+  }
+
+  // Parts of the data that are not edited in the "Other text" window:
+  // settings rather than words, and the game (which has its own editor).
+  const NOT_TEXT_KEYS = ['auth', 'schemaVersion', 'src', 'id', 'type', 'game'];
+
+  // List every piece of text in the data that is NOT currently visible on the
+  // page (visible text is edited in place). Returns [{ path, value }].
+  function hiddenTextFields() {
+    const visible = new Set();
+    document.querySelectorAll('[data-text]').forEach(n => { if (n.getClientRects().length) visible.add(n.dataset.text); });
+    const fields = [];
+    (function walk(obj, prefix) {
+      Object.keys(obj).forEach(k => {
+        if (NOT_TEXT_KEYS.includes(k)) return;
+        const path = prefix ? prefix + '.' + k : k;
+        const v = obj[k];
+        if (typeof v === 'string') { if (!visible.has(path)) fields.push({ path, value: v }); }
+        else if (v && typeof v === 'object') walk(v, path);
+      });
+    })(data, '');
+    return fields;
+  }
+
+  // "camelCase.path" -> "Camel case › path" for labels in the dialog.
+  function niceName(part) {
+    if (part === 'alt') return 'Description (alt text)';
+    const s = part.replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase();
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  async function editOtherText() {
+    const fields = hiddenTextFields();
+    const body = [el('p', {}, EDITOR_TEXT.otherTextHelp), el('p', { class: 'ge-hint' }, EDITOR_TEXT.fnHint)];
+    const inputs = [];
+    let group = null;
+    fields.forEach((f, i) => {
+      const parts = f.path.split('.');
+      if (parts[0] !== group) { group = parts[0]; body.push(el('div', { class: 'group' }, niceName(group))); }
+      const id = 'ed-field-' + i;
+      body.push(el('label', { for: id }, parts.slice(1).map(niceName).join(' › ') || niceName(parts[0])));
+      const box = el('textarea', { id: id, rows: '2' });
+      box.value = f.value;
+      body.push(box);
+      inputs.push([f.path, box]);
+    });
+    const choice = await showDialog(EDITOR_TEXT.otherTextTitle, body, [
+      { label: EDITOR_TEXT.cancel, value: 'cancel' },
+      { label: EDITOR_TEXT.apply, value: 'apply', primary: true }
+    ]);
+    if (choice !== 'apply') return;
+    let any = false;
+    inputs.forEach(([path, box]) => {
+      if (getPath(data, path) !== box.value) { setPath(data, path, box.value); any = true; }
+    });
+    if (any) { render(); changed(); }
+  }
+
+  async function discardChanges() {
+    const choice = await showDialog(EDITOR_TEXT.discardTitle, [el('p', {}, EDITOR_TEXT.discardBody)], [
+      { label: EDITOR_TEXT.cancel, value: 'cancel' },
+      { label: EDITOR_TEXT.discard, value: 'discard', primary: true }
+    ]);
+    if (choice !== 'discard') return;
+    clearTimeout(saveTimer);
+    unsaved = false;
+    pendingConflict = null;
+    data = clone(FILE_DATA);
+    await autoSaveStore.clear();
+    if (document.activeElement) document.activeElement.blur();
+    refreshAll();
+    setStatus(EDITOR_TEXT.statusClean);
+  }
+
+  // Build a complete new index.html: the original page with only the
+  // game-data block replaced.
+  function buildFile() {
+    const doc = new DOMParser().parseFromString(ORIGINAL_PAGE, 'text/html');
+    // "<" is written as < so the data can never close its <script> tag early.
+    const json = JSON.stringify(withFileAuth(data), null, 2).replace(/</g, '\\u003c');
+    doc.getElementById('game-data').textContent = '\n' + json + '\n';
+    return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML + '\n';
+  }
+
+  function saveFile() {
+    const blob = new Blob([buildFile()], { type: 'text/html' });
+    const a = el('a', { href: URL.createObjectURL(blob), download: 'index.html' });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    setStatus(EDITOR_TEXT.statusDownloaded);
+  }
+
+  /* -------------------------------------------------------------------
+     9. THE GAME EDITOR
+     A panel under the game (edit mode only) with a section for each part
+     of data.game. Every box writes straight into the data, then the game
+     is redrawn and the change is auto-saved.
+     ------------------------------------------------------------------- */
+  const GT = EDITOR_TEXT.game;
+  let gameEditorEl = null;
+  const openSections = new Set();      // which sections are open (kept across redraws)
+  const panelInputs = new Map();       // data path -> editor box, to mirror in-place edits
+  let fieldCount = 0;
+  let gameRenderTimer = null;
+
+  // A small text change: auto-save, and redraw the game shortly.
+  function gameChanged() {
+    changed();
+    clearTimeout(gameRenderTimer);
+    gameRenderTimer = setTimeout(renderGame, 250);
+  }
+  // Something was added, removed or moved: redraw the editor and the game now.
+  function structureChanged() {
+    changed();
+    buildGameEditor();
+    renderGame();
+  }
+
+  function removeGameEditor() {
+    if (gameEditorEl) { gameEditorEl.remove(); gameEditorEl = null; }
+    panelInputs.clear();
+  }
+
+  function buildGameEditor() {
+    if (!gameEditorEl) {
+      gameEditorEl = el('section', { class: 'game-editor', 'aria-label': GT.heading });
+      document.querySelector('main').appendChild(gameEditorEl);
+    }
+    panelInputs.clear();
+    fieldCount = 0;
+    const g = game();
+    ['stats', 'names', 'backgrounds', 'people', 'events', 'activities', 'endings'].forEach(k => { if (!Array.isArray(g[k])) g[k] = []; });
+    g.settings = g.settings || {};
+
+    const top = el('div', { class: 'ge-top' });
+    top.appendChild(edButton(GT.preview, openPreview, 'primary'));
+    top.appendChild(edButton(GT.resetPreview, () => { previewLife = null; openPanel = null; renderGame(); }));
+
+    gameEditorEl.replaceChildren(
+      el('h2', {}, GT.heading),
+      el('p', {}, GT.intro),
+      el('p', { class: 'ge-hint' }, EDITOR_TEXT.fnHint),
+      top,
+      section('settings', GT.settings, settingsPanel),
+      section('stats', GT.stats, statsPanel),
+      section('setup', GT.setup, setupPanel),
+      section('people', GT.people, peoplePanel),
+      section('events', GT.events, eventsPanel),
+      section('activities', GT.activities, activitiesPanel),
+      section('endings', GT.endings, endingsPanel)
+    );
+  }
+
+  // A fold-out section. `key` remembers whether it was open.
+  function section(key, title, build, summaryExtra) {
+    const d = el('details');
+    d.open = openSections.has(key);
+    const summary = el('summary', {}, title);
+    if (summaryExtra) summary.appendChild(summaryExtra);
+    d.appendChild(summary);
+    d.addEventListener('toggle', () => { if (d.open) openSections.add(key); else openSections.delete(key); });
+    const body = el('div', { class: 'ge-body' });
+    build(body);
+    d.appendChild(body);
+    return d;
+  }
+
+  function edButton(label, onClick, cls, ariaLabel) {
+    const b = el('button', { type: 'button', class: cls || '' }, label);
+    if (ariaLabel) b.setAttribute('aria-label', ariaLabel);
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function fieldWrap(label, control) {
+    const id = 'ge-' + (++fieldCount);
+    control.id = id;
+    const wrap = el('div', { class: 'ge-field' });
+    wrap.append(el('label', { for: id }, label), control);
+    return wrap;
+  }
+
+  // A text box bound to obj[key]. `path` links it to the same text shown in the game.
+  function edText(obj, key, label, path, multiline, onInput) {
+    const input = multiline ? el('textarea', { rows: '3' }) : el('input', { type: 'text' });
+    input.value = obj[key] == null ? '' : obj[key];
+    input.addEventListener('input', () => { obj[key] = input.value; if (onInput) onInput(); gameChanged(); });
+    if (path) panelInputs.set(path, input);
+    return fieldWrap(label, input);
+  }
+
+  // A whole-number box bound to obj[key], kept between min and max.
+  function edNumber(obj, key, label, min, max, onInput) {
+    const input = el('input', { type: 'number', min: String(min), max: String(max), step: '1' });
+    input.value = obj[key] == null ? '' : obj[key];
+    input.addEventListener('input', () => {
+      if (input.value === '' || isNaN(Number(input.value))) return;
+      obj[key] = limit(input.value, min, max);
+      if (onInput) onInput();
+      gameChanged();
+    });
+    input.addEventListener('blur', () => { input.value = obj[key]; });
+    return fieldWrap(label, input);
+  }
+
+  // A drop-down bound to obj[key]. options: [[value, label], ...]
+  function edSelect(obj, key, label, options, onChange) {
+    const select = makeSelect(options, obj[key]);
+    select.addEventListener('change', () => { obj[key] = select.value; if (onChange) onChange(); else gameChanged(); });
+    return fieldWrap(label, select);
+  }
+  function makeSelect(options, value) {
+    const select = el('select');
+    options.forEach(([v, l]) => select.appendChild(el('option', { value: v }, l)));
+    select.value = value == null ? '' : value;
+    if (select.selectedIndex < 0 && options.length) select.selectedIndex = 0;
+    return select;
+  }
+
+  // Up / down / delete buttons for item `index` of `list`.
+  function itemTools(list, index, onDelete, canDelete) {
+    const tools = el('div', { class: 'ge-tools' });
+    const up = edButton('↑', () => { [list[index - 1], list[index]] = [list[index], list[index - 1]]; structureChanged(); }, '', GT.moveUp);
+    const down = edButton('↓', () => { [list[index + 1], list[index]] = [list[index], list[index + 1]]; structureChanged(); }, '', GT.moveDown);
+    const del = edButton('✕', async () => {
+      const ok = await showDialog(GT.removeTitle, [el('p', {}, GT.removeBody)], [
+        { label: EDITOR_TEXT.cancel, value: 'cancel' },
+        { label: GT.remove, value: 'delete', primary: true }
+      ]);
+      if (ok !== 'delete') return;
+      const removed = list.splice(index, 1)[0];
+      if (onDelete) onDelete(removed);
+      structureChanged();
+    }, '', GT.remove);
+    up.disabled = index === 0;
+    down.disabled = index === list.length - 1;
+    del.disabled = canDelete === false;
+    tools.append(up, down, del);
+    return tools;
+  }
+
+  // Remove effects and conditions that point to things that were deleted.
+  function forgetIds(ids) {
+    (function walk(o) {
+      if (Array.isArray(o)) { o.forEach(walk); return; }
+      if (!o || typeof o !== 'object') return;
+      Object.keys(o).forEach(k => {
+        if ((k === 'effects' || k === 'conditions') && Array.isArray(o[k])) {
+          o[k] = o[k].filter(x => !ids.includes(x.ref));
+        }
+        walk(o[k]);
+      });
+    })(game());
+    if (ids.includes(game().settings.endStat)) game().settings.endStat = '';
+  }
+
+  // --- Effects: a list of "stat or relationship goes up/down by N" ---
+  function effectTargets() {
+    return game().stats.map(s => ['stat:' + s.id, GT.statPrefix + s.name])
+      .concat(game().people.map(p => ['person:' + p.id, GT.personPrefix + p.name]));
+  }
+
+  function effectsEditor(effects) {
+    const box = el('div', { class: 'ge-sub' });
+    function draw() {
+      box.replaceChildren(el('div', { class: 'ge-subhead' }, GT.effects));
+      effects.forEach((ef, i) => {
+        const row = el('div', { class: 'ge-row' });
+        const target = makeSelect(effectTargets(), ef.kind + ':' + ef.ref);
+        target.setAttribute('aria-label', GT.effectTarget);
+        target.addEventListener('change', () => { [ef.kind, ef.ref] = target.value.split(':'); gameChanged(); });
+        const change = el('input', { type: 'number', step: '1', 'aria-label': GT.effectChange, title: GT.effectChange });
+        change.value = ef.change;
+        change.addEventListener('input', () => { ef.change = limit(change.value, -100, 100); gameChanged(); });
+        const del = edButton('✕', () => { effects.splice(i, 1); draw(); gameChanged(); }, '', GT.remove);
+        row.append(target, change, del);
+        box.appendChild(row);
+      });
+      const add = edButton(GT.addEffect, () => {
+        const first = effectTargets()[0];
+        if (!first) return;
+        const [kind, ref] = first[0].split(':');
+        effects.push({ kind: kind, ref: ref, change: 5 });
+        draw();
+        gameChanged();
+      });
+      box.appendChild(add);
+    }
+    draw();
+    return box;
+  }
+
+  // --- Conditions: "only if age / stat / relationship / background / earlier choice ..." ---
+  const CONDITION_KINDS = [['age', GT.condAge], ['stat', GT.condStat], ['person', GT.condPerson], ['background', GT.condBackground], ['choice', GT.condChoice]];
+
+  function conditionRefs(kind) {
+    if (kind === 'stat') return game().stats.map(s => [s.id, s.name]);
+    if (kind === 'person') return game().people.map(p => [p.id, p.name]);
+    if (kind === 'background') return game().backgrounds.map(b => [b.id, b.name]);
+    if (kind === 'choice') {
+      const list = [];
+      game().events.forEach(e => (e.choices || []).forEach(c => list.push([c.id, e.title + ' → ' + c.label])));
+      return list;
+    }
+    return [];
+  }
+  function conditionOps(kind) {
+    if (kind === 'background') return [['is', GT.is], ['not', GT.isNot]];
+    if (kind === 'choice') return [['made', GT.made], ['not', GT.notMade]];
+    return [['min', GT.atLeast], ['max', GT.atMost]];
+  }
+
+  function conditionsEditor(conditions) {
+    const box = el('div', { class: 'ge-sub' });
+    function draw() {
+      box.replaceChildren(el('div', { class: 'ge-subhead' }, GT.conditions));
+      conditions.forEach((c, i) => {
+        const row = el('div', { class: 'ge-row' });
+        const kind = makeSelect(CONDITION_KINDS, c.kind);
+        kind.setAttribute('aria-label', GT.conditions);
+        kind.addEventListener('change', () => {
+          c.kind = kind.value;
+          const refs = conditionRefs(c.kind);
+          c.ref = refs.length ? refs[0][0] : '';
+          c.op = conditionOps(c.kind)[0][0];
+          c.value = c.kind === 'age' ? 18 : 50;
+          draw();
+          gameChanged();
+        });
+        row.appendChild(kind);
+        if (c.kind !== 'age') {
+          const ref = makeSelect(conditionRefs(c.kind), c.ref);
+          ref.setAttribute('aria-label', GT.conditions);
+          ref.addEventListener('change', () => { c.ref = ref.value; gameChanged(); });
+          row.appendChild(ref);
+        }
+        const op = makeSelect(conditionOps(c.kind), c.op);
+        op.setAttribute('aria-label', GT.conditions);
+        op.addEventListener('change', () => { c.op = op.value; gameChanged(); });
+        row.appendChild(op);
+        if (c.kind === 'age' || c.kind === 'stat' || c.kind === 'person') {
+          const value = el('input', { type: 'number', step: '1', min: '0', 'aria-label': GT.conditions });
+          value.value = c.value;
+          value.addEventListener('input', () => { c.value = limit(value.value, 0, 200); gameChanged(); });
+          row.appendChild(value);
+        }
+        row.appendChild(edButton('✕', () => { conditions.splice(i, 1); draw(); gameChanged(); }, '', GT.remove));
+        box.appendChild(row);
+      });
+      box.appendChild(edButton(GT.addCondition, () => {
+        conditions.push({ kind: 'age', ref: '', op: 'min', value: 18 });
+        draw();
+        gameChanged();
+      }));
+    }
+    draw();
+    return box;
+  }
+
+  // Make sure a list exists on an object (older data might not have it).
+  function listOf(obj, key) { if (!Array.isArray(obj[key])) obj[key] = []; return obj[key]; }
+
+  // --- The sections ---
+  function settingsPanel(body) {
+    const s = game().settings;
+    const grid = el('div', { class: 'ge-grid' });
+    grid.appendChild(edNumber(s, 'maxAge', GT.maxAge, 1, 150));
+    grid.appendChild(edNumber(s, 'randomEventChance', GT.randomChance, 0, 100));
+    grid.appendChild(edNumber(s, 'activitiesPerYear', GT.activitiesPerYear, 0, 20));
+    body.appendChild(grid);
+    body.appendChild(edSelect(s, 'endStat', GT.endStat, [['', GT.noEndStat]].concat(game().stats.map(x => [x.id, x.name]))));
+  }
+
+  function statsPanel(body) {
+    body.appendChild(el('p', {}, GT.statsHelp));
+    const stats = game().stats;
+    stats.forEach((s, i) => {
+      const item = el('div', { class: 'ge-item' });
+      item.appendChild(itemTools(stats, i, removed => forgetIds([removed.id])));
+      const grid = el('div', { class: 'ge-grid' });
+      grid.appendChild(edText(s, 'name', GT.statName, 'game.stats.' + i + '.name'));
+      grid.appendChild(edNumber(s, 'start', GT.statStart, 0, 100));
+      item.appendChild(grid);
+      body.appendChild(item);
+    });
+    body.appendChild(edButton(GT.addStat, () => {
+      stats.push({ id: newId('s'), name: '[Stat]', start: 50 });
+      structureChanged();
+    }));
+  }
+
+  function setupPanel(body) {
+    const g = game();
+    const names = el('textarea', { rows: '4' });
+    names.value = g.names.join('\n');
+    names.addEventListener('input', () => { g.names = names.value.split('\n').map(n => n.trim()).filter(Boolean); gameChanged(); });
+    body.appendChild(fieldWrap(GT.names, names));
+
+    body.appendChild(el('div', { class: 'ge-subhead' }, GT.backgrounds));
+    body.appendChild(el('p', {}, GT.backgroundsHelp));
+    g.backgrounds.forEach((b, i) => {
+      const path = 'game.backgrounds.' + i;
+      const item = el('div', { class: 'ge-item' });
+      item.appendChild(itemTools(g.backgrounds, i, removed => forgetIds([removed.id])));
+      item.appendChild(edText(b, 'name', GT.bgName, path + '.name'));
+      item.appendChild(edText(b, 'description', GT.bgDescription, path + '.description', true));
+      item.appendChild(effectsEditor(listOf(b, 'effects')));
+      body.appendChild(item);
+    });
+    body.appendChild(edButton(GT.addBackground, () => {
+      g.backgrounds.push({ id: newId('b'), name: '[Background]', description: '[Background description]', effects: [] });
+      structureChanged();
+    }));
+  }
+
+  function peoplePanel(body) {
+    body.appendChild(el('p', {}, GT.peopleHelp));
+    const people = game().people;
+    people.forEach((p, i) => {
+      const path = 'game.people.' + i;
+      const item = el('div', { class: 'ge-item' });
+      item.appendChild(itemTools(people, i, removed => forgetIds([removed.id])));
+      const grid = el('div', { class: 'ge-grid' });
+      grid.appendChild(edText(p, 'name', GT.personName, path + '.name'));
+      grid.appendChild(edText(p, 'role', GT.personRole, path + '.role'));
+      grid.appendChild(edNumber(p, 'start', GT.personStart, 0, 100));
+      grid.appendChild(edNumber(p, 'fromAge', GT.personFrom, 0, 150));
+      item.appendChild(grid);
+      item.appendChild(edText(p, 'description', GT.personDescription, path + '.description', true));
+      item.appendChild(conditionsEditor(listOf(p, 'conditions')));
+      body.appendChild(item);
+    });
+    body.appendChild(edButton(GT.addPerson, () => {
+      people.push({ id: newId('p'), name: '[Person]', role: '[Role]', description: '[Person description]', start: 50, fromAge: 0, conditions: [] });
+      structureChanged();
+    }));
+  }
+
+  function eventSummary(e) {
+    return e.type === 'fixed'
+      ? fill(GT.summaryFixed, { age: e.age })
+      : fill(GT.summaryRandom, { min: e.minAge, max: e.maxAge });
+  }
+
+  function eventsPanel(body) {
+    body.appendChild(el('p', {}, GT.eventsHelp));
+    const events = game().events;
+    events.forEach((e, i) => {
+      const path = 'game.events.' + i;
+      const summaryText = el('span', { class: 'sub' }, eventSummary(e));
+      const titleText = el('span', {}, e.title);
+      const updateSummary = () => { titleText.textContent = e.title; summaryText.textContent = eventSummary(e); };
+      const wrap = el('span');
+      wrap.append(titleText, summaryText);
+
+      body.appendChild(section('event:' + e.id, '', inner => {
+        inner.appendChild(itemTools(events, i, removed => forgetIds([removed.id].concat((removed.choices || []).map(c => c.id)))));
+        inner.appendChild(edSelect(e, 'type', GT.eventType, [['fixed', GT.fixed], ['random', GT.random]], structureChanged));
+        const grid = el('div', { class: 'ge-grid' });
+        if (e.type === 'fixed') grid.appendChild(edNumber(e, 'age', GT.eventAge, 0, 150, updateSummary));
+        else {
+          grid.appendChild(edNumber(e, 'minAge', GT.eventMinAge, 0, 150, updateSummary));
+          grid.appendChild(edNumber(e, 'maxAge', GT.eventMaxAge, 0, 150, updateSummary));
+        }
+        inner.appendChild(grid);
+        inner.appendChild(edText(e, 'title', GT.eventTitle, path + '.title', false, updateSummary));
+        inner.appendChild(edText(e, 'text', GT.eventText, path + '.text', true));
+        inner.appendChild(imageEditor(e));
+        inner.appendChild(conditionsEditor(listOf(e, 'conditions')));
+
+        // Choices
+        const choices = listOf(e, 'choices');
+        const box = el('div', { class: 'ge-sub' });
+        box.appendChild(el('div', { class: 'ge-subhead' }, GT.choices));
+        choices.forEach((c, j) => {
+          const item = el('div', { class: 'ge-item' });
+          item.appendChild(itemTools(choices, j, removed => forgetIds([removed.id])));
+          item.appendChild(edText(c, 'label', GT.choiceLabel));
+          item.appendChild(edText(c, 'result', GT.choiceResult, null, true));
+          item.appendChild(effectsEditor(listOf(c, 'effects')));
+          item.appendChild(conditionsEditor(listOf(c, 'conditions')));
+          box.appendChild(item);
+        });
+        const addChoice = edButton(GT.addChoice, () => {
+          choices.push({ id: newId('c'), label: '[Choice]', result: '[What happens after this choice]', effects: [], conditions: [] });
+          structureChanged();
+        });
+        addChoice.disabled = choices.length >= 4;
+        box.appendChild(addChoice);
+        inner.appendChild(box);
+      }, wrap));
+    });
+    body.appendChild(edButton(GT.addEvent, () => {
+      const id = newId('e');
+      events.push({
+        id: id, type: 'random', age: 1, minAge: 0, maxAge: Number(settings().maxAge),
+        title: '[Event title]', text: '[What happens]',
+        image: { src: '', alt: '[Image description]' }, conditions: [],
+        choices: [{ id: newId('c'), label: '[Choice]', result: '[What happens after this choice]', effects: [], conditions: [] }]
+      });
+      openSections.add('event:' + id);
+      structureChanged();
+    }));
+  }
+
+  // Upload / remove an event's picture, plus its description.
+  function imageEditor(e) {
+    e.image = e.image || { src: '', alt: '' };
+    const box = el('div', { class: 'ge-sub' });
+    function draw() {
+      box.replaceChildren();
+      if (e.image.src) box.appendChild(el('img', { class: 'ge-thumb', src: e.image.src, alt: '' }));
+      const row = el('div', { class: 'ge-row' });
+      row.appendChild(edButton(GT.uploadImage, async () => {
+        const src = await uploadImage();
+        if (!src) return;
+        e.image.src = src;
+        draw();
+        gameChanged();
+      }));
+      if (e.image.src) row.appendChild(edButton(GT.removeImage, () => { e.image.src = ''; draw(); gameChanged(); }));
+      box.appendChild(row);
+      box.appendChild(edText(e.image, 'alt', GT.imageAlt));
+    }
+    draw();
+    return box;
+  }
+
+  function activitiesPanel(body) {
+    body.appendChild(el('p', {}, GT.activitiesHelp));
+    const activities = game().activities;
+    activities.forEach((a, i) => {
+      const item = el('div', { class: 'ge-item' });
+      item.appendChild(itemTools(activities, i));
+      item.appendChild(edText(a, 'name', GT.activityName));
+      item.appendChild(edText(a, 'result', GT.activityResult, null, true));
+      const grid = el('div', { class: 'ge-grid' });
+      grid.appendChild(edNumber(a, 'minAge', GT.eventMinAge, 0, 150));
+      grid.appendChild(edNumber(a, 'maxAge', GT.eventMaxAge, 0, 150));
+      item.appendChild(grid);
+      item.appendChild(effectsEditor(listOf(a, 'effects')));
+      item.appendChild(conditionsEditor(listOf(a, 'conditions')));
+      body.appendChild(item);
+    });
+    body.appendChild(edButton(GT.addActivity, () => {
+      activities.push({ id: newId('a'), name: '[Activity]', result: '[What happens]', minAge: 0, maxAge: Number(settings().maxAge), effects: [], conditions: [] });
+      structureChanged();
+    }));
+  }
+
+  function endingsPanel(body) {
+    body.appendChild(el('p', {}, GT.endingsHelp));
+    const endings = game().endings;
+    endings.forEach((en, i) => {
+      const path = 'game.endings.' + i;
+      const item = el('div', { class: 'ge-item' });
+      item.appendChild(itemTools(endings, i, null, endings.length > 1));
+      item.appendChild(edText(en, 'title', GT.endingTitle, path + '.title'));
+      item.appendChild(edText(en, 'text', GT.endingText, path + '.text', true));
+      item.appendChild(conditionsEditor(listOf(en, 'conditions')));
+      body.appendChild(item);
+    });
+    body.appendChild(edButton(GT.addEnding, () => {
+      endings.unshift({ id: newId('end'), title: '[Ending title]', text: '[Ending text]', conditions: [] });
+      structureChanged();
+    }));
+  }
+
+  // Start a test life at any age, with chosen stats.
+  async function openPreview() {
+    const g = game();
+    const form = {};
+    const body = [el('p', {}, GT.previewHelp)];
+    const name = el('input', { type: 'text' });
+    name.value = randomName();
+    body.push(fieldWrap(GT.previewName, name));
+    if (g.backgrounds.length) {
+      form.background = g.backgrounds[0].id;
+      body.push(edSelectPlain(form, 'background', GT.previewBackground, g.backgrounds.map(b => [b.id, b.name])));
+    }
+    const age = el('input', { type: 'number', min: '0', max: String(settings().maxAge), step: '1' });
+    age.value = 0;
+    body.push(fieldWrap(GT.previewAge, age));
+    const statInputs = g.stats.map(s => {
+      const input = el('input', { type: 'number', min: '0', max: '100', step: '1' });
+      input.value = limit(s.start, 0, 100);
+      body.push(fieldWrap(s.name, input));
+      return [s.id, input];
+    });
+    const choice = await showDialog(GT.previewTitle, body, [
+      { label: EDITOR_TEXT.cancel, value: 'cancel' },
+      { label: GT.startPreview, value: 'start', primary: true }
+    ]);
+    if (choice !== 'start') return;
+    const values = {};
+    statInputs.forEach(([id, input]) => { values[id] = limit(input.value, 0, 100); });
+    openPanel = null;
+    previewLife = newLife(name.value.trim() || randomName(), form.background || '', limit(age.value, 0, 150), values);
+    renderGame();
+    document.getElementById('game-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // A drop-down that only changes a plain object (no auto-save), for dialogs.
+  function edSelectPlain(obj, key, label, options) {
+    const select = makeSelect(options, obj[key]);
+    select.addEventListener('change', () => { obj[key] = select.value; });
+    return fieldWrap(label, select);
+  }
+
+  /* -------------------------------------------------------------------
+     10. GETTING EVERYTHING GOING
+     ------------------------------------------------------------------- */
+
+  // Three ways into edit mode: the footer link, Ctrl+Shift+E, or #edit in the address.
+  document.getElementById('edit-link').addEventListener('click', e => { e.preventDefault(); startEditing(); });
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.shiftKey && (e.key === 'E' || e.key === 'e')) { e.preventDefault(); startEditing(); }
+  });
+  window.addEventListener('hashchange', () => { if (location.hash === '#edit') startEditing(); });
+
+  render();
+  loadAutoSave().then(() => {
+    updateLocalNote();
+    if (location.hash === '#edit') startEditing();
+  });
+})();
+</script></body></html>
