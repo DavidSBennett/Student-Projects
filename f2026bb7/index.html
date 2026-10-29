@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ida B. Wells&#39; Story</title>
+<style>
+/* =====================================================================
+   GAME STYLES
+   Change the colors and fonts here to restyle the whole page.
+   ===================================================================== */
+:root {
+  --bg: #f4f1ea;          /* page background */
+  --ink: #1f1d1a;         /* main text */
+  --muted: #6b655c;       /* quieter text (footer, captions) */
+  --rule: #d8d0c2;        /* thin lines and borders */
+  --panel: #fbfaf6;       /* boxes and pop-ups */
+  --accent: #7a4a24;      /* links, footnote numbers, buttons */
+  --accent-ink: #ffffff;  /* text on accent-colored buttons */
+  --highlight: #fff0d6;   /* the highlighted footnote */
+  --body-font: Georgia, "Times New Roman", serif;
+  --ui-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --max-width: 960px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 18px/1.6 var(--body-font);
+  overflow-wrap: break-word;
+}
+img { max-width: 100%; }
+.wrap { max-width: var(--max-width); margin: 0 auto; padding: 0 16px; }
+
+/* ----- Header ----- */
+.top { padding-top: 32px; padding-bottom: 16px; }
+.hero { margin: 0 0 20px; }
+.hero img { display: block; width: 100%; max-height: 420px; object-fit: cover; border-radius: 6px; background: var(--rule); }
+.hero figcaption { font-size: 14px; color: var(--muted); margin-top: 6px; white-space: pre-line; }
+.top h1 { font-size: clamp(30px, 6vw, 48px); line-height: 1.1; margin: 0 0 12px; font-weight: normal; }
+.top .intro { margin: 0 0 12px; max-width: 70ch; white-space: pre-line; }
+
+/* ----- Game area: the choose-your-own-adventure scenes ----- */
+.game-area {
+  margin: 16px 0 32px; padding: 24px 20px; min-height: 260px;
+  background: var(--panel); border: 1px solid var(--rule); border-radius: 8px;
+  scroll-margin-top: 16px;
+}
+.game-area h2 { margin: 0 0 12px; font-size: 28px; line-height: 1.2; font-weight: normal; }
+.scene-figure { margin: 0 0 16px; position: relative; }
+.scene-figure img { display: block; width: 100%; max-height: 60vh; object-fit: contain; background: var(--rule); border-radius: 6px; }
+.scene-figure figcaption { font-size: 14px; color: var(--muted); margin-top: 6px; white-space: pre-line; }
+.scene-text { margin: 0 0 20px; white-space: pre-line; }
+.choices { display: grid; gap: 10px; }
+.choice {
+  text-align: left; font: 17px/1.4 var(--body-font); cursor: pointer; width: 100%;
+  padding: 11px 16px; border-radius: 6px; border: 1px solid var(--rule); background: #fff; color: var(--ink);
+}
+.choice:hover, .choice:focus-visible { border-color: var(--accent); background: #fff8ef; }
+.choice.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.game-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; }
+.restart { font: 14px/1.4 var(--ui-font); background: none; border: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; }
+
+/* ----- Footer ----- */
+footer {
+  padding-top: 16px; padding-bottom: 40px; border-top: 1px solid var(--rule);
+  color: var(--muted); font: 14px/1.4 var(--ui-font);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+}
+footer .author { flex: 1 1 200px; }
+.local-note { color: #8a5a00; flex: 1 1 100%; }
+.edit-link { color: var(--muted); opacity: .45; text-decoration: none; }
+.edit-link:hover, .edit-link:focus-visible { opacity: 1; }
+
+/* ----- Footnotes ----- */
+.fn-ref { font: 700 .65em/0 var(--ui-font); color: var(--accent); padding: 0 1px; cursor: pointer; }
+.fn-ref:hover { text-decoration: underline; }
+button .fn-ref, a .fn-ref { color: inherit; cursor: inherit; }
+button .fn-ref:hover, a .fn-ref:hover { text-decoration: none; }
+.notes-btn {
+  font: 600 13px/1 var(--ui-font); cursor: pointer;
+  padding: 7px 11px; border-radius: 6px; border: 1px solid var(--rule); background: #fff; color: var(--accent);
+}
+.notes-btn:hover, .notes-btn:focus-visible { border-color: var(--accent); }
+
+/* The footnotes pop-up */
+.notes-dialog {
+  border: none; border-radius: 10px; padding: 0; width: min(640px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px); background: var(--panel); color: var(--ink); box-shadow: 0 12px 48px rgba(0,0,0,.4);
+}
+.notes-dialog::backdrop { background: rgba(20, 16, 10, .6); }
+.notes-inner { display: flex; flex-direction: column; max-height: calc(100vh - 48px); }
+.notes-inner h2 { margin: 0; padding: 16px 20px; font-size: 22px; font-weight: normal; border-bottom: 1px solid var(--rule); }
+.notes-list { margin: 0; padding: 16px 20px 16px 44px; overflow-y: auto; font-size: 16px; }
+.notes-list li { margin: 0 0 .6em; padding: 4px 8px; border-radius: 4px; white-space: pre-line; overflow-wrap: anywhere; }
+.notes-list li.current { background: var(--highlight); }
+.notes-list a { color: var(--accent); }
+.notes-actions { padding: 12px 20px 16px; border-top: 1px solid var(--rule); }
+.btn-primary {
+  font: 16px/1.3 var(--body-font); cursor: pointer; padding: 9px 16px; border-radius: 6px;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink);
+}
+
+/* =====================================================================
+   EDITOR STYLES (only used after someone unlocks edit mode)
+   ===================================================================== */
+body.ed-on { padding-bottom: 120px; }
+@media (max-width: 600px) { body.ed-on { padding-bottom: 170px; } } /* the edit bar wraps to more lines on phones */
+body.ed-on [data-text] { outline: 1px dashed rgba(40,110,220,.6); outline-offset: 3px; cursor: text; min-height: 1.2em; min-width: 2em; display: block; }
+body.ed-on footer [data-text] { display: inline-block; }
+body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,110,220,.06); }
+.ed-ui, .ed-ui * { font: 14px/1.4 var(--ui-font); box-sizing: border-box; }
+.ed-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000; display: flex; flex-wrap: wrap; align-items: center;
+  gap: 8px; padding: 10px 16px; background: #1d2330; color: #eef1f6; box-shadow: 0 -2px 12px rgba(0,0,0,.25);
+}
+.ed-bar .ed-status { flex: 1 1 220px; color: #aab3c2; font-size: 13px; }
+.ed-btn { appearance: none; border: 1px solid #c9ced8; background: #fff; color: #1d2330; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.ed-btn:hover { background: #eef2f9; }
+.ed-btn.ed-primary { background: #2a6edc; border-color: #2a6edc; color: #fff; }
+.ed-btn.ed-primary:hover { background: #1f5cbf; }
+.ed-btn.ed-danger { color: #b42318; border-color: #e7b4ae; }
+.ed-bar .ed-btn { border-color: #3a4357; background: #2a3242; color: #eef1f6; }
+.ed-bar .ed-btn:hover { background: #343e52; }
+.ed-bar .ed-btn.ed-primary { background: #2a6edc; border-color: #2a6edc; }
+/* Image slots in edit mode */
+.hero { position: relative; }
+.ed-img-empty { display: flex; align-items: center; justify-content: center; min-height: 140px; border: 2px dashed #8aa7d8; border-radius: 6px; background: #eef3fb; color: #3a4a66; text-align: center; padding: 12px; }
+.ed-img-tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+.scene-figure .ed-img-empty { min-height: 90px; }
+/* Scene toolbar and choice rows in edit mode */
+.ed-game-tools { display: grid; gap: 8px; margin: -8px -4px 20px; padding: 12px; border-radius: 8px; background: #eef3fb; border: 1px solid #c9d6ee; color: #1d2330; }
+.ed-game-tools .ed-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ed-game-tools select, .ed-choice-row select { max-width: 100%; padding: 6px 8px; border: 1px solid #c9ced8; border-radius: 6px; background: #fff; color: #1d2330; }
+.ed-game-tools .ed-scene-pick { flex: 1 1 240px; }
+.ed-game-tools .ed-note { color: #4c5566; font-size: 13px; }
+.ed-choice-row { display: grid; grid-template-columns: 1fr minmax(0, 220px) auto; gap: 8px; align-items: center; }
+.ed-choice-row .choice { cursor: text; }
+.choices > .ed-btn { justify-self: start; }
+@media (max-width: 600px) { .ed-choice-row { grid-template-columns: 1fr auto; } .ed-choice-row select { grid-column: 1; grid-row: 2; } }
+/* Editor pop-ups */
+.ed-dialog { border: none; border-radius: 10px; padding: 0; width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 32px); color: #1d2330; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+.ed-dialog.ed-small { width: min(420px, calc(100vw - 32px)); }
+.ed-dialog::backdrop { background: rgba(15,20,30,.5); }
+.ed-dialog form { padding: 20px; display: grid; gap: 14px; }
+.ed-dialog h3 { margin: 0; font-size: 18px; font-weight: 600; }
+.ed-dialog h4 { margin: 0; font-size: 15px; font-weight: 600; }
+.ed-dialog p { margin: 0; color: #4c5566; }
+.ed-dialog label { display: grid; gap: 4px; font-weight: 500; }
+.ed-dialog input[type=text], .ed-dialog input[type=password], .ed-dialog textarea { width: 100%; padding: 7px 9px; border: 1px solid #c9ced8; border-radius: 6px; font-weight: 400; background: #fff; color: #1d2330; }
+.ed-dialog textarea { resize: vertical; min-height: 80px; }
+.ed-dialog .ed-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; position: sticky; bottom: -20px; background: #fff; padding: 12px 0 0; border-top: 1px solid #e1e4ea; }
+.ed-dialog .ed-error { color: #b42318; }
+.ed-dialog .ed-hint { font-size: 13px; background: #f4f6fa; border-radius: 6px; padding: 8px 10px; }
+.ed-dialog code, .ed-help code { font: 13px/1.4 ui-monospace, Consolas, monospace; background: #f1f3f7; border: 1px solid #e1e4ea; border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+.ed-help h4 { margin: 10px 0 0; font-size: 16px; }
+.ed-help ol, .ed-help ul { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }
+.ed-help li { color: #2c3443; }
+.ed-help b { font-weight: 700; }
+.ed-help .ed-example { display: block; margin: 4px 0; padding: 6px 8px; }
+.ed-link { background: none; border: none; padding: 0; color: #2a6edc; cursor: pointer; text-decoration: underline; justify-self: start; }
+</style>
+</head>
+<body>
+
+<!-- ===================================================================
+     PAGE SHELL
+     The elements below start out empty. The script fills them in from the
+     GAME CONTENT block further down.
+       data-text="page.title"   which piece of content goes in this element
+       data-screen="page"       which footnote list its footnotes belong to
+       data-multiline           Enter makes a new line instead of finishing
+     =================================================================== -->
+<header class="top wrap">
+  <figure class="hero" data-image="images.header">
+    <img alt="">
+    <figcaption data-text="page.headerImageCaption" data-screen="page" data-multiline=""></figcaption>
+  </figure>
+  <h1 data-text="page.title" data-screen="page"></h1>
+  <p class="intro" data-text="page.intro" data-screen="page" data-multiline=""></p>
+  <button type="button" class="notes-btn" data-notes-for="page" hidden=""></button>
+</header>
+
+<main class="wrap">
+  <!-- GAME AREA: the script draws the current scene (and, in edit mode, the scene tools) in here. -->
+  <section class="game-area" id="game-area"></section>
+</main>
+
+<footer class="wrap">
+  <span class="author" data-text="page.author" data-screen="page"></span>
+  <span class="local-note" id="local-note" hidden=""></span>
+  <a href="#edit" class="edit-link" id="edit-link"></a>
+</footer>
+
+<!-- The footnotes pop-up. It opens on top of whatever screen is showing. -->
+<dialog class="notes-dialog" id="notes-dialog">
+  <div class="notes-inner">
+    <h2 id="notes-heading"></h2>
+    <ol class="notes-list" id="notes-list"></ol>
+    <div class="notes-actions"><button type="button" class="btn-primary" id="notes-close"></button></div>
+  </div>
+</dialog>
+
+<!--
+  =====================================================================
+  GAME CONTENT
+  Everything the player reads lives in this block. The easiest way to
+  change it is in the browser: click "Edit" at the bottom of the page (or
+  press Ctrl+Shift+E, or add #edit to the address), enter the password,
+  make your changes, then click "Save file" to download a new index.html.
+
+  How it is organized:
+    schemaVersion  the version of this layout (the game reads it; leave it alone)
+    auth           the editor password's salt and fingerprint (never the password itself)
+    page           text shown on the page: title, introduction, author line
+    ui             buttons, headings and messages, including the footnote wording.
+                   Words in {curly brackets}, like {count}, are filled in by the game.
+    images         pictures on the page, as { "src": picture data, "alt": description }
+    game           the choose-your-own-adventure:
+      start        the id of the first scene
+      scenes       a list of scenes. Each scene has:
+        id         a short name the choices point to (don't change it by hand)
+        title, text            what the player reads
+        image, caption         an optional picture ({ "src", "alt" }) and its caption
+        choices    the buttons, as { "label": button text, "target": id of the next scene }
+                   A scene with no choices is an ending.
+
+  Footnotes: in any text, type {{fn: citation}} right where the note goes.
+    Example: A sentence that needs a source.{{fn: Author, Title, Year, page}}
+  =====================================================================
+-->
+<script type="application/json" id="game-data">
+{
+  "schemaVersion": 1,
+  "auth": {
+    "salt": "1d1c9418699ee51ead22a326e14634a4",
+    "hash": "c189236d5bf20dca2ae614d21c273dd9799ace0a0391ee6df0ce75a52cacb04f"
+  },
+  "page": {
+    "title": "[Game title]",
+    "intro": "[Introduction]",
+    "headerImageCaption": "[Image caption and source]",
+    "author": "[Your name and class]"
+  },
+  "ui": {
+    "footnotesButton": "[Footnotes] ({count})",
+    "footnotesHeading": "[Footnotes]",
+    "footnotesClose": "[Back]",
+    "playAgain": "[Play again]",
+    "restart": "[Start over]",
+    "brokenChoice": "[This choice doesn't lead anywhere yet.]"
+  },
+  "images": {
+    "header": {
+      "src": "",
+      "alt": "[Image description]"
+    }
+  },
+  "game": {
+    "start": "s1",
+    "scenes": [
+      {
+        "id": "s1",
+        "title": "[Scene 1 title]",
+        "text": "[What happens in this scene?]",
+        "image": {
+          "src": "",
+          "alt": "[Image description]"
+        },
+        "caption": "[Image caption and source]",
+        "choices": [
+          {
+            "label": "[Choice A]",
+            "target": "s2"
+          },
+          {
+            "label": "[Choice B]",
+            "target": "s3"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "title": "[Scene 2 title]",
+        "text": "[What happens in this scene?]",
+        "image": {
+          "src": "",
+          "alt": "[Image description]"
+        },
+        "caption": "[Image caption and source]",
+        "choices": [
+          {
+            "label": "[Choice C]",
+            "target": "s3"
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "title": "[Scene 3 title]",
+        "text": "[What happens in this scene?]",
+        "image": {
+          "src": "",
+          "alt": "[Image description]"
+        },
+        "caption": "[Image caption and source]",
+        "choices": []
+      }
+    ]
+  }
+}
+</script>
+
+<script>
+(() => {
+  'use strict';
+
+  // A copy of the untouched page, taken before anything is filled in.
+  // "Save file" starts from this copy and swaps in only the GAME CONTENT block,
+  // so nothing from the editor ever ends up in the saved file.
+  const SNAPSHOT = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+  /* =====================================================================
+     EDITOR WORDING
+     Everything the editor itself says (password screen, edit bar, pop-ups,
+     help). This is not game content, so it is kept here and not in the
+     GAME CONTENT block.
+     ===================================================================== */
+  const EDITOR_TEXT = {
+    editLink: 'Edit',
+    localNote: 'This page is showing changes auto-saved in this browser that aren’t in the uploaded file yet.',
+    password: {
+      heading: 'Edit this game',
+      label: 'Password',
+      wrong: 'That password is not correct.',
+      helpLink: 'How to edit this game',
+      cancel: 'Cancel',
+      unlock: 'Unlock'
+    },
+    bar: {
+      title: 'Editing',
+      help: 'How to edit',
+      otherText: 'Other text…',
+      discard: 'Discard changes',
+      save: 'Save file',
+      done: 'Done'
+    },
+    status: {
+      start: 'Click outlined text to edit it. Use the blue scene tools to add scenes and choices. Changes auto-save in this browser.',
+      loaded: 'Your auto-saved changes are loaded. Changes auto-save in this browser.',
+      saved: time => 'Auto-saved in this browser at ' + time + '. Click “Save file” to download your work.',
+      noStorage: 'This browser can’t auto-save here. Click “Save file” often so nothing is lost.',
+      discarded: 'Back to the uploaded version.',
+      downloaded: 'Downloaded index.html. Turn it in the way your teacher tells you.',
+      imageWorking: 'Processing image…',
+      imageAdded: 'Image added.',
+      imageFailed: 'Could not read that image.',
+      imageRemoved: 'Image removed.'
+    },
+    image: {
+      empty: 'No image yet (optional). Players won’t see this box.',
+      upload: 'Upload image',
+      remove: 'Remove image'
+    },
+    other: {
+      heading: 'Other text',
+      intro: 'Text that isn’t on the screen right now: pop-up headings, button labels, messages and image descriptions.',
+      none: 'All the text is on the screen right now. Click it to edit it.',
+      cancel: 'Cancel',
+      apply: 'Apply'
+    },
+    footnoteHint: 'Footnotes: type {{fn: your citation}} right where the note goes. Example: A sentence that needs a source.{{fn: Author, Title, Year, page}}',
+    // Friendly names for each text field in the "Other text" form.
+    // Fields not listed here are shown by their place in the content (for example "ui.something").
+    fieldLabels: {
+      'page.title': 'Game title',
+      'page.intro': 'Introduction',
+      'page.headerImageCaption': 'Header image caption',
+      'page.author': 'Author line (footer)',
+      'ui.footnotesButton': 'Footnotes button ({count} becomes the number of footnotes)',
+      'ui.footnotesHeading': 'Heading of the footnotes pop-up',
+      'ui.footnotesClose': 'Button that closes the footnotes pop-up',
+      'ui.playAgain': '“Play again” button (shown on endings)',
+      'ui.restart': '“Start over” link (shown during the game)',
+      'ui.brokenChoice': 'Message when a choice doesn’t lead to a scene yet',
+      'images.header.alt': 'Header image description (for screen readers)'
+    },
+    // Names for the parts of a scene, used in the "Other text" form.
+    sceneParts: {
+      title: 'Title',
+      text: 'Text',
+      caption: 'Image caption',
+      'image.alt': 'Image description (for screen readers)'
+    },
+    // The blue scene tools shown above the game in edit mode.
+    game: {
+      sceneLabel: 'Scene:',
+      sceneName: (n, title) => 'Scene ' + n + ': ' + (title || '(no title)'),
+      firstTag: ' (first scene)',
+      endingTag: ' (ending)',
+      addScene: '+ Add scene',
+      deleteScene: 'Delete scene',
+      makeFirst: 'Make this the first scene',
+      addChoice: '+ Add choice',
+      removeChoice: '✕',
+      removeChoiceLabel: 'Remove this choice',
+      choiceN: n => 'Choice ' + n,
+      pickTarget: 'Goes to… (pick a scene)',
+      goesTo: 'Goes to ',
+      newSceneOption: '+ New scene',
+      endingNote: 'This scene has no choices, so it is an ending. Players see a “Play again” button here.',
+      firstNote: 'This is the first scene players see.',
+      newSceneTitle: '[New scene title]',
+      newSceneText: '[What happens in this scene?]',
+      newChoice: '[New choice]',
+      newImageAlt: '[Image description]',
+      newCaption: '[Image caption and source]',
+      deleteHeading: 'Delete this scene?',
+      deleteBody: 'This deletes the scene and everything in it. Choices that led here will need a new scene.',
+      deleteCancel: 'Cancel',
+      deleteConfirm: 'Delete scene',
+      cantDeleteLast: 'A game needs at least one scene.'
+    },
+    conflict: {
+      heading: 'Which version do you want?',
+      body: when => 'A newer version of this page was uploaded after your auto-saved changes from ' + when + '.',
+      keep: 'Keep my auto-saved changes',
+      useFile: 'Use the uploaded version'
+    },
+    discard: {
+      heading: 'Discard changes?',
+      body: 'This throws away every change that isn’t in the uploaded file and goes back to the uploaded version. It can’t be undone.',
+      cancel: 'Cancel',
+      confirm: 'Discard changes'
+    },
+    helpClose: 'Close'
+  };
+
+  /* ----- "How to edit" instructions for students -----
+     IMPORTANT: update this help in the SAME change whenever the editor
+     changes (new buttons, fields or mechanics), so it always matches what
+     students see. Button names come from EDITOR_TEXT so they stay exact. */
+  const B = EDITOR_TEXT.bar;
+  const HELP_HTML = `
+    <h3>How to edit this game</h3>
+
+    <h4>1. Getting started</h4>
+    <ol>
+      <li>Click <b>${EDITOR_TEXT.editLink}</b> at the bottom of the page.</li>
+      <li>Type the password your teacher gives you.</li>
+      <li>Click <b>${EDITOR_TEXT.password.unlock}</b>.</li>
+      <li>A dark bar appears at the bottom of the screen. That means you're in edit mode.</li>
+    </ol>
+
+    <h4>2. Editing text on the page</h4>
+    <ol>
+      <li>Click any text with a dotted outline around it and type.</li>
+      <li>Some text isn't on the screen, like button labels and pop-up headings.
+        Click <b>${B.otherText}</b> in the dark bar to change it, then click <b>${EDITOR_TEXT.other.apply}</b>.</li>
+      <li>Leave words in <b>{curly brackets}</b>, like <code>{count}</code>, alone. The game fills them in.</li>
+      <li>To add a picture, click <b>${EDITOR_TEXT.image.upload}</b> and choose an image.
+        Click <b>${EDITOR_TEXT.image.remove}</b> to take it away.</li>
+    </ol>
+
+    <h4>3. Editing the game</h4>
+    <p>The game is made of <b>scenes</b>. Each scene has a title, some text, an optional picture, and
+      <b>choices</b>. Choices are the buttons the player clicks to go to another scene.</p>
+    <ol>
+      <li>Above the game there's a blue box of scene tools. Pick a scene from the <b>${EDITOR_TEXT.game.sceneLabel.replace(':', '')}</b> menu to edit it.</li>
+      <li>Click the scene's title or text and type.</li>
+      <li>To change a choice, click its text and type. Then pick where it goes from the menu next to it.</li>
+      <li>Pick <b>${EDITOR_TEXT.game.newSceneOption}</b> in that menu to make a new scene and send the choice there.</li>
+      <li>Click <b>${EDITOR_TEXT.game.addChoice}</b> to add a choice, or <b>${EDITOR_TEXT.game.removeChoice}</b> to remove one.</li>
+      <li>A scene with no choices is an <b>ending</b>. Players see a play again button there.</li>
+      <li>Click <b>${EDITOR_TEXT.game.addScene}</b> for a new scene, or <b>${EDITOR_TEXT.game.deleteScene}</b> to delete the one you're on.</li>
+      <li>Click <b>${EDITOR_TEXT.game.makeFirst}</b> to make the scene you're on the one players see first.</li>
+      <li>To test your game, click <b>${B.done}</b> and play it. Click <b>${EDITOR_TEXT.editLink}</b> to go back to editing.</li>
+    </ol>
+
+    <h4>4. Adding footnotes</h4>
+    <p>You can add a footnote to <b>any</b> text in the game.</p>
+    <ol>
+      <li>Click right after the sentence that needs a source.</li>
+      <li>Type two curly brackets, the letters <code>fn</code>, a colon, your citation, and two closing curly brackets:
+        <code class="ed-example">A sentence that needs a source.{{fn: Author, Title, Year, page}}</code></li>
+      <li>While you edit, you see the <code>{{fn: ...}}</code> code. That's normal.</li>
+      <li>Click <b>${B.done}</b>. The code turns into a small number, and a footnotes button appears on that part of the page.
+        Each scene has its own footnotes, numbered 1, 2, 3.</li>
+      <li>Click the button, or the small number, to see the citations.</li>
+    </ol>
+    <ul>
+      <li>A web address that starts with <code>https://</code> becomes a link.</li>
+      <li>Every footnote needs <code>{{</code> at the start and <code>}}</code> at the end, or it won't work.</li>
+    </ul>
+
+    <h4>5. Saving your work</h4>
+    <ol>
+      <li>Your work saves automatically, but only in this browser on this computer.</li>
+      <li>When you're finished, click <b>${B.save}</b>. A file called <b>index.html</b> downloads.</li>
+      <li><b>Turn in that index.html file</b> the way your teacher tells you. That's the only way your work gets onto the real website.</li>
+    </ol>
+
+    <h4>6. Tips</h4>
+    <ul>
+      <li>Replace everything in <b>[square brackets]</b> with your own research.</li>
+      <li>Cite your sources with footnotes. Give a source for every image, too (in its caption).</li>
+      <li>Ask your teacher before you click <b>${B.discard}</b>. It erases your changes and goes back to the uploaded version.</li>
+    </ul>`;
+
+  /* =====================================================================
+     SETUP
+     ===================================================================== */
+  const $ = sel => document.querySelector(sel);
+
+  // Storage keys use this page's own address, so different projects (and
+  // copies in different folders) never share saved work.
+  const PAGE_KEY = location.pathname;
+  const UNLOCK_KEY = 'unlocked:' + PAGE_KEY;
+  const EDITING_KEY = 'editing:' + PAGE_KEY;
+  const DRAFT_KEY = 'draft:' + PAGE_KEY;
+
+  // Remembers the unlock for this browser tab only. Some browsers block
+  // storage; then the game still plays and the editor just asks again.
+  const tabStore = {
+    get(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch {} }
+  };
+
+  // Default values for every content key. When an older saved file is
+  // missing a key added later, the default is filled in when loading.
+  const DEFAULTS = {
+    schemaVersion: 1,
+    page: {
+      title: '[Game title]',
+      intro: '[Introduction]',
+      headerImageCaption: '[Image caption and source]',
+      author: '[Your name and class]'
+    },
+    ui: {
+      footnotesButton: '[Footnotes] ({count})',
+      footnotesHeading: '[Footnotes]',
+      footnotesClose: '[Back]',
+      playAgain: '[Play again]',
+      restart: '[Start over]',
+      brokenChoice: '[This choice doesn\'t lead anywhere yet.]'
+    },
+    images: {
+      header: { src: '', alt: '[Image description]' }
+    },
+    game: {
+      start: 's1',
+      scenes: [
+        { id: 's1', title: '[Scene 1 title]', text: '[What happens in this scene?]', choices: [] }
+      ]
+    }
+  };
+  // Every scene has these parts; missing ones are filled in when loading.
+  const SCENE_DEFAULTS = {
+    title: '[Scene title]',
+    text: '[Scene text]',
+    image: { src: '', alt: '[Image description]' },
+    caption: '[Image caption and source]',
+    choices: []
+  };
+  const CHOICE_DEFAULTS = { label: '[Choice]', target: '' };
+  const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+  function newId(prefix) { return prefix + Math.random().toString(36).slice(2, 8); }
+  // Fills in defaults everywhere, including inside every scene and choice.
+  function normalize(d) {
+    d = withDefaults(d);
+    const g = d.game;
+    if (!Array.isArray(g.scenes) || !g.scenes.length) g.scenes = JSON.parse(JSON.stringify(DEFAULTS.game.scenes));
+    g.scenes = g.scenes.filter(isObj);
+    if (!g.scenes.length) g.scenes = JSON.parse(JSON.stringify(DEFAULTS.game.scenes));
+    g.scenes.forEach(s => {
+      withDefaults(s, SCENE_DEFAULTS);
+      if (!s.id) s.id = newId('s');
+      if (!Array.isArray(s.choices)) s.choices = [];
+      s.choices = s.choices.filter(isObj);
+      s.choices.forEach(c => withDefaults(c, CHOICE_DEFAULTS));
+    });
+    return d;
+  }
+  // Fills in missing keys from the defaults without changing anything already there.
+  function withDefaults(d, defs = DEFAULTS) {
+    if (!isObj(d)) d = {};
+    for (const k of Object.keys(defs)) {
+      if (!(k in d)) d[k] = JSON.parse(JSON.stringify(defs[k]));
+      else if (isObj(defs[k]) && isObj(d[k])) withDefaults(d[k], defs[k]);
+    }
+    return d;
+  }
+
+  // Read and look up content by a dotted path like "page.title".
+  const getPath = (obj, path) => path.split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
+  function setPath(obj, path, value) {
+    const keys = path.split('.');
+    const last = keys.pop();
+    keys.reduce((o, k) => (o[k] ??= {}), obj)[last] = value;
+  }
+
+  let data;
+  try { data = JSON.parse($('#game-data').textContent); } catch { data = {}; }
+  data = normalize(data); // defaults go in BEFORE the fingerprint below
+  const FILE_AUTH = data.auth || {};
+  const FILE_DATA = JSON.stringify(data); // the content exactly as in the uploaded file
+  let editing = false;
+
+  /* =====================================================================
+     FOOTNOTES
+     Anywhere in the text, {{fn: citation}} becomes a small number, and the
+     citation goes into that screen's footnote list.
+
+     A "screen" is what the player sees at one time. Each one has its own
+     list (an array of citations), kept in `screens` by name:
+       "page"  the page header and footer
+       "game"  the scene showing in the game area (one scene at a time)
+     Any element with data-text="path" and data-screen="name" is filled in
+     by render() and its footnotes go on that screen's list. A
+     <button data-notes-for="name"> becomes that screen's Footnotes button.
+     New screens can also do it by hand:
+       const notes = newScreen('my-screen');
+       element.append(withNotes(someText, notes, 'my-screen'));
+       notesButton(buttonElement, notes, 'my-screen');
+     ===================================================================== */
+  const NOTE_RE = /\{\{\s*fn\s*:\s*([\s\S]*?)\s*\}\}/gi;
+  const screens = {};
+  function newScreen(id) { return (screens[id] = []); }
+
+  // Turns text into page content, swapping each {{fn: ...}} for a numbered marker.
+  // Text is only ever added as plain text (never as HTML).
+  function withNotes(text, notes, screenId) {
+    const frag = document.createDocumentFragment();
+    const str = String(text ?? '');
+    let last = 0;
+    for (const m of str.matchAll(NOTE_RE)) {
+      frag.append(str.slice(last, m.index));
+      notes.push(m[1]);
+      const sup = document.createElement('sup');
+      sup.className = 'fn-ref';
+      sup.dataset.screen = screenId;
+      sup.dataset.note = notes.length;
+      sup.textContent = notes.length;
+      frag.append(sup);
+      last = m.index + m[0].length;
+    }
+    frag.append(str.slice(last));
+    return frag;
+  }
+  // For places that can't show a number (tab title, image descriptions, labels).
+  function stripNotes(text) { return String(text ?? '').replace(NOTE_RE, '').replace(/\s{2,}/g, ' ').trim(); }
+
+  // Citation text, with web addresses turned into links that open in a new tab.
+  function citation(text) {
+    const frag = document.createDocumentFragment();
+    String(text).split(/(https?:\/\/[^\s<>"]+)/).forEach((part, i) => {
+      if (i % 2 === 0) { frag.append(part); return; }
+      const a = document.createElement('a');
+      a.href = part;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = part;
+      frag.append(a);
+    });
+    return frag;
+  }
+
+  // Shows or hides a screen's "Footnotes (n)" button.
+  function notesButton(button, notes, screenId) {
+    button.hidden = editing || notes.length === 0;
+    button.textContent = stripNotes(data.ui.footnotesButton).replace(/\{count\}/g, notes.length);
+    button.onclick = () => openNotes(screenId);
+  }
+
+  // Opens the footnotes pop-up for a screen, optionally highlighting one note.
+  function openNotes(screenId, current) {
+    const notes = screens[screenId] || [];
+    $('#notes-heading').textContent = stripNotes(data.ui.footnotesHeading);
+    $('#notes-close').textContent = stripNotes(data.ui.footnotesClose);
+    const list = $('#notes-list');
+    list.replaceChildren(...notes.map((n, i) => {
+      const li = document.createElement('li');
+      li.append(citation(n));
+      if (i + 1 === Number(current)) li.className = 'current';
+      return li;
+    }));
+    const dlg = $('#notes-dialog');
+    if (!dlg.open) dlg.showModal();
+    const cur = list.querySelector('.current');
+    if (cur) cur.scrollIntoView({ block: 'center' });
+    else list.scrollTop = 0;
+  }
+  // The pop-up closes from its own button and from Escape.
+  const closeNotes = () => { const d = $('#notes-dialog'); if (d.open) d.close(); };
+  $('#notes-close').addEventListener('click', closeNotes);
+  $('#notes-dialog').addEventListener('cancel', e => { e.preventDefault(); closeNotes(); });
+
+  // Clicking a number in the text opens the pop-up at that note.
+  // Numbers inside buttons and links don't, so those still do their job.
+  document.addEventListener('click', e => {
+    const ref = e.target.closest('.fn-ref');
+    if (!ref || editing || ref.closest('button, a')) return;
+    openNotes(ref.dataset.screen, ref.dataset.note);
+  });
+
+  /* =====================================================================
+     DRAWING THE PAGE
+     ===================================================================== */
+  function render() {
+    renderGame();
+    renderImages();
+    // Fill every [data-text] element, in reading order, so footnotes number 1, 2, 3.
+    Object.keys(screens).forEach(newScreen);
+    document.querySelectorAll('[data-text]').forEach(elm => {
+      const value = getPath(data, elm.dataset.text) ?? '';
+      if (editing) {
+        // Raw text, so the {{fn: ...}} markers can be edited. Don't disturb the box being typed in.
+        if (elm !== document.activeElement) elm.textContent = value;
+        return;
+      }
+      const id = elm.dataset.screen || 'page';
+      const notes = screens[id] || newScreen(id);
+      // Hidden text (like a caption with no image) doesn't add footnotes.
+      elm.replaceChildren(elm.closest('[hidden]') ? '' : withNotes(value, notes, id));
+    });
+    document.querySelectorAll('[data-notes-for]').forEach(b => {
+      const id = b.dataset.notesFor;
+      notesButton(b, screens[id] || newScreen(id), id);
+    });
+    document.title = stripNotes(data.page.title) || "Ida B. Wells' Story";
+    $('#edit-link').textContent = EDITOR_TEXT.editLink;
+    showLocalNote();
+    if (editing) bindPageText(true); // new scene elements become editable too
+  }
+
+  // Each [data-image="path"] slot shows the picture at that path in the
+  // content (for example "images.header"). Empty slots are hidden for
+  // players; in edit mode they show upload buttons.
+  function renderImages() {
+    document.querySelectorAll('[data-image]').forEach(fig => {
+      const key = fig.dataset.image;
+      let pic = getPath(data, key);
+      if (!isObj(pic)) { pic = { src: '', alt: '' }; setPath(data, key, pic); }
+      const img = fig.querySelector('img');
+      fig.querySelectorAll('.ed-ui').forEach(n => n.remove());
+      img.hidden = !pic.src;
+      if (pic.src) img.src = pic.src; else img.removeAttribute('src');
+      img.alt = stripNotes(pic.alt);
+      fig.hidden = !pic.src && !editing;
+      if (editing) addImageTools(fig, key, pic);
+    });
+  }
+
+  /* =====================================================================
+     THE GAME: a choose-your-own-adventure
+     The game area shows one scene at a time: an optional picture, a
+     title, text, and choice buttons. Each choice goes to another scene.
+     A scene with no choices is an ending. In edit mode the same scene is
+     drawn with editable text and the blue scene tools.
+     ===================================================================== */
+  const BROKEN = '__broken';  // shown when a choice points to a scene that doesn't exist
+  let currentScene = null;    // id of the scene showing now
+
+  const sceneIndex = id => data.game.scenes.findIndex(s => s.id === id);
+  function startId() {
+    return sceneIndex(data.game.start) >= 0 ? data.game.start : data.game.scenes[0].id;
+  }
+
+  // Moves the player to another scene.
+  function goTo(target) {
+    currentScene = sceneIndex(target) >= 0 ? target : BROKEN;
+    closeNotes();
+    render();
+    const area = $('#game-area');
+    if (area.getBoundingClientRect().top < 0) area.scrollIntoView({ block: 'start' });
+  }
+
+  // An element whose text comes from the content (filled in by render()).
+  function textEl(tag, cls, path, multiline) {
+    const n = el(tag, cls);
+    n.dataset.text = path;
+    n.dataset.screen = 'game';
+    if (multiline) n.setAttribute('data-multiline', '');
+    return n;
+  }
+  // A player button whose label comes from the content.
+  function choiceButton(path, onClick, primary) {
+    const b = el('button', 'choice' + (primary ? ' primary' : ''));
+    b.type = 'button';
+    b.append(textEl('span', '', path));
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  // The row under a scene, holding the scene's Footnotes button.
+  function gameFoot() {
+    const foot = el('div', 'game-foot');
+    const notes = el('button', 'notes-btn');
+    notes.type = 'button';
+    notes.dataset.notesFor = 'game';
+    foot.append(notes);
+    return foot;
+  }
+
+  function renderGame() {
+    const area = $('#game-area');
+    area.replaceChildren();
+    if (currentScene === BROKEN && editing) currentScene = null;
+    if (currentScene !== BROKEN && sceneIndex(currentScene) < 0) currentScene = startId();
+
+    if (currentScene === BROKEN) {
+      // A choice that doesn't lead anywhere yet.
+      const choices = el('div', 'choices');
+      choices.append(choiceButton('ui.restart', () => goTo(startId()), true));
+      area.append(textEl('p', 'scene-text', 'ui.brokenChoice', true), choices, gameFoot());
+      return;
+    }
+
+    const i = sceneIndex(currentScene);
+    const scene = data.game.scenes[i];
+    const p = 'game.scenes.' + i;
+    if (editing) area.append(sceneTools(scene, i));
+
+    const fig = el('figure', 'scene-figure');
+    fig.dataset.image = p + '.image';
+    fig.append(el('img'), textEl('figcaption', '', p + '.caption', true));
+    area.append(fig, textEl('h2', '', p + '.title'), textEl('div', 'scene-text', p + '.text', true));
+
+    const choices = el('div', 'choices');
+    scene.choices.forEach((c, ci) => {
+      if (editing) choices.append(choiceEditRow(scene, c, ci, p + '.choices.' + ci + '.label'));
+      else choices.append(choiceButton(p + '.choices.' + ci + '.label', () => goTo(c.target)));
+    });
+    if (!scene.choices.length && !editing) choices.append(choiceButton('ui.playAgain', () => goTo(startId()), true));
+    if (editing) choices.append(btn(EDITOR_TEXT.game.addChoice, () => {
+      scene.choices.push({ label: EDITOR_TEXT.game.newChoice, target: '' });
+      render();
+      markDirty();
+    }, 'ed-ui'));
+    area.append(choices);
+
+    const foot = gameFoot();
+    if (!editing && currentScene !== startId() && scene.choices.length) {
+      const again = el('button', 'restart');
+      again.type = 'button';
+      again.append(textEl('span', '', 'ui.restart'));
+      again.addEventListener('click', () => goTo(startId()));
+      foot.append(again);
+    }
+    area.append(foot);
+  }
+
+  function showLocalNote() {
+    const note = $('#local-note');
+    note.textContent = EDITOR_TEXT.localNote;
+    note.hidden = JSON.stringify(data) === FILE_DATA;
+  }
+
+  /* =====================================================================
+     EDITOR (password protected)
+     ===================================================================== */
+
+  // --- small helpers ---
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function btn(label, onClick, cls = '') {
+    const b = el('button', 'ed-btn ' + cls, label);
+    b.type = 'button';
+    b.addEventListener('click', e => { e.preventDefault(); onClick(); });
+    return b;
+  }
+  function labelled(text, control) {
+    const l = el('label', '', text);
+    l.append(control);
+    return l;
+  }
+  let statusEl = null;
+  function status(msg) { if (statusEl) statusEl.textContent = msg; }
+
+  // Opens an editor pop-up. build(form, finish) fills it in; finish(value)
+  // closes it and returns the value. Buttons call finish() directly and
+  // Escape returns escValue, so it never depends on the "close" event.
+  function dialog(cls, build, escValue) {
+    return new Promise(resolve => {
+      const dlg = el('dialog', 'ed-ui ed-dialog ' + (cls || ''));
+      const form = el('form');
+      form.addEventListener('submit', e => e.preventDefault());
+      dlg.append(form);
+      let finished = false;
+      const finish = value => {
+        if (finished) return;
+        finished = true;
+        if (dlg.open) dlg.close();
+        dlg.remove();
+        resolve(value);
+      };
+      dlg.addEventListener('cancel', e => { e.preventDefault(); finish(escValue); });
+      dlg.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(escValue); }
+      });
+      build(form, finish);
+      document.body.append(dlg);
+      dlg.showModal();
+      dlg.scrollTop = 0;
+    });
+  }
+
+  // --- password ---
+  // The password is never stored, only the SHA-256 "fingerprint" of
+  // salt + ":" + password. SHA-256 is written out in plain JavaScript so it
+  // works however the page is opened (from a file, http or https).
+  function sha256(text) {
+    const K = [];
+    const H = [];
+    for (let n = 2, found = 0; found < 64; n++) {
+      let prime = true;
+      for (let d = 2; d * d <= n; d++) if (n % d === 0) { prime = false; break; }
+      if (!prime) continue;
+      if (found < 8) H[found] = (Math.pow(n, 1 / 2) * 2 ** 32) | 0;
+      K[found++] = (Math.pow(n, 1 / 3) * 2 ** 32) | 0;
+    }
+    const bytes = [...new TextEncoder().encode(text)];
+    const bitLen = bytes.length * 8;
+    bytes.push(0x80);
+    while (bytes.length % 64 !== 56) bytes.push(0);
+    for (let i = 7; i >= 0; i--) bytes.push(i > 3 ? 0 : (bitLen >>> (i * 8)) & 0xff);
+    const rot = (x, n) => (x >>> n) | (x << (32 - n));
+    const W = new Array(64);
+    for (let off = 0; off < bytes.length; off += 64) {
+      for (let i = 0; i < 16; i++) W[i] = (bytes[off + i * 4] << 24) | (bytes[off + i * 4 + 1] << 16) | (bytes[off + i * 4 + 2] << 8) | bytes[off + i * 4 + 3];
+      for (let i = 16; i < 64; i++) {
+        const s0 = rot(W[i - 15], 7) ^ rot(W[i - 15], 18) ^ (W[i - 15] >>> 3);
+        const s1 = rot(W[i - 2], 17) ^ rot(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+        W[i] = (W[i - 16] + s0 + W[i - 7] + s1) | 0;
+      }
+      let [a, b, c, d, e, f, g, h] = H;
+      for (let i = 0; i < 64; i++) {
+        const t1 = (h + (rot(e, 6) ^ rot(e, 11) ^ rot(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + W[i]) | 0;
+        const t2 = ((rot(a, 2) ^ rot(a, 13) ^ rot(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      [a, b, c, d, e, f, g, h].forEach((v, i) => { H[i] = (H[i] + v) | 0; });
+    }
+    return H.map(v => (v >>> 0).toString(16).padStart(8, '0')).join('');
+  }
+  const FILE_FP = sha256(FILE_DATA); // fingerprint of the uploaded file's content
+
+  function showHelp() {
+    return dialog('ed-help', (form, finish) => {
+      form.insertAdjacentHTML('beforeend', HELP_HTML); // our own fixed help text, never student text
+      const actions = el('div', 'ed-actions');
+      actions.append(btn(EDITOR_TEXT.helpClose, () => finish(), 'ed-primary'));
+      form.append(actions);
+    });
+  }
+
+  function askPassword() {
+    const P = EDITOR_TEXT.password;
+    return dialog('ed-small', (form, finish) => {
+      const pw = el('input');
+      pw.type = 'password';
+      pw.autocomplete = 'off';
+      const err = el('p', 'ed-error', P.wrong);
+      err.hidden = true;
+      const ok = el('button', 'ed-btn ed-primary', P.unlock);
+      ok.type = 'submit';
+      const actions = el('div', 'ed-actions');
+      actions.append(btn(P.cancel, () => finish(false)), ok);
+      form.append(el('h3', '', P.heading), labelled(P.label, pw), err, btn(P.helpLink, showHelp, 'ed-link'), actions);
+      form.addEventListener('submit', () => {
+        if (sha256(FILE_AUTH.salt + ':' + pw.value) === FILE_AUTH.hash) finish(true);
+        else { err.hidden = false; pw.select(); }
+      });
+      setTimeout(() => pw.focus(), 0);
+    }, false);
+  }
+
+  async function unlock() {
+    if (editing) return;
+    if (tabStore.get(UNLOCK_KEY) !== FILE_AUTH.hash) {
+      if (!(await askPassword())) return;
+      tabStore.set(UNLOCK_KEY, FILE_AUTH.hash);
+    }
+    // Auto-saved changes from before the uploaded file was replaced: ask which to use.
+    if (olderSave) {
+      const C = EDITOR_TEXT.conflict;
+      const keep = await dialog('ed-small', (form, finish) => {
+        const actions = el('div', 'ed-actions');
+        actions.append(btn(C.useFile, () => finish(false)), btn(C.keep, () => finish(true), 'ed-primary'));
+        form.append(el('h3', '', C.heading), el('p', '', C.body(new Date(olderSave.at).toLocaleString())), actions);
+      }, true); // Escape keeps the auto-saved changes, so nothing is lost by accident
+      if (keep) { useSaved(olderSave); markDirty(); } // re-save against the new file, so it isn't asked again
+      else await store.clear();
+      olderSave = null;
+    }
+    startEditing();
+  }
+
+  /* --- auto-save ---
+     Every change is saved in this browser (IndexedDB) about half a second
+     later, and right away if the page is closed or hidden. Saved changes
+     load automatically when the page opens. Other people only see them
+     after "Save file" and uploading the new index.html. */
+  const store = {
+    db: null,
+    open() {
+      this.db ||= new Promise((res, rej) => {
+        try {
+          const r = indexedDB.open('student-game-autosave', 1);
+          r.onupgradeneeded = () => r.result.createObjectStore('autosave');
+          r.onsuccess = () => res(r.result);
+          r.onerror = () => rej(r.error);
+        } catch (e) { rej(e); } // storage blocked
+      });
+      return this.db;
+    },
+    async run(mode, fn) {
+      const db = await this.open();
+      return new Promise((res, rej) => {
+        try {
+          const tx = db.transaction('autosave', mode);
+          const req = fn(tx.objectStore('autosave'));
+          tx.oncomplete = () => res(req && req.result);
+          tx.onerror = () => rej(tx.error);
+        } catch (e) { rej(e); }
+      });
+    },
+    get() { return this.run('readonly', s => s.get(DRAFT_KEY)).catch(() => null); },
+    set(value) { return this.run('readwrite', s => { s.put(value, DRAFT_KEY); }); },
+    clear() { return this.run('readwrite', s => { s.delete(DRAFT_KEY); }).catch(() => {}); }
+  };
+
+  let saveTimer = 0;
+  let olderSave = null; // auto-saved changes made before the uploaded file was replaced
+  let loadedSave = false;
+  function markDirty() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(autoSaveNow, 500);
+    showLocalNote();
+  }
+  async function autoSaveNow() {
+    clearTimeout(saveTimer);
+    saveTimer = 0;
+    try {
+      // A clone, so later edits can't change what's being saved.
+      await store.set({ at: Date.now(), base: FILE_FP, data: JSON.parse(JSON.stringify(data)) });
+      status(EDITOR_TEXT.status.saved(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })));
+    } catch {
+      status(EDITOR_TEXT.status.noStorage);
+    }
+  }
+  function flushSave() { if (saveTimer) autoSaveNow(); }
+  function useSaved(saved) {
+    const d = normalize(saved.data);
+    d.auth = FILE_AUTH; // the password always comes from the file, never from an auto-save
+    data = d;
+    loadedSave = true;
+    currentScene = null; // start from the saved version's first scene
+    render();
+  }
+  async function loadAutoSave() {
+    const saved = await store.get();
+    if (!saved || !isObj(saved.data)) return;
+    const d = normalize(JSON.parse(JSON.stringify(saved.data)));
+    d.auth = FILE_AUTH;
+    if (JSON.stringify(d) === FILE_DATA) { store.clear(); return; } // the uploaded file already has these changes
+    if (saved.base !== FILE_FP) { olderSave = saved; return; }      // the file changed since; ask when editing starts
+    useSaved(saved);
+  }
+
+  function discardChanges() {
+    const D = EDITOR_TEXT.discard;
+    dialog('ed-small', (form, finish) => {
+      const actions = el('div', 'ed-actions');
+      actions.append(btn(D.cancel, () => finish(false)), btn(D.confirm, () => finish(true), 'ed-primary ed-danger'));
+      form.append(el('h3', '', D.heading), el('p', '', D.body), actions);
+    }, false).then(async yes => {
+      if (!yes) return;
+      clearTimeout(saveTimer);
+      saveTimer = 0;
+      await store.clear();
+      data = JSON.parse(FILE_DATA);
+      currentScene = null;
+      document.activeElement && document.activeElement.blur();
+      render();
+      status(EDITOR_TEXT.status.discarded);
+    });
+  }
+
+  // --- images ---
+  function addImageTools(fig, key, pic) {
+    const I = EDITOR_TEXT.image;
+    const upload = btn(I.upload, async () => {
+      const url = await pickImage(1600);
+      if (!url) return;
+      pic.src = url;
+      render();
+      markDirty();
+      status(EDITOR_TEXT.status.imageAdded);
+    }, 'ed-primary');
+    if (!pic.src) {
+      const box = el('div', 'ed-ui ed-img-empty');
+      const inner = el('div');
+      inner.append(el('p', '', I.empty), upload);
+      box.append(inner);
+      fig.prepend(box);
+    } else {
+      const tools = el('div', 'ed-ui ed-img-tools');
+      tools.append(upload, btn(I.remove, () => { pic.src = ''; render(); markDirty(); status(EDITOR_TEXT.status.imageRemoved); }));
+      fig.append(tools);
+    }
+  }
+  function pickImage(maxSize) {
+    return new Promise(resolve => {
+      const inp = el('input');
+      inp.type = 'file';
+      inp.accept = 'image/*';
+      inp.onchange = async () => {
+        const f = inp.files[0];
+        if (!f) return resolve(null);
+        status(EDITOR_TEXT.status.imageWorking);
+        try { resolve(await shrinkImage(f, maxSize)); }
+        catch { status(EDITOR_TEXT.status.imageFailed); resolve(null); }
+      };
+      inp.click();
+    });
+  }
+  function readAsDataURL(file) {
+    return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+  }
+  // Photos are scaled down (about 1600px on the long side, JPEG) so the file stays small.
+  async function shrinkImage(file, max) {
+    if (file.type === 'image/svg+xml' || file.type === 'image/gif') return readAsDataURL(file);
+    const bmp = await createImageBitmap(file);
+    if (file.size < 200 * 1024 && Math.max(bmp.width, bmp.height) <= max) return readAsDataURL(file);
+    const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = el('canvas');
+    c.width = Math.round(bmp.width * s);
+    c.height = Math.round(bmp.height * s);
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(bmp, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.85);
+  }
+
+  // --- editing the game: scene tools and choice rows ---
+  const G = EDITOR_TEXT.game;
+  function sceneLabel(s, i) { return G.sceneName(i + 1, stripNotes(s.title)); }
+  function select(options, value, onChange, cls) {
+    const sel = el('select', 'ed-ui ' + (cls || ''));
+    options.forEach(([v, t]) => { const o = el('option', '', t); o.value = v; sel.append(o); });
+    sel.value = value;
+    sel.addEventListener('change', () => onChange(sel.value));
+    return sel;
+  }
+  function addScene() {
+    const s = {
+      id: newId('s'), title: G.newSceneTitle, text: G.newSceneText,
+      image: { src: '', alt: G.newImageAlt }, caption: G.newCaption, choices: []
+    };
+    data.game.scenes.push(s);
+    markDirty();
+    return s;
+  }
+
+  // The blue box above the scene: pick, add, delete and reorder scenes.
+  function sceneTools(scene, i) {
+    const box = el('div', 'ed-ui ed-game-tools');
+    const scenes = data.game.scenes;
+    const first = startId();
+    const pick = select(scenes.map((s, n) => [s.id,
+      sceneLabel(s, n) + (s.id === first ? G.firstTag : '') + (s.choices.length ? '' : G.endingTag)]),
+      scene.id, id => { currentScene = id; render(); }, 'ed-scene-pick');
+    const row1 = el('div', 'ed-row');
+    row1.append(el('b', '', G.sceneLabel), pick);
+    const row2 = el('div', 'ed-row');
+    row2.append(btn(G.addScene, () => { currentScene = addScene().id; render(); }));
+    if (scene.id !== first) row2.append(btn(G.makeFirst, () => { data.game.start = scene.id; render(); markDirty(); }));
+    row2.append(btn(G.deleteScene, () => deleteScene(scene), 'ed-danger'));
+    box.append(row1, row2);
+    if (scene.id === first) box.append(el('p', 'ed-note', G.firstNote));
+    if (!scene.choices.length) box.append(el('p', 'ed-note', G.endingNote));
+    return box;
+  }
+
+  function deleteScene(scene) {
+    if (data.game.scenes.length < 2) { status(G.cantDeleteLast); return; }
+    dialog('ed-small', (form, finish) => {
+      const actions = el('div', 'ed-actions');
+      actions.append(btn(G.deleteCancel, () => finish(false)), btn(G.deleteConfirm, () => finish(true), 'ed-primary ed-danger'));
+      form.append(el('h3', '', G.deleteHeading), el('p', '', G.deleteBody), actions);
+    }, false).then(yes => {
+      if (!yes) return;
+      data.game.scenes = data.game.scenes.filter(s => s !== scene);
+      data.game.scenes.forEach(s => s.choices.forEach(c => { if (c.target === scene.id) c.target = ''; }));
+      if (data.game.start === scene.id) data.game.start = data.game.scenes[0].id;
+      currentScene = null;
+      render();
+      markDirty();
+    });
+  }
+
+  // One choice in edit mode: its text (edited in place), where it goes, and a remove button.
+  function choiceEditRow(scene, choice, ci, labelPath) {
+    const row = el('div', 'ed-choice-row');
+    const label = el('div', 'choice');
+    label.append(textEl('span', '', labelPath));
+    const opts = [['', G.pickTarget]];
+    data.game.scenes.forEach((s, n) => opts.push([s.id, G.goesTo + sceneLabel(s, n)]));
+    opts.push(['__new', G.newSceneOption]);
+    const target = select(opts, sceneIndex(choice.target) >= 0 ? choice.target : '', v => {
+      if (v === '__new') {
+        choice.target = addScene().id;
+        currentScene = choice.target; // go straight to the new scene so it can be written
+      } else choice.target = v;
+      render();
+      markDirty();
+    });
+    const remove = btn(G.removeChoice, () => { scene.choices.splice(ci, 1); render(); markDirty(); }, 'ed-ui ed-danger');
+    remove.title = remove.ariaLabel = G.removeChoiceLabel;
+    row.append(label, target, remove);
+    return row;
+  }
+
+  // --- editing text in place ---
+  function bindPageText(on) {
+    document.querySelectorAll('[data-text]').forEach(node => {
+      if (!on) {
+        node.removeAttribute('contenteditable');
+        node.removeAttribute('spellcheck');
+        node.oninput = node.onkeydown = node.onpaste = null;
+        return;
+      }
+      node.contentEditable = 'plaintext-only';
+      if (node.contentEditable !== 'plaintext-only') node.contentEditable = 'true'; // older browsers
+      node.spellcheck = true;
+      const multi = node.hasAttribute('data-multiline');
+      node.oninput = () => {
+        let v = node.innerText.replace(/\n$/, '');
+        if (!multi) v = v.replace(/\n/g, ' ');
+        setPath(data, node.dataset.text, v);
+        if (node.dataset.text === 'page.title') document.title = stripNotes(v) || "Ida B. Wells' Story";
+        markDirty();
+      };
+      node.onkeydown = e => { if (e.key === 'Enter' && !multi) { e.preventDefault(); node.blur(); } };
+      // Paste as plain text only (no fonts, colors or links from other pages).
+      node.onpaste = e => {
+        e.preventDefault();
+        let t = (e.clipboardData || window.clipboardData).getData('text/plain');
+        if (!multi) t = t.replace(/\s*\n\s*/g, ' ');
+        document.execCommand('insertText', false, t);
+      };
+    });
+  }
+
+  // --- "Other text…": every text field that isn't on the screen right now ---
+  // Finds all text in the content (except the password and picture data),
+  // so text the game mechanics add later shows up here automatically.
+  const NOT_TEXT = ['src', 'id', 'target', 'start']; // keys that hold data, not words
+  function allTextPaths(obj = data, prefix = '') {
+    const out = [];
+    for (const [k, v] of Object.entries(obj)) {
+      const path = prefix + k;
+      if (!prefix && (k === 'auth' || k === 'schemaVersion')) continue;
+      if (NOT_TEXT.includes(k)) continue;
+      if (typeof v === 'string') out.push(path);
+      else if (v && typeof v === 'object') out.push(...allTextPaths(v, path + '.'));
+    }
+    return out;
+  }
+  // A friendly name for a text field, like "Scene 2: [title] — Choice 1".
+  function fieldLabel(path) {
+    if (EDITOR_TEXT.fieldLabels[path]) return EDITOR_TEXT.fieldLabels[path];
+    const m = path.match(/^game\.scenes\.(\d+)\.(.+)$/);
+    if (!m) return path;
+    const i = Number(m[1]);
+    const c = m[2].match(/^choices\.(\d+)\.label$/);
+    return sceneLabel(data.game.scenes[i], i) + ' — ' + (c ? G.choiceN(Number(c[1]) + 1) : (EDITOR_TEXT.sceneParts[m[2]] || m[2]));
+  }
+  function isOnScreen(path) {
+    return [...document.querySelectorAll('[data-text]')].some(n => n.dataset.text === path && n.getClientRects().length > 0);
+  }
+  function editOtherText() {
+    const O = EDITOR_TEXT.other;
+    const paths = allTextPaths().filter(p => !isOnScreen(p));
+    const work = {};
+    dialog('', (form, finish) => {
+      form.append(el('h3', '', O.heading), el('p', '', O.intro), el('p', 'ed-hint', EDITOR_TEXT.footnoteHint));
+      if (!paths.length) form.append(el('p', '', O.none));
+      paths.forEach(p => {
+        const value = getPath(data, p) ?? '';
+        const box = value.includes('\n') || value.length > 80 ? el('textarea') : el('input');
+        if (box.tagName === 'INPUT') box.type = 'text';
+        box.value = value;
+        box.addEventListener('input', () => { work[p] = box.value; });
+        form.append(labelled(fieldLabel(p), box));
+      });
+      const actions = el('div', 'ed-actions');
+      actions.append(btn(O.cancel, () => finish(false)), btn(O.apply, () => finish(true), 'ed-primary'));
+      form.append(actions);
+    }, false).then(apply => {
+      if (!apply || !Object.keys(work).length) return;
+      Object.entries(work).forEach(([p, v]) => setPath(data, p, v));
+      render();
+      markDirty();
+    });
+  }
+
+  // --- saving: downloads a complete new copy of this single file ---
+  function buildHTML() {
+    const doc = new DOMParser().parseFromString(SNAPSHOT, 'text/html');
+    const out = JSON.parse(JSON.stringify(data));
+    out.auth = FILE_AUTH; // always the password from the file
+    // "<" is written as < so the content can never end its own <script> block.
+    const json = JSON.stringify(out, null, 2).replace(/</g, '\\u003c');
+    doc.getElementById('game-data').textContent = '\n' + json + '\n';
+    return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML + '\n';
+  }
+  function saveFile() {
+    flushSave();
+    const a = el('a');
+    a.href = URL.createObjectURL(new Blob([buildHTML()], { type: 'text/html' }));
+    a.download = 'index.html';
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    status(EDITOR_TEXT.status.downloaded);
+  }
+
+  // --- turning edit mode on and off ---
+  function startEditing() {
+    editing = true;
+    tabStore.set(EDITING_KEY, '1');
+    closeNotes();
+    document.body.classList.add('ed-on');
+    const bar = el('div', 'ed-ui ed-bar');
+    statusEl = el('span', 'ed-status', loadedSave ? EDITOR_TEXT.status.loaded : EDITOR_TEXT.status.start);
+    bar.append(
+      el('b', '', B.title), statusEl,
+      btn(B.help, showHelp),
+      btn(B.otherText, editOtherText),
+      btn(B.discard, discardChanges),
+      btn(B.save, saveFile, 'ed-primary'),
+      btn(B.done, stopEditing)
+    );
+    document.body.append(bar);
+    render();
+    bindPageText(true);
+    // Check once whether this browser can auto-save, and say so if it can't.
+    store.open().catch(() => status(EDITOR_TEXT.status.noStorage));
+  }
+  function stopEditing() {
+    flushSave();
+    editing = false;
+    tabStore.set(EDITING_KEY, null);
+    document.activeElement && document.activeElement.blur();
+    document.body.classList.remove('ed-on');
+    document.querySelectorAll('.ed-ui').forEach(n => n.remove());
+    bindPageText(false);
+    statusEl = null;
+    render(); // footnotes turn into numbers again
+  }
+
+  /* =====================================================================
+     START
+     ===================================================================== */
+  render();
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'e') { e.preventDefault(); unlock(); }
+  });
+  $('#edit-link').addEventListener('click', e => { e.preventDefault(); unlock(); });
+  const fromHash = () => {
+    if (location.hash === '#edit') { history.replaceState(null, '', location.pathname + location.search); unlock(); }
+  };
+  window.addEventListener('hashchange', fromHash);
+  // Save right away if the page is closed or hidden in the middle of an edit.
+  window.addEventListener('pagehide', flushSave);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushSave(); });
+  loadAutoSave().finally(() => {
+    // Still unlocked and editing in this tab (for example after a reload): go back to edit mode.
+    if (tabStore.get(UNLOCK_KEY) === FILE_AUTH.hash && tabStore.get(EDITING_KEY)) unlock(); else fromHash();
+  });
+})();
+</script></body></html>
