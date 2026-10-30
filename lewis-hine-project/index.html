@@ -120,6 +120,11 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
 .ed-bar .ed-btn { border-color: #3a4357; background: #2a3242; color: #eef1f6; }
 .ed-bar .ed-btn:hover { background: #343e52; }
 .ed-bar .ed-btn.ed-primary { background: #2a6edc; border-color: #2a6edc; }
+.ed-bar .ed-btn.ed-download { background: #1f8a4c; border-color: #1f8a4c; color: #fff; font-weight: 700; font-size: 15px; padding: 9px 16px; }
+.ed-bar .ed-btn.ed-download:hover { background: #176e3c; }
+.ed-bar .ed-btn.ed-download.ed-pending { box-shadow: 0 0 0 3px #f2c94c; animation: ed-pulse 1.6s ease-in-out infinite; }
+@keyframes ed-pulse { 50% { box-shadow: 0 0 0 6px rgba(242, 201, 76, .35); } }
+@media (prefers-reduced-motion: reduce) { .ed-bar .ed-btn.ed-download.ed-pending { animation: none; } }
 .ed-dialog { border: none; border-radius: 10px; padding: 0; width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 32px); color: #1d2330; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
 .ed-dialog.ed-small { width: min(420px, calc(100vw - 32px)); }
 .ed-dialog::backdrop { background: rgba(15,20,30,.5); }
@@ -203,7 +208,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
   GAME CONTENT
   Everything the player reads lives in this block. The easiest way to
   change it is in the browser: open the page, press Ctrl+Shift+E (or click
-  "Edit" at the bottom) and enter the password. Then click "Save file" to
+  "Edit" at the bottom) and enter the password. Then click "Download game file" to
   download a new copy of this page with your changes inside it.
 
   How a location ("node") works:
@@ -696,7 +701,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     <h4>Saving your work</h4>
     <ul>
       <li>Your work saves automatically in this browser, on this computer.</li>
-      <li>When you're finished, click <b>Save file</b>. A file called <b>index.html</b> downloads.</li>
+      <li>When you're finished, click the green <b>Download game file</b> button at the bottom right. A file called <b>index.html</b> goes to your <b>Downloads</b> folder.</li>
       <li><b>Turn in that index.html file</b> the way your teacher tells you. That's the only way your work gets onto the real website.</li>
     </ul>
 
@@ -761,7 +766,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
   // --- auto-save ---
   // Every edit is saved automatically in this browser's storage (IndexedDB, which
   // has room for photos), and loaded again automatically when the page opens.
-  // Other people only see the changes after "Save file" and uploading the new index.html.
+  // Other people only see the changes after "Download game file" and uploading the new index.html.
   const FILE_DATA = JSON.stringify(data); // the content exactly as it is in the uploaded file
   const FILE_FP = sha256(FILE_DATA);
   const store = {
@@ -793,6 +798,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
   let olderSave = null; // auto-saved changes made before the uploaded file was replaced
   function markDirty() {
     dirty = true;
+    setPending(true);
     clearTimeout(saveTimer);
     saveTimer = setTimeout(autoSaveNow, 400);
   }
@@ -803,9 +809,9 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
       await store.set({ at: Date.now(), base: FILE_FP, data });
       showLocalNote();
       status('Auto-saved in this browser at ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) +
-        '. To update the live site, click “Save file” and upload it.');
+        '. To share it, click “Download game file” and turn the file in.');
     } catch {
-      status('This browser can’t auto-save here. Click “Save file” so nothing is lost.');
+      status('This browser can’t auto-save here. Click “Download game file” so nothing is lost.');
     }
   }
   function useSaved(saved) {
@@ -833,6 +839,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     await store.clear();
     data = JSON.parse(FILE_DATA);
     dirty = false;
+    setPending(false);
     renderText();
     renderMap();
     showLocalNote();
@@ -1005,7 +1012,7 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
         btn('Apply', () => {
           Object.assign(original, w);
           dlg.close(); renderMap(); markDirty();
-          status('Location updated. Click “Save file” to keep your changes.');
+          status('Location updated. Click “Download game file” to keep your changes.');
         }, 'ed-primary')
       );
       form.append(actions);
@@ -1065,6 +1072,9 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     doc.getElementById('game-data').textContent = '\n' + json + '\n';
     return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML + '\n';
   }
+  let downloadBtn = null;
+  function setPending(on) { if (downloadBtn) downloadBtn.classList.toggle('ed-pending', on); }
+
   function saveFile() {
     const a = el('a');
     a.href = URL.createObjectURL(new Blob([buildHTML()], { type: 'text/html' }));
@@ -1074,7 +1084,27 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
     a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
     dirty = false;
-    status('Downloaded index.html. Upload it to your webspace (replacing the old one) to update the live site.');
+    setPending(false);
+    status('Downloaded index.html. Turn it in so everyone can see your changes.');
+    showDownloaded();
+  }
+
+  // Tells students where the file went and what to do with it.
+  function showDownloaded() {
+    const { dlg, form } = modal('ed-help ed-small');
+    form.insertAdjacentHTML('beforeend', `
+      <h3>Your game file was downloaded</h3>
+      <ol>
+        <li>Look in your <b>Downloads</b> folder for a file called <b>index.html</b>.
+          (It may be called <b>index (1).html</b> if you've downloaded it before. Use the newest one.)</li>
+        <li><b>Turn in that file</b> the way your teacher tells you.</li>
+        <li>Your changes go live for everyone after your teacher uploads it.</li>
+      </ol>
+      <p>Don't see it? Check the downloads list in your browser (Ctrl+J) and try again.</p>`);
+    const actions = el('div', 'ed-actions');
+    actions.append(btn('Download again', () => { dlg.close(); saveFile(); }), btn('Got it', () => dlg.close(), 'ed-primary'));
+    form.append(actions);
+    dlg.showModal();
   }
 
   let bar = null;
@@ -1092,19 +1122,21 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
       btn('Pop-up wording', editGameText),
       btn('How to edit', showHelp),
       btn('Discard changes', discardChanges),
-      btn('Save file', saveFile, 'ed-primary'),
+      downloadBtn = btn('⬇ Download game file', saveFile, 'ed-download'),
       btn('Done', stopEditing)
     );
     document.body.append(bar);
+    setPending(dirty);
     renderText();
     bindPageText(true);
     renderMap();
   }
   function stopEditing() {
     if (saveTimer) autoSaveNow();
+    if (dirty && confirm('You have changes that aren’t downloaded yet. They are only saved in this browser.\n\nDownload the game file now?')) saveFile();
     editing = false;
     document.body.classList.remove('ed-on');
-    document.querySelectorAll('.ed-ui').forEach(n => n.remove());
+    document.querySelectorAll('.ed-ui:not(dialog)').forEach(n => n.remove()); // keep any open message box
     bindPageText(false);
     session.set(null);
     bar = statusEl = null;
