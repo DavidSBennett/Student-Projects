@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>JFK</title>
@@ -134,6 +133,11 @@ h2 { font-size: 1.3rem; margin: 0 0 0.6em; font-family: var(--font-ui); }
 .chip-pr { background: var(--chip-pr); }
 .chip-invest { background: var(--chip-invest); }
 .chip-danger { background: var(--chip-danger); }
+.chip-calm { background: var(--chip-invest); }   /* a card that lowers a danger track */
+
+/* The track both players share, under the two players' tracks */
+.shared-track { margin-top: 0.8rem; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.4rem 0.8rem; }
+.shared-track .track { grid-template-columns: minmax(6rem, 1fr) 4fr 3rem; margin: 0; }
 .card .ability { margin: 0; }
 .card .flavor { margin: 0; font-style: italic; color: var(--muted); }
 .card-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.3rem; margin-top: auto; }
@@ -323,9 +327,9 @@ body.is-editing [data-image-box]::after {
      edited in the "Other text" dialog instead. data-image="..." shows an image.
      ===================================================================== -->
 <header class="site-header">
-  <figure class="header-image" data-image-box="header" hidden><img data-image="header" alt=""></figure>
+  <figure class="header-image" data-image-box="header" hidden=""><img data-image="header" alt=""></figure>
   <h1 data-text="page.title"></h1>
-  <p class="intro" data-text="page.introduction" data-multiline></p>
+  <p class="intro" data-text="page.introduction" data-multiline=""></p>
 </header>
 
 <main>
@@ -337,7 +341,7 @@ body.is-editing [data-image-box]::after {
 
 <footer class="site-footer">
   <p class="author" data-text="page.author"></p>
-  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden></p>
+  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden=""></p>
   <a href="#edit" class="edit-link" id="edit-link" data-label="ui.editLink"></a>
 </footer>
 
@@ -362,13 +366,14 @@ body.is-editing [data-image-box]::after {
                           space, pr          race tracks: reach the end to win
                           backlash           when full, Public Relations cards are weakened
                           economy            when full, Space cards are weakened
-                          military           when either player's is full, both lose
+                          military           SHARED: one bar for both players, moved by
+                                             anyone's cards; when full, both lose
          settings       cards in a hand, cards in the market, and how much
                         value weakened cards keep (penaltyPercent)
          cards          every card. Each has a title, ability and flavor text;
                         "space", "pr" and "invest" (what it does in each drop
                         space); "raises" + "raiseAmount" (the danger track it
-                        pushes up when played on a race track); "effect" +
+                        moves when played on a race track); "effect" +
                         "effectAmount" (what its ability does); "cost";
                         "startCount" (copies in each starting deck) and
                         "marketCount" (copies that can be bought).
@@ -387,10 +392,10 @@ body.is-editing [data-image-box]::after {
     "hash": "654c0186c2a74b08a5f3c1332dd3792448792aa3d579b904aba22e7c3d4c2cbe"
   },
   "page": {
-    "title": "[Game title]",
+    "title": "\n",
     "introduction": "[Introduction]",
     "gameAreaHeading": "[Game area]",
-    "author": "[Your name and class]"
+    "author": "Chase DeRuiter Group 9 US History"
   },
   "ui": {
     "browserTabTitle": "JFK",
@@ -426,29 +431,172 @@ body.is-editing [data-image-box]::after {
     "playAgain": "[Play again]"
   },
   "images": {
-    "header": { "src": "", "alt": "[Header image description]" }
+    "header": {
+      "src": "",
+      "alt": "[Header image description]"
+    }
   },
   "game": {
-    "players": { "human": "[Player]", "ai": "[Computer opponent]" },
-    "tracks": {
-      "space": { "name": "[Space Race]", "length": 15 },
-      "pr": { "name": "[Public Relations]", "length": 15 },
-      "backlash": { "name": "[Domestic backlash]", "length": 10 },
-      "economy": { "name": "[Economic stability]", "length": 10 },
-      "military": { "name": "[Military]", "length": 10 }
+    "players": {
+      "human": "[Player]",
+      "ai": "[Computer opponent]"
     },
-    "settings": { "handSize": 5, "marketSize": 5, "penaltyPercent": 50 },
+    "tracks": {
+      "space": {
+        "name": "[Space Race]",
+        "length": 15
+      },
+      "pr": {
+        "name": "[Public Relations]",
+        "length": 15
+      },
+      "backlash": {
+        "name": "[Domestic backlash]",
+        "length": 10
+      },
+      "economy": {
+        "name": "[Economic instability]",
+        "length": 10
+      },
+      "military": {
+        "name": "[Conflict Heat]",
+        "length": 10
+      }
+    },
+    "settings": {
+      "handSize": 5,
+      "marketSize": 5,
+      "penaltyPercent": 50
+    },
     "cards": [
-      { "id": "c1", "title": "[Starting card 1]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 1, "pr": 0, "invest": 1, "raises": "economy", "raiseAmount": 1, "effect": "none", "effectAmount": 0, "cost": 0, "startCount": 4, "marketCount": 0 },
-      { "id": "c2", "title": "[Starting card 2]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 0, "pr": 1, "invest": 1, "raises": "backlash", "raiseAmount": 1, "effect": "none", "effectAmount": 0, "cost": 0, "startCount": 4, "marketCount": 0 },
-      { "id": "c3", "title": "[Starting card 3]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 0, "pr": 0, "invest": 2, "raises": "", "raiseAmount": 0, "effect": "none", "effectAmount": 0, "cost": 0, "startCount": 2, "marketCount": 0 },
-      { "id": "c4", "title": "[Card 4]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 3, "pr": 0, "invest": 0, "raises": "economy", "raiseAmount": 2, "effect": "none", "effectAmount": 0, "cost": 4, "startCount": 0, "marketCount": 3 },
-      { "id": "c5", "title": "[Card 5]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 0, "pr": 3, "invest": 0, "raises": "backlash", "raiseAmount": 2, "effect": "none", "effectAmount": 0, "cost": 4, "startCount": 0, "marketCount": 3 },
-      { "id": "c6", "title": "[Card 6]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 2, "pr": 2, "invest": 1, "raises": "military", "raiseAmount": 2, "effect": "none", "effectAmount": 0, "cost": 5, "startCount": 0, "marketCount": 2 },
-      { "id": "c7", "title": "[Card 7]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 0, "pr": 0, "invest": 3, "raises": "", "raiseAmount": 0, "effect": "draw", "effectAmount": 1, "cost": 3, "startCount": 0, "marketCount": 3 },
-      { "id": "c8", "title": "[Card 8]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 1, "pr": 1, "invest": 0, "raises": "military", "raiseAmount": 1, "effect": "pushSpace", "effectAmount": 1, "cost": 3, "startCount": 0, "marketCount": 2 },
-      { "id": "c9", "title": "[Card 9]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 0, "pr": 1, "invest": 1, "raises": "", "raiseAmount": 0, "effect": "lowerBacklash", "effectAmount": 2, "cost": 3, "startCount": 0, "marketCount": 2 },
-      { "id": "c10", "title": "[Card 10]", "ability": "[Ability]", "flavor": "[Historical flavor text]", "space": 0, "pr": 0, "invest": 1, "raises": "", "raiseAmount": 0, "effect": "lowerMilitary", "effectAmount": 2, "cost": 3, "startCount": 0, "marketCount": 2 }
+      {
+        "id": "c1",
+        "title": "Invest in Space race",
+        "ability": "[Ability]",
+        "flavor": "[Historical flavor text]",
+        "space": 2,
+        "pr": 0,
+        "invest": 0,
+        "raises": "economy",
+        "raiseAmount": 1,
+        "effect": "draw",
+        "effectAmount": 2,
+        "cost": 0,
+        "startCount": 4,
+        "marketCount": 0
+      },
+      {
+        "id": "c2",
+        "title": "Sell Weapons ",
+        "ability": "[Ability]",
+        "flavor": "[Historical flavor text]",
+        "space": 0,
+        "pr": 0,
+        "invest": 0,
+        "raises": "military",
+        "raiseAmount": 2,
+        "effect": "gainInvest",
+        "effectAmount": 4,
+        "cost": 0,
+        "startCount": 4,
+        "marketCount": 0
+      },
+      {
+        "id": "c3",
+        "title": "",
+        "ability": "[Ability]",
+        "flavor": "[Historical flavor text]",
+        "space": 0,
+        "pr": 0,
+        "invest": 2,
+        "raises": "",
+        "raiseAmount": 0,
+        "effect": "lowerBacklash",
+        "effectAmount": 4,
+        "cost": 0,
+        "startCount": 2,
+        "marketCount": 0
+      },
+      {
+        "id": "c4",
+        "title": "Direct Line",
+        "ability": "[Ability]",
+        "flavor": "Make a direct call and deescalate the situation.",
+        "space": 0,
+        "pr": 3,
+        "invest": 0,
+        "raises": "military",
+        "raiseAmount": 0,
+        "effect": "lowerMilitary",
+        "effectAmount": 3,
+        "cost": 5,
+        "startCount": 0,
+        "marketCount": 3
+      },
+      {
+        "id": "c6",
+        "title": "[Card 6]",
+        "ability": "[Ability]",
+        "flavor": "[Historical flavor text]",
+        "space": 2,
+        "pr": 2,
+        "invest": 1,
+        "raises": "military",
+        "raiseAmount": 2,
+        "effect": "none",
+        "effectAmount": 0,
+        "cost": 5,
+        "startCount": 0,
+        "marketCount": 2
+      },
+      {
+        "id": "c7",
+        "title": "[Card 7]",
+        "ability": "[Ability]",
+        "flavor": "[Historical flavor text]",
+        "space": 0,
+        "pr": 0,
+        "invest": 3,
+        "raises": "",
+        "raiseAmount": 0,
+        "effect": "draw",
+        "effectAmount": 1,
+        "cost": 3,
+        "startCount": 0,
+        "marketCount": 3
+      },
+      {
+        "id": "c8",
+        "title": "[Card 8]",
+        "ability": "[Ability]",
+        "flavor": "[Historical flavor text]",
+        "space": 1,
+        "pr": 1,
+        "invest": 0,
+        "raises": "military",
+        "raiseAmount": 1,
+        "effect": "pushSpace",
+        "effectAmount": 1,
+        "cost": 3,
+        "startCount": 0,
+        "marketCount": 2
+      },
+      {
+        "id": "c9",
+        "title": "[Card 9]",
+        "ability": "[Ability]",
+        "flavor": "[Historical flavor text]",
+        "space": 0,
+        "pr": 1,
+        "invest": 1,
+        "raises": "",
+        "raiseAmount": 0,
+        "effect": "lowerBacklash",
+        "effectAmount": 2,
+        "cost": 3,
+        "startCount": 0,
+        "marketCount": 2
+      }
     ]
   }
 }
@@ -509,6 +657,7 @@ body.is-editing [data-image-box]::after {
       buy: '[Buy]',
       cardCost: '[Cost {n}]',
       cardValue: '{name} +{n}',
+      cardValueMinus: '{name} −{n}',
       investZone: '[Investment]',
       dropHint: '[Drag a card here]',
       handHeading: '[Your hand]',
@@ -613,7 +762,7 @@ body.is-editing [data-image-box]::after {
         pr: 'Race track (second drop space)',
         backlash: 'Danger: when full, cards on the second race track are weakened',
         economy: 'Danger: when full, cards on the first race track are weakened',
-        military: 'Danger: when EITHER player\'s is full, both players lose'
+        military: 'Danger, SHARED: one bar for both players. Any player\'s cards move it. When it is full, both players lose'
       },
       rulesHeading: 'Players and rules',
       settingCol: 'Setting',
@@ -624,7 +773,7 @@ body.is-editing [data-image-box]::after {
       marketSize: 'Cards in the market',
       penalty: 'Weakened cards keep this % of their value',
       cardsHeading: 'Cards',
-      cardsHelp: 'One row per card. The three number columns after the flavor text say how much the card does in each drop space. "Raises" is the danger track that goes up when the card is played on a race track.',
+      cardsHelp: 'One row per card. The three number columns after the flavor text say how much the card does in each drop space. "Raises" is the danger track that changes when the card is played on a race track. Type a minus number (for example -2) to make a card lower a value instead of raising it.',
       title: 'Title',
       ability: 'Ability text',
       effect: 'Ability effect',
@@ -711,6 +860,9 @@ body.is-editing [data-image-box]::after {
 
   // A whole number, never below 0 (blank or nonsense counts as 0).
   function num(v) { return Math.max(0, Math.round(Number(v) || 0)); }
+
+  // A whole number that may be below 0 (for card values that can lower things).
+  function int(v) { return Math.round(Number(v) || 0); }
 
   // A short random id for new items, e.g. "c4k2x9".
   function newId(prefix) { return prefix + Math.random().toString(36).slice(2, 8); }
@@ -950,6 +1102,20 @@ body.is-editing [data-image-box]::after {
   const EFFECTS = ['none', 'draw', 'gainInvest', 'lowerBacklash', 'lowerEconomy', 'lowerMilitary', 'pushSpace', 'pushPR'];
   const EFFECT_TRACK = { lowerBacklash: 'backlash', lowerEconomy: 'economy', lowerMilitary: 'military', pushSpace: 'space', pushPR: 'pr' };
 
+  // The one danger track BOTH players share: a single bar that anyone's
+  // cards move up or down. Every other track belongs to one player.
+  const SHARED = 'military';
+  const PLAYER_TRACKS = TRACKS.filter(t => t !== SHARED);
+
+  // Read or change a track for a player. The shared track lives on the
+  // match itself, so both players read and change the same value.
+  // Values always stay between 0 and the track's end.
+  function trackValue(p, t) { return t === SHARED ? match.heat : p[t]; }
+  function setTrackValue(p, t, value) {
+    const v = Math.max(0, Math.min(trackLength(t), value));
+    if (t === SHARED) match.heat = v; else p[t] = v;
+  }
+
   function game() { return data.game; }
   function settings() { return Object.assign({ handSize: 5, marketSize: 5, penaltyPercent: 50 }, game().settings); }
   function trackLength(key) { return Math.max(1, num((game().tracks[key] || {}).length)); }
@@ -980,7 +1146,7 @@ body.is-editing [data-image-box]::after {
 
   function newPlayer() {
     const p = { deck: copies('startCount'), hand: [], discard: [], played: { space: [], pr: [], invest: [] }, buy: 0 };
-    TRACKS.forEach(t => { p[t] = 0; });
+    PLAYER_TRACKS.forEach(t => { p[t] = 0; });
     drawCards(p, num(settings().handSize));
     return p;
   }
@@ -990,6 +1156,7 @@ body.is-editing [data-image-box]::after {
       id: ++matchCount,
       turn: 'human',
       players: { human: newPlayer(), ai: newPlayer() },
+      heat: 0,                         // the shared track's value (see SHARED)
       supply: copies('marketCount'),   // cards waiting to go into the market
       market: [],                      // cards that can be bought right now
       log: [],
@@ -1026,9 +1193,11 @@ body.is-editing [data-image-box]::after {
   }
 
   // How far a card moves a race track for this player right now.
+  // A minus value moves the track back. Weakening only shrinks forward moves.
   function effectiveValue(p, card, zone) {
-    const base = num(card[zone]);
-    return isWeakened(p, zone) ? Math.floor(base * Math.min(100, num(settings().penaltyPercent)) / 100) : base;
+    const base = int(card[zone]);
+    if (base <= 0 || !isWeakened(p, zone)) return base;
+    return Math.floor(base * Math.min(100, num(settings().penaltyPercent)) / 100);
   }
 
   function playCard(who, index, zone) {
@@ -1038,11 +1207,12 @@ body.is-editing [data-image-box]::after {
     p.hand.splice(index, 1);
     p.played[zone].push(card.id);
     if (zone === 'invest') {
-      p.buy += num(card.invest);
+      p.buy = Math.max(0, p.buy + int(card.invest));
     } else {
-      p[zone] = Math.min(trackLength(zone), p[zone] + effectiveValue(p, card, zone));
+      setTrackValue(p, zone, p[zone] + effectiveValue(p, card, zone));
+      // "Raises" with a minus amount lowers that danger track instead.
       if (DANGERS.includes(card.raises)) {
-        p[card.raises] = Math.min(trackLength(card.raises), p[card.raises] + num(card.raiseAmount));
+        setTrackValue(p, card.raises, trackValue(p, card.raises) + int(card.raiseAmount));
       }
     }
     applyAbility(p, match.players[other(who)], card);
@@ -1056,16 +1226,15 @@ body.is-editing [data-image-box]::after {
     const t = EFFECT_TRACK[card.effect];
     if (card.effect === 'draw') drawCards(p, n);
     else if (card.effect === 'gainInvest') p.buy += n;
-    else if (DANGERS.includes(t)) p[t] = Math.max(0, p[t] - n);
-    else if (RACES.includes(t)) opp[t] = Math.max(0, opp[t] - n);
+    else if (DANGERS.includes(t)) setTrackValue(p, t, trackValue(p, t) - n);
+    else if (RACES.includes(t)) setTrackValue(opp, t, opp[t] - n);
   }
 
-  // Nuclear war (either military track full) ends the game for both players
+  // Nuclear war (the shared track full) ends the game for both players
   // first; otherwise the first player to fill a race track wins.
+  // Only the player who just moved can have filled the shared track.
   function checkForEnd(who) {
-    for (const w of ['human', 'ai']) {
-      if (match.players[w].military >= trackLength('military')) { match.over = { kind: 'nuclear', who: w, track: 'military' }; return; }
-    }
+    if (match.heat >= trackLength(SHARED)) { match.over = { kind: 'nuclear', who: who, track: SHARED }; return; }
     for (const w of [who, other(who)]) {
       for (const t of RACES) {
         if (match.players[w][t] >= trackLength(t)) { match.over = { kind: 'win', who: w, track: t }; return; }
@@ -1125,7 +1294,7 @@ body.is-editing [data-image-box]::after {
      player can watch. For every card in its hand and every drop space it
      works out a score, and plays the best one. Then it buys the most
      useful cards it can afford, and ends its turn.
-     It never makes a move that would fill its own military track.
+     It never makes a move that would fill the shared track (nuclear war).
      ------------------------------------------------------------------- */
   const AI_PAUSE = 800;        // milliseconds between the computer's moves
 
@@ -1162,24 +1331,27 @@ body.is-editing [data-image-box]::after {
   function aiScore(p, opp, card, zone) {
     let score = 0;
     if (zone === 'invest') {
-      score += num(card.invest) * investWorth(p);
+      score += int(card.invest) * investWorth(p);
     } else {
       const len = trackLength(zone);
       const gain = effectiveValue(p, card, zone);
-      if (gain && p[zone] + gain >= len) score += 100;            // this move wins
-      score += gain * (1 + p[zone] / len);
-      const danger = card.raises, rise = num(card.raiseAmount);
+      if (gain > 0 && p[zone] + gain >= len) score += 100;        // this move wins
+      score += gain * (1 + p[zone] / len);                        // a minus value scores below 0
+      const danger = card.raises, rise = int(card.raiseAmount);
       if (DANGERS.includes(danger) && rise) {
-        const dlen = trackLength(danger), after = p[danger] + rise;
-        if (danger === 'military' && after >= dlen) return -1000;  // never start a nuclear war
-        score -= rise * (after / dlen) * 1.5;
-        if (after >= dlen && p[danger] < dlen) score -= 4;         // would become weakened
+        const dlen = trackLength(danger), before = trackValue(p, danger);
+        const after = Math.max(0, Math.min(dlen, before + rise));
+        if (danger === SHARED && after >= dlen) return -1000;     // never start a nuclear war
+        // Raising a danger track costs points; lowering one earns them.
+        // Either matters more the fuller the track is.
+        score -= (after - before) * (Math.max(before, after) / dlen) * 1.5;
+        if (after >= dlen && before < dlen) score -= 4;           // would become weakened
       }
     }
     const n = num(card.effectAmount), t = EFFECT_TRACK[card.effect];
     if (card.effect === 'draw') score += n * 1.2;
     else if (card.effect === 'gainInvest') score += n * investWorth(p);
-    else if (DANGERS.includes(t)) score += Math.min(n, p[t]) * (p[t] / trackLength(t)) * 1.5;
+    else if (DANGERS.includes(t)) score += Math.min(n, trackValue(p, t)) * (trackValue(p, t) / trackLength(t)) * 1.5;
     else if (RACES.includes(t)) score += Math.min(n, opp[t]) * (0.5 + opp[t] / trackLength(t));
     return score;
   }
@@ -1200,9 +1372,9 @@ body.is-editing [data-image-box]::after {
 
   // A rough idea of how good a card is to own.
   function cardWorth(card) {
-    let worth = num(card.space) + num(card.pr) + num(card.invest) * 0.8;
+    let worth = int(card.space) + int(card.pr) + int(card.invest) * 0.8;
     if (card.effect && card.effect !== 'none') worth += num(card.effectAmount);
-    if (DANGERS.includes(card.raises)) worth -= num(card.raiseAmount) * 0.5;
+    if (DANGERS.includes(card.raises)) worth -= int(card.raiseAmount) * 0.5;
     return worth;
   }
 
@@ -1271,6 +1443,11 @@ body.is-editing [data-image-box]::after {
     sides.append(sideEl('human', notes), sideEl('ai', notes));
     board.append(sides);
 
+    // The one track both players share.
+    const shared = el('div', { class: 'shared-track' });
+    shared.append(trackRow(SHARED, match.heat, false, notes));
+    board.append(shared);
+
     // The market.
     board.append(textEl('h3', 'ui.marketHeading', notes));
     const market = el('div', { class: 'card-row market' });
@@ -1320,26 +1497,29 @@ body.is-editing [data-image-box]::after {
     if (editing) makeEditable();
   }
 
-  // One player's name and five tracks.
+  // One player's name and their own tracks (the shared track is drawn separately).
   function sideEl(who, notes) {
     const p = match.players[who];
     const box = el('div', { class: 'side' + (match.turn === who && !match.over ? ' active' : '') });
     box.append(textEl('h3', 'game.players.' + who, notes));
-    TRACKS.forEach(t => {
-      const len = trackLength(t), value = Math.min(p[t], len);
-      const row = el('div', { class: 'track ' + (RACES.includes(t) ? 'race' : 'danger') });
-      const label = el('div', { class: 'track-label' });
-      label.append(textEl('span', 'game.tracks.' + t + '.name', notes));
-      if (isWeakened(p, t)) label.append(' ', rich('span', uiText('weakened'), notes, { class: 'badge' }));
-      const bar = el('div', { class: 'bar', 'aria-hidden': 'true' });
-      const fillBar = el('div', { class: 'fill' + (value >= len ? ' full' : '') });
-      fillBar.style.width = (100 * value / len) + '%';
-      bar.append(fillBar);
-      row.append(label, bar, el('span', { class: 'track-value' }, value + ' / ' + len));
-      box.append(row);
-    });
+    PLAYER_TRACKS.forEach(t => box.append(trackRow(t, p[t], isWeakened(p, t), notes)));
     if (who === 'ai') box.append(rich('p', uiText('aiHandCount', { n: p.hand.length }), notes, { class: 'muted small' }));
     return box;
+  }
+
+  // One track: its name (with a "Weakened" badge if needed), a bar, and "value / end".
+  function trackRow(t, current, weakened, notes) {
+    const len = trackLength(t), value = Math.min(current, len);
+    const row = el('div', { class: 'track ' + (RACES.includes(t) ? 'race' : 'danger') });
+    const label = el('div', { class: 'track-label' });
+    label.append(textEl('span', 'game.tracks.' + t + '.name', notes));
+    if (weakened) label.append(' ', rich('span', uiText('weakened'), notes, { class: 'badge' }));
+    const bar = el('div', { class: 'bar', 'aria-hidden': 'true' });
+    const fillBar = el('div', { class: 'fill' + (value >= len ? ' full' : '') });
+    fillBar.style.width = (100 * value / len) + '%';
+    bar.append(fillBar);
+    row.append(label, bar, el('span', { class: 'track-value' }, value + ' / ' + len));
+    return row;
   }
 
   // One drop space. Cards are dropped here, or picked with a click/tap and then this is clicked.
@@ -1381,12 +1561,16 @@ body.is-editing [data-image-box]::after {
     }
     node.append(rich('h4', card.title, notes, { class: 'card-title' }));
 
+    // A label for each value, e.g. "Space +2" or, for a minus value, "Space −2".
+    const chip = (name, n, cls) => rich('span',
+      uiText(n < 0 ? 'cardValueMinus' : 'cardValue', { name: name, n: Math.abs(n) }), notes, { class: 'chip ' + cls });
     const chips = el('div', { class: 'chips' });
     ZONES.forEach(z => {
-      if (num(card[z])) chips.append(rich('span', uiText('cardValue', { name: zoneName(z), n: num(card[z]) }), notes, { class: 'chip chip-' + z }));
+      if (int(card[z])) chips.append(chip(zoneName(z), int(card[z]), 'chip-' + z));
     });
-    if (DANGERS.includes(card.raises) && num(card.raiseAmount)) {
-      chips.append(rich('span', uiText('cardValue', { name: trackName(card.raises), n: num(card.raiseAmount) }), notes, { class: 'chip chip-danger' }));
+    if (DANGERS.includes(card.raises) && int(card.raiseAmount)) {
+      const n = int(card.raiseAmount);
+      chips.append(chip(trackName(card.raises), n, n < 0 ? 'chip-calm' : 'chip-danger'));
     }
     node.append(chips);
     if (card.ability) node.append(rich('p', card.ability, notes, { class: 'ability' }));
@@ -1729,7 +1913,9 @@ body.is-editing [data-image-box]::after {
     <p>Scroll down to the <b>Game editor</b> box under the game. It has three tables.</p>
     <ol>
       <li><b>Tracks:</b> type each track's <b>Name</b> and its <b>End value</b> (how many points
-        it takes to reach the end). The first two are the race tracks. The last three are danger tracks.</li>
+        it takes to reach the end). The first two are the race tracks. The last three are danger tracks.
+        The very last one is <b>shared</b>: there is only one bar for both players, and either player's
+        cards move it. When it is full, both players lose.</li>
       <li><b>Players and rules:</b> the names of the player and the computer opponent, how many
         cards are in each hand, how many cards are in the market, and how much a weakened card keeps.</li>
       <li><b>Cards:</b> each row is one card.
@@ -1739,8 +1925,11 @@ body.is-editing [data-image-box]::after {
             something in the game (for example, draw 1 card).</li>
           <li>The next three numbers say how much the card does in each drop space: the two race tracks
             and investment (buying power).</li>
-          <li><b>Raises</b> and <b>By</b>: which danger track goes up when the card is played on a
+          <li><b>Raises</b> and <b>By</b>: which danger track changes when the card is played on a
             race track, and by how much.</li>
+          <li>To make a card <b>lower</b> something, type a minus number, for example <code>-2</code>.
+            A minus number in <b>By</b> lowers that danger track. A minus number for a race track
+            moves the player back. On the card it shows as −2.</li>
           <li><b>Cost</b>: how much buying power it takes to buy the card from the market.</li>
           <li><b>In starting deck</b>: how many copies each player starts with.
             <b>In market</b>: how many copies can be bought.</li>
@@ -2116,7 +2305,7 @@ body.is-editing [data-image-box]::after {
   }
   function numberBox(path, label, min, max) {
     return bindBox(el('input', { type: 'number', min: String(min), max: String(max), step: '1' }), path, label,
-      v => Math.min(max, Math.max(min, num(v))));
+      v => Math.min(max, Math.max(min, int(v))));
   }
   function selectBox(path, label, options) {
     const box = el('select');
@@ -2164,11 +2353,11 @@ body.is-editing [data-image-box]::after {
           selectBox(p + 'effect', T.effect, effectOptions),
           numberBox(p + 'effectAmount', T.amount, 0, 20),
           textBox(p + 'flavor', T.flavor, true),
-          numberBox(p + 'space', zoneName('space'), 0, 20),
-          numberBox(p + 'pr', zoneName('pr'), 0, 20),
-          numberBox(p + 'invest', zoneName('invest'), 0, 20),
+          numberBox(p + 'space', zoneName('space'), -20, 20),      // minus values lower things
+          numberBox(p + 'pr', zoneName('pr'), -20, 20),
+          numberBox(p + 'invest', zoneName('invest'), -20, 20),
           selectBox(p + 'raises', T.raises, raiseOptions),
-          numberBox(p + 'raiseAmount', T.raiseAmount, 0, 20),
+          numberBox(p + 'raiseAmount', T.raiseAmount, -20, 20),
           numberBox(p + 'cost', T.cost, 0, 50),
           numberBox(p + 'startCount', T.startCount, 0, 20),
           numberBox(p + 'marketCount', T.marketCount, 0, 20),
@@ -2250,6 +2439,4 @@ body.is-editing [data-image-box]::after {
     if (location.hash === '#edit') startEditing();
   });
 })();
-</script>
-</body>
-</html>
+</script></body></html>
