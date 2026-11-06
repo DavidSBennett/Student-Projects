@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lewis Hine Project</title>
-<style>
+<style data-game>
 /* =====================================================================
    GAME STYLES
    ===================================================================== */
@@ -266,7 +266,24 @@ body.ed-on .node .label { outline: 1px dashed rgba(40,110,220,.6); }
   'use strict';
 
   // A copy of the untouched page, used as the starting point when saving.
-  const SNAPSHOT = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  // Browser extensions can add their own scripts and styles to the page, and
+  // Save file would write them into the game. Copy the page without them.
+  // (A style added to this file by hand needs data-game, or it gets left out.)
+  const SNAPSHOT = (() => {
+    const own = document.currentScript;
+    const extra = n => {
+      const tag = n.localName;
+      if (n.parentNode === document.documentElement && tag !== 'head' && tag !== 'body') return true;
+      if (tag === 'script') return n !== own && n.id !== 'game-data';
+      if (tag === 'style') return !n.hasAttribute('data-game');
+      if (tag === 'link') return !/^https:\/\/fonts\.(googleapis|gstatic)\.com\//.test(n.href);
+      return ['iframe', 'object', 'embed'].includes(tag) || tag.includes('-');
+    };
+    const page = document.documentElement.cloneNode(true);
+    const copies = [...page.querySelectorAll('*')];
+    [...document.documentElement.querySelectorAll('*')].forEach((n, i) => { if (extra(n)) copies[i].remove(); });
+    return '<!DOCTYPE html>\n' + page.outerHTML;
+  })();
   const PROGRESS_KEY = 'lh-progress:' + location.pathname;
   const DRAFT_KEY = 'lh-draft:' + location.pathname;
   const UNLOCK_KEY = 'lh-unlocked:' + location.pathname;

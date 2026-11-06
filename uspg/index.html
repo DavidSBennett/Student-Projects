@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&amp;family=Special+Elite&amp;family=Source+Serif+4:ital,wght@0,400;0,600;1,400&amp;display=swap">
-<style>
+<style data-game>
 /* =====================================================================
    STYLES
    A wartime-leaflet card game. To restyle the page, change the colours
@@ -863,7 +863,24 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
      "Save file" builds the new file from this copy and only swaps in the
      new game data, so no editor bits or rendered footnotes can leak into it.
      ------------------------------------------------------------------- */
-  const ORIGINAL_PAGE = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  // Browser extensions can add their own scripts and styles to the page, and
+  // Save file would write them into the game. Copy the page without them.
+  // (A style added to this file by hand needs data-game, or it gets left out.)
+  const ORIGINAL_PAGE = (() => {
+    const own = document.currentScript;
+    const extra = n => {
+      const tag = n.localName;
+      if (n.parentNode === document.documentElement && tag !== 'head' && tag !== 'body') return true;
+      if (tag === 'script') return n !== own && n.id !== 'game-data';
+      if (tag === 'style') return !n.hasAttribute('data-game');
+      if (tag === 'link') return !/^https:\/\/fonts\.(googleapis|gstatic)\.com\//.test(n.href);
+      return ['iframe', 'object', 'embed'].includes(tag) || tag.includes('-');
+    };
+    const page = document.documentElement.cloneNode(true);
+    const copies = [...page.querySelectorAll('*')];
+    [...document.documentElement.querySelectorAll('*')].forEach((n, i) => { if (extra(n)) copies[i].remove(); });
+    return '<!DOCTYPE html>\n' + page.outerHTML;
+  })();
 
   const TAGS = ['crisis', 'warn', 'good'];          // kinds of event
   const CARD_TYPES = ['white', 'grey', 'black'];    // kinds of propaganda card

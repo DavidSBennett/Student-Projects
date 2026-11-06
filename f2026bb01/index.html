@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Jungle: Meat Inspector — Chicago, 1906</title>
-<style>
+<style data-game>
 /* =====================================================================
    STYLES
    An inspection-desk game. To restyle the page, change the colours and
@@ -1588,7 +1588,24 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
      "Save file" builds the new file from this copy and only swaps in the
      new game data, so no editor bits or rendered footnotes can leak into it.
      ------------------------------------------------------------------- */
-  const ORIGINAL_PAGE = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  // Browser extensions can add their own scripts and styles to the page, and
+  // Save file would write them into the game. Copy the page without them.
+  // (A style added to this file by hand needs data-game, or it gets left out.)
+  const ORIGINAL_PAGE = (() => {
+    const own = document.currentScript;
+    const extra = n => {
+      const tag = n.localName;
+      if (n.parentNode === document.documentElement && tag !== 'head' && tag !== 'body') return true;
+      if (tag === 'script') return n !== own && n.id !== 'game-data';
+      if (tag === 'style') return !n.hasAttribute('data-game');
+      if (tag === 'link') return !/^https:\/\/fonts\.(googleapis|gstatic)\.com\//.test(n.href);
+      return ['iframe', 'object', 'embed'].includes(tag) || tag.includes('-');
+    };
+    const page = document.documentElement.cloneNode(true);
+    const copies = [...page.querySelectorAll('*')];
+    [...document.documentElement.querySelectorAll('*')].forEach((n, i) => { if (extra(n)) copies[i].remove(); });
+    return '<!DOCTYPE html>\n' + page.outerHTML;
+  })();
 
   // The kinds of thing the game knows how to do. Everything else is data.
   const FIELD_KINDS = ['attr', 'expiry', 'number', 'list', 'text'];
