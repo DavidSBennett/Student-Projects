@@ -393,8 +393,8 @@ body.is-editing [data-image-box]::after {
   },
   "page": {
     "title": "\n",
-    "introduction": "[Introduction]",
-    "gameAreaHeading": "[Game area]",
+    "introduction": "John F. Kennedy took office in January 1961 and led the United States until his assassination in Dallas on November 22, 1963. In this game you play as Kennedy, racing the Soviet Union for the Moon and for the world's opinion while managing Cold War crises, the economy, and domestic opposition.",
+    "gameAreaHeading": "The Presidency, 1961–1963",
     "author": "Chase DeRuiter Group 9 US History"
   },
   "ui": {
@@ -434,33 +434,33 @@ body.is-editing [data-image-box]::after {
   "images": {
     "header": {
       "src": "",
-      "alt": "[Header image description]"
+      "alt": "John F. Kennedy at the White House, 1961"
     }
   },
   "game": {
     "players": {
-      "human": "[Player]",
-      "ai": "[Computer opponent]"
+      "human": "John F. Kennedy",
+      "ai": "The Soviet Union"
     },
     "tracks": {
       "space": {
-        "name": "[Space Race]",
+        "name": "Space Race",
         "length": 15
       },
       "pr": {
-        "name": "[Public Relations]",
+        "name": "Public Image",
         "length": 15
       },
       "backlash": {
-        "name": "[Domestic backlash]",
+        "name": "Domestic Opposition",
         "length": 10
       },
       "economy": {
-        "name": "[Economic instability]",
+        "name": "Economic Instability",
         "length": 10
       },
       "military": {
-        "name": "[Conflict Heat]",
+        "name": "Cold War Tension",
         "length": 10
       }
     },
@@ -472,9 +472,9 @@ body.is-editing [data-image-box]::after {
     "cards": [
       {
         "id": "c1",
-        "title": "Invest in Space race",
-        "ability": "[Ability]",
-        "flavor": "[Historical flavor text]",
+        "title": "Man on the Moon",
+        "ability": "Draw 2 cards.",
+        "flavor": "May 1961: Kennedy tells Congress the nation should land a man on the Moon before the decade is out.",
         "space": 2,
         "pr": 0,
         "invest": 0,
@@ -488,9 +488,9 @@ body.is-editing [data-image-box]::after {
       },
       {
         "id": "c2",
-        "title": "Sell Weapons ",
-        "ability": "[Ability]",
-        "flavor": "[Historical flavor text]",
+        "title": "Flexible Response",
+        "ability": "Gain 4 buying power.",
+        "flavor": "Kennedy expands conventional forces and counterinsurgency units, so the U.S. is not limited to nuclear options.",
         "space": 0,
         "pr": 0,
         "invest": 0,
@@ -504,9 +504,9 @@ body.is-editing [data-image-box]::after {
       },
       {
         "id": "c3",
-        "title": "",
-        "ability": "[Ability]",
-        "flavor": "[Historical flavor text]",
+        "title": "Civil Rights Address",
+        "ability": "Lower domestic opposition by 4.",
+        "flavor": "June 1963: Kennedy goes on national television to call civil rights a moral issue.",
         "space": 0,
         "pr": 0,
         "invest": 2,
@@ -520,15 +520,15 @@ body.is-editing [data-image-box]::after {
       },
       {
         "id": "c4",
-        "title": "Direct Line",
-        "ability": "[Ability]",
-        "flavor": "Make a direct call and deescalate the situation.",
+        "title": "Moscow Hotline",
+        "ability": "Lower Cold War tension by 3.",
+        "flavor": "After the Cuban Missile Crisis, a direct line between Washington and Moscow is agreed in 1963.",
         "space": 0,
         "pr": 3,
         "invest": 0,
         "raises": "military",
-        "raiseAmount": -3,
-        "effect": "lowerBacklash",
+        "raiseAmount": 0,
+        "effect": "lowerMilitary",
         "effectAmount": 3,
         "cost": 5,
         "startCount": 0,
@@ -536,9 +536,9 @@ body.is-editing [data-image-box]::after {
       },
       {
         "id": "c6",
-        "title": "[Card 6]",
-        "ability": "[Ability]",
-        "flavor": "[Historical flavor text]",
+        "title": "Bay of Pigs",
+        "ability": "No special ability.",
+        "flavor": "April 1961: a CIA-backed invasion of Cuba fails. Kennedy publicly accepts responsibility.",
         "space": 2,
         "pr": 2,
         "invest": 1,
@@ -552,9 +552,9 @@ body.is-editing [data-image-box]::after {
       },
       {
         "id": "c7",
-        "title": "[Card 7]",
-        "ability": "[Ability]",
-        "flavor": "[Historical flavor text]",
+        "title": "Peace Corps",
+        "ability": "Draw 1 card.",
+        "flavor": "Created by executive order in 1961, the Peace Corps sends American volunteers to developing countries.",
         "space": 0,
         "pr": 0,
         "invest": 3,
@@ -568,9 +568,9 @@ body.is-editing [data-image-box]::after {
       },
       {
         "id": "c8",
-        "title": "[Card 8]",
-        "ability": "[Ability]",
-        "flavor": "[Historical flavor text]",
+        "title": "Vienna Summit",
+        "ability": "Set back the Soviet space race by 1.",
+        "flavor": "June 1961: Kennedy meets Khrushchev in Vienna and comes away alarmed by Soviet confidence.",
         "space": 1,
         "pr": 1,
         "invest": 0,
@@ -584,9 +584,9 @@ body.is-editing [data-image-box]::after {
       },
       {
         "id": "c9",
-        "title": "[Card 9]",
-        "ability": "[Ability]",
-        "flavor": "[Historical flavor text]",
+        "title": "Berlin Speech",
+        "ability": "Lower domestic opposition by 2.",
+        "flavor": "June 1963: standing in West Berlin, Kennedy declares solidarity with the city, saying \"Ich bin ein Berliner.\"",
         "space": 0,
         "pr": 1,
         "invest": 1,
