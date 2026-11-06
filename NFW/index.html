@@ -94,6 +94,7 @@ img { max-width: 100%; }
 .checks { display: grid; gap: 6px; }
 .check { display: flex; gap: 8px; align-items: flex-start; font: 15px/1.4 var(--font-ui); cursor: pointer; }
 .check input { margin-top: 3px; }
+.difficulty { margin: 0 0 14px; }
 .check .hint { display: block; }
 .check.disabled { opacity: .5; cursor: default; }
 .household { background: var(--game-card); border: 1px solid var(--game-line); border-radius: 6px; padding: 12px; margin-bottom: 16px; }
@@ -249,6 +250,9 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
     images         pictures, each one { "src": picture data, "alt": description, "caption": caption }
     game           the game:
       settings     number of days, how often rent is due and what it costs
+      difficulties what the player can choose on the start screen. Each one changes
+                   the starting supplies, the rent, the missed rent allowed and how
+                   fast needs get worse. The middle one starts selected.
       text         every heading, button and message the game shows.
                    Words in {curly brackets} are filled in by the game.
       resources    the household's supplies and how many it starts with
@@ -262,6 +266,11 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
                    household; "skipEffects" happen when a household choice is skipped
       events       night events with choices. "day" fixes an event to one day;
                    null means it can come up on any night. "who" is "all" or "one".
+                   One family member is picked per event: {name} in its text shows
+                   who, and choices with "who": "one" happen to that person.
+                   Linked events: "unlocks" lists events to add to the random pool,
+                   on an event (whenever it happens) or on a choice (if it's picked).
+                   An event that something links to stays out of the pool until then.
     Every "effects" has "resources" (+ adds, - takes away) and "needs"
     (+ steps worse, - steps better).
 
@@ -980,18 +989,19 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
     editGameTitle: 'Edit game',
     editGameIntro: 'Changes save as you type. Click Close when you’re finished, then click Done to play and test the game.',
     tabs: [
-      ['settings', 'Settings'], ['text', 'Game wording'], ['resources', 'Supplies'], ['needs', 'Needs'],
+      ['settings', 'Settings'], ['difficulty', 'Difficulty'], ['text', 'Game wording'], ['resources', 'Supplies'], ['needs', 'Needs'],
       ['family', 'Family'], ['tasks', 'Daytime tasks'], ['evening', 'Evening choices'], ['events', 'Night events']
     ],
     tabHelp: {
       settings: 'How long the game lasts and how rent works.',
+      difficulty: 'The levels the player can choose on the start screen. Each one changes the normal game set up in the other tabs: leave a box empty for no change. The middle level starts selected. With only one level, the player doesn’t see a choice.',
       text: 'Headings, buttons and messages the game shows. Leave words in {curly brackets} exactly as they are; the game fills them in.',
       resources: 'The household’s supplies, and how many of each the family starts with.',
       needs: 'What each family member needs. Steps go from best (first line) to worst (last line). Past the last step, the family member is lost, or another need gets worse instead.',
       family: 'The family members. Each one gets a task in the daytime and can be cared for in the evening.',
       tasks: 'Each daytime, every family member does one of these tasks. Changes to needs happen to the person doing the task.',
       evening: 'Choices the player can make every evening, either for each family member or for the whole household.',
-      events: 'One night event happens each night. Give an event a day number to make it happen on that day; leave the day empty to let it come up on any night. Each event happens only once.'
+      events: 'One night event happens each night. Give an event a day number to make it happen on that day; leave the day empty to let it come up on any night. Each event happens only once. The game picks one family member for each event: type {name} in the title, text, button text or what happens next to show who it is. Choices set to “one family member” happen to that person. Linked events: check an event in an “add” list to keep it out of the game until that event happens or that choice is picked. After that, it can come up on any night.'
     },
     days: 'Number of days the family has to get through',
     rentEvery: 'Rent is due every … days (0 = no rent)',
@@ -1016,7 +1026,7 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
     effectsHelp: 'Supplies: + adds, − takes away. Needs: + makes it worse, − makes it better. Leave a box empty for no change.',
     perMember: 'Choose this separately for each family member',
     title: 'Title',
-    text: 'Text',
+    text: 'Text ({name} = the family member picked for this event)',
     day: 'Happens on day (empty = any night)',
     choices: 'Choices',
     choiceLabel: 'Button text',
@@ -1025,11 +1035,21 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
     whoAll: 'the whole family',
     whoOne: 'one family member, picked at random',
     item: (kind, n) => kind + ' ' + n,
-    kinds: { resources: 'Supply', needs: 'Need', family: 'Family member', tasks: 'Task', evening: 'Evening choice', events: 'Night event', choice: 'Choice' },
+    startSupplies: 'Change to starting supplies',
+    startSuppliesHelp: '+ gives more at the start, − gives less.',
+    rentChange: 'Change to the rent cost (+ costs more, − costs less)',
+    missedRentChange: 'Change to the missed rent payments allowed',
+    dailyNeeds: 'Extra steps worse every morning',
+    dailyNeedsHelp: 'Added to the number in the Needs tab. + gets worse faster, − gets worse slower.',
+    linkEvent: 'When this event happens, add these events',
+    linkChoice: 'If the player picks this choice, add these events',
+    heldBack: 'This event is linked: it stays out of the game until another event adds it.',
+    neverWarning: names => 'These events can never happen, because the only events that add them are also waiting to be added: ' + names + '.',
+    kinds: { difficulty: 'Difficulty', resources: 'Supply', needs: 'Need', family: 'Family member', tasks: 'Task', evening: 'Evening choice', events: 'Night event', choice: 'Choice' },
     add: kind => '+ Add ' + kind.toLowerCase(),
     textNames: {
       startTitle: 'Start screen: title', startText: 'Start screen: text', startButton: 'Start screen: button',
-      familyHeading: 'Start screen: heading above the family', dayCounter: 'Day counter ({day}, {days})',
+      familyHeading: 'Start screen: heading above the family', difficultyHeading: 'Start screen: heading above the difficulty levels', dayCounter: 'Day counter ({day}, {days})',
       rentDue: 'Rent reminder ({cost}, {resource}, {days})', rentDueToday: 'Rent reminder on rent day ({cost}, {resource})',
       dayTitle: 'Daytime: heading', dayHelp: 'Daytime: instructions', endDay: 'Daytime: button',
       eveningTitle: 'Evening: heading', eveningHelp: 'Evening: instructions', householdHeading: 'Evening: heading above household choices',
@@ -1080,9 +1100,12 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
     <p>To change the game:</p>
     <ol>
       <li>Click <b>Edit game…</b> in the dark bar (or in the game box).</li>
-      <li>Click a tab at the top of the form: <b>Settings</b>, <b>Game wording</b>, <b>Supplies</b>, <b>Needs</b>, <b>Family</b>, <b>Daytime tasks</b>, <b>Evening choices</b> or <b>Night events</b>.</li>
+      <li>Click a tab at the top of the form: <b>Settings</b>, <b>Difficulty</b>, <b>Game wording</b>, <b>Supplies</b>, <b>Needs</b>, <b>Family</b>, <b>Daytime tasks</b>, <b>Evening choices</b> or <b>Night events</b>.</li>
       <li>Type in the boxes. Each tab explains what it's for at the top.</li>
       <li>In <b>What happens</b>, type numbers. For supplies, a plus number adds and a minus number takes away. For needs, a plus number makes it worse and a minus number makes it better. Leave a box empty for no change.</li>
+      <li>In <b>Night events</b>, the game picks one family member for each event. Type <code>{name}</code> in the title, text, button text or what happens next, and the game shows that person's name. Choices set to happen to one family member happen to that same person.</li>
+      <li>In <b>Difficulty</b>, set up the levels the player chooses on the start screen. Each level changes the starting supplies, the rent and how fast needs get worse.</li>
+      <li>To link night events, open <b>Night events</b> and find the event or choice that should lead to another one. In its list of events to add, check the event that should follow. The checked event stays out of the game until then. After that, it can come up on any night.</li>
       <li>Use the <b>+ Add</b> buttons to add more, and <b>Remove</b> to take something out.</li>
       <li>Click <b>Upload image</b> to add a portrait or a picture for a night event.</li>
       <li>Your changes save as you type. Click <b>Close</b> when you're finished.</li>
@@ -1139,6 +1162,7 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
         startText: '[Explain the family\'s situation and what the player has to do]',
         startButton: '[Begin]',
         familyHeading: '[The family]',
+        difficultyHeading: '[Choose a difficulty]',
         dayCounter: '[Day {day} of {days}]',
         rentDue: '[Rent: {cost} {resource}, due in {days} days]',
         rentDueToday: '[Rent: {cost} {resource}, due tonight]',
@@ -1168,6 +1192,11 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
         evictedText: '[Ending text: evicted]',
         playAgain: '[Play again]'
       },
+      difficulties: [
+        { id: 'easy', name: '[Easy]', about: '[Describe this difficulty]', startSupplies: { money: 3, food: 2, fuel: 1 }, rentChange: -1, missedRentChange: 1, dailyNeeds: {} },
+        { id: 'normal', name: '[Normal]', about: '[Describe this difficulty]', startSupplies: {}, rentChange: 0, missedRentChange: 0, dailyNeeds: {} },
+        { id: 'hard', name: '[Hard]', about: '[Describe this difficulty]', startSupplies: { money: -2, food: -1, fuel: -1 }, rentChange: 3, missedRentChange: -1, dailyNeeds: {} }
+      ],
       resources: [], needs: [], family: [], tasks: [], evening: [], events: []
     }
   };
@@ -1339,13 +1368,23 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
   // Fills in {words} in curly brackets. Footnote markers {{fn: ...}} are left alone.
   const fill = (text, vars) => String(text ?? '').replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
 
+  // The chosen difficulty. It stays chosen after "Play again". The middle one is the starting choice.
+  let chosenDifficulty = null;
+  function difficulty() {
+    const list = G().difficulties;
+    return list.find(d => d.id === chosenDifficulty) || list[Math.floor((list.length - 1) / 2)] || null;
+  }
+  const rentCost = () => Math.max(0, num(G().settings.rentCost) + num((difficulty() || {}).rentChange));
+  const missedAllowed = () => Math.max(0, num(G().settings.missedRentAllowed) + num((difficulty() || {}).missedRentChange));
+
   function newGame() {
     const g = G();
     game = {
       screen: 'start', day: 1, res: {}, missed: 0, used: [], ending: null,
+      unlocked: [], // ids of linked events added to the random pool so far
       assign: {},   // member id -> task id (daytime)
       care: {},     // evening choice id -> list of member ids, or true for household choices
-      event: null, result: null, error: '',
+      event: null, target: null, result: null, error: '', // target: the family member tonight's event picked
       pending: [],  // messages waiting to be shown on the next screen
       members: g.family.map(f => ({
         id: f.id, lost: '',
@@ -1360,6 +1399,29 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
   const alive = () => game.members.filter(m => !m.lost);
   const resourceName = id => (G().resources.find(r => r.id === id) || {}).name || '';
   const needOf = id => G().needs.find(n => n.id === id);
+
+  // Linked night events. An event can add others to the random pool, whenever it
+  // happens (ev.unlocks) or when one of its choices is picked (choice.unlocks).
+  const linksOf = ev => [...(ev.unlocks || []), ...(ev.choices || []).flatMap(c => c.unlocks || [])];
+  // Every event something links to. These stay out of the pool until they're added.
+  function heldBack() {
+    const held = new Set();
+    G().events.forEach(ev => linksOf(ev).forEach(id => { if (id !== ev.id) held.add(id); }));
+    return held;
+  }
+  // Events that can't ever be reached, such as two that only add each other.
+  function neverHappens() {
+    const held = heldBack();
+    const reached = new Set(G().events.filter(e => !held.has(e.id)).map(e => e.id));
+    for (let grew = true; grew;) {
+      grew = false;
+      G().events.filter(e => reached.has(e.id)).flatMap(linksOf).forEach(id => {
+        if (!reached.has(id)) { reached.add(id); grew = true; }
+      });
+    }
+    return G().events.filter(e => !reached.has(e.id));
+  }
+  function unlockEvents(ids) { game.unlocked.push(...(ids || [])); }
 
   // Adds up the supply changes of several effects.
   function totals(list) {
@@ -1450,11 +1512,13 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
     const bar = document.createElement('div');
     bar.className = 'game-status';
     bar.append(gt('span', 'day', fill(T('dayCounter'), { day: game.day, days: num(s.days) })));
+    if (G().difficulties.length > 1) bar.append(gt('span', '', difficulty().name));
     const every = num(s.rentEvery);
     if (every > 0) {
       const left = (every - (game.day % every)) % every;
-      const vars = { cost: num(s.rentCost), resource: resourceName(s.rentResource), days: left };
-      bar.append(gt('span', '', fill(T(left ? 'rentDue' : 'rentDueToday'), vars)));
+      const vars = { cost: rentCost(), resource: resourceName(s.rentResource), days: left };
+      // "1 days" reads wrong, so the day before rent is due it becomes "1 day".
+      bar.append(gt('span', '', fill(T(left ? 'rentDue' : 'rentDueToday'), vars).replace(/\b1 days\b/g, '1 day')));
     }
     const sup = document.createElement('div');
     sup.className = 'supplies';
@@ -1512,8 +1576,36 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
   const SCREENS = {
     start(box) {
       box.append(gt('h2', '', T('startTitle')), ...paragraphs(T('startText')), gt('h3', '', T('familyHeading')),
-        familyGrid(m => memberCard(m, { about: true })),
-        gameButton(T('startButton'), () => setScreen('day'), 'primary'));
+        familyGrid(m => memberCard(m, { about: true })));
+      if (G().difficulties.length > 1) {
+        const pick = document.createElement('div');
+        pick.className = 'difficulty checks';
+        pick.append(gt('h3', '', T('difficultyHeading')));
+        G().difficulties.forEach(d => {
+          const label = document.createElement('label');
+          label.className = 'check';
+          const radio = document.createElement('input');
+          radio.type = 'radio';
+          radio.name = 'difficulty';
+          radio.checked = d === difficulty();
+          radio.addEventListener('change', () => { chosenDifficulty = d.id; renderGame(); $('#game-screen input:checked').focus(); });
+          const words = document.createElement('span');
+          words.append(withNotes(d.name, gp));
+          const hint = effectHint({ resources: d.startSupplies });
+          if (hint) words.append(gt('span', 'hint', hint));
+          if (d.about) words.append(gt('span', 'hint', d.about));
+          label.append(radio, words);
+          pick.append(label);
+        });
+        box.append(pick);
+      }
+      box.append(gameButton(T('startButton'), () => {
+        // The difficulty's starting supplies are added when the game begins.
+        Object.entries((difficulty() || {}).startSupplies || {}).forEach(([k, v]) => {
+          if (k in game.res) game.res[k] = Math.max(0, game.res[k] + num(v));
+        });
+        setScreen('day');
+      }, 'primary'));
     },
 
     day(box) {
@@ -1616,11 +1708,16 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
         });
         game.pending = lines;
         // Tonight's event: one fixed to this day, or else a random unused one.
-        const unused = G().events.filter(e => !game.used.includes(e.id));
+        // Linked events only count once something has added them.
+        const held = heldBack();
+        const unused = G().events.filter(e => !game.used.includes(e.id) && (!held.has(e.id) || game.unlocked.includes(e.id)));
         const fixed = unused.filter(e => num(e.day) === game.day);
         const pool = fixed.length ? fixed : unused.filter(e => !num(e.day));
         game.event = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
-        if (game.event) game.used.push(game.event.id);
+        if (game.event) { game.used.push(game.event.id); unlockEvents(game.event.unlocks); }
+        // One family member is picked before the event shows, so its text can name them.
+        const people = alive();
+        game.target = game.event && people.length ? people[Math.floor(Math.random() * people.length)] : null;
         setScreen('night');
       }, 'primary'));
     },
@@ -1632,15 +1729,20 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
         box.append(gt('p', '', T('quietNight')), gameButton(T('continueButton'), morning, 'primary'));
         return;
       }
-      box.append(gt('h3', '', ev.title));
+      const vars = targetVars();
+      const options = ev.choices || [];
+      box.append(gt('h3', '', fill(ev.title, vars)));
+      // If every choice happens to one person and the text doesn't name them, show who it is.
+      if (game.target && options.length && options.every(c => c.who === 'one') && !/\{name\}/.test(ev.title + ev.text)) {
+        box.append(gt('p', 'help', vars.name));
+      }
       const pic = picture(ev.image, 'game-photo');
       if (pic) box.append(pic);
-      box.append(...paragraphs(ev.text));
+      box.append(...paragraphs(fill(ev.text, vars)));
       const choices = document.createElement('div');
       choices.className = 'game-actions';
-      const options = ev.choices || [];
       options.forEach(c => {
-        const b = gameButton(c.label, () => choose(c), '', effectHint(c.effects, true));
+        const b = gameButton(fill(c.label, vars), () => choose(c), '', effectHint(c.effects, true));
         b.disabled = !affordable([c.effects]);
         choices.append(b);
       });
@@ -1679,12 +1781,16 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
     }
   };
 
-  // A night choice: its effects happen to the whole family or to one member.
+  // {name} in tonight's event is the family member picked for it.
+  const targetVars = () => ({ name: game.target ? nameOf(game.target) : '' });
+
+  // A night choice: its effects happen to the whole family or to the picked member.
   function choose(c) {
-    const target = c.who === 'one' ? alive()[Math.floor(Math.random() * alive().length)] : null;
+    const vars = targetVars();
     const lines = [];
-    applyEffects(c.effects, target ? [target] : alive(), lines);
-    game.result = { title: game.event.title, text: fill(c.result, { name: target ? nameOf(target) : '' }), lines };
+    applyEffects(c.effects, c.who === 'one' && game.target ? [game.target] : alive(), lines);
+    unlockEvents(c.unlocks);
+    game.result = { title: fill(game.event.title, vars), text: fill(c.result, vars), lines };
     setScreen('result');
   }
 
@@ -1692,17 +1798,17 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
   function morning() {
     const s = G().settings;
     const lines = game.pending;
-    alive().forEach(m => G().needs.forEach(n => changeNeed(m, n.id, num(n.daily), lines)));
+    alive().forEach(m => G().needs.forEach(n => changeNeed(m, n.id, num(n.daily) + num(((difficulty() || {}).dailyNeeds || {})[n.id]), lines)));
     const every = num(s.rentEvery);
     if (every > 0 && game.day % every === 0) {
-      const cost = num(s.rentCost);
+      const cost = rentCost();
       const r = s.rentResource;
       const vars = { cost, resource: resourceName(r) };
       if ((game.res[r] || 0) >= cost) { game.res[r] -= cost; lines.push(fill(T('rentPaid'), vars)); }
       else {
         game.missed++;
         lines.push(fill(T('rentMissed'), vars));
-        if (game.missed > num(s.missedRentAllowed)) game.ending = 'evicted';
+        if (game.missed > missedAllowed()) game.ending = 'evicted';
       }
     }
     if (!alive().length) game.ending = 'lost';
@@ -2153,22 +2259,56 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
         const fs = el('fieldset');
         fs.append(el('legend', '', legend), el('p', '', E.effectsHelp));
         const grid = el('div', 'ed-grid');
-        const box = (bag, id, name) => {
-          const l = el('label', '', stripNotes(name));
-          const f = el('input');
-          f.type = 'number';
-          f.value = bag[id] ?? '';
-          f.addEventListener('input', () => {
-            if (f.value.trim() === '' || Number(f.value) === 0) delete bag[id]; else bag[id] = Number(f.value);
-            markDirty();
-          });
-          l.append(f);
-          return l;
-        };
-        g().resources.forEach(r => grid.append(box(e.resources, r.id, r.name)));
-        g().needs.forEach(n => grid.append(box(e.needs, n.id, n.name)));
+        g().resources.forEach(r => grid.append(numberBox(e.resources, r.id, r.name)));
+        g().needs.forEach(n => grid.append(numberBox(e.needs, n.id, n.name)));
         fs.append(grid);
         return fs;
+      }
+      function numberBox(bag, id, name) {
+        const l = el('label', '', stripNotes(name));
+        const f = el('input');
+        f.type = 'number';
+        f.value = bag[id] ?? '';
+        f.addEventListener('input', () => {
+          if (f.value.trim() === '' || Number(f.value) === 0) delete bag[id]; else bag[id] = Number(f.value);
+          markDirty();
+        });
+        l.append(f);
+        return l;
+      }
+      // Number boxes for one list only (the difficulty's supplies or needs).
+      function changes(obj, key, items, legend, help) {
+        obj[key] ??= {};
+        const fs = el('fieldset');
+        fs.append(el('legend', '', legend), el('p', '', help));
+        const grid = el('div', 'ed-grid');
+        items.forEach(x => grid.append(numberBox(obj[key], x.id, x.name)));
+        fs.append(grid);
+        return fs;
+      }
+      // Checkboxes for the other night events this event or choice adds to the pool.
+      function links(obj, selfId, legend) {
+        const others = g().events.filter(e => e.id !== selfId);
+        if (!others.length) return [];
+        const fs = el('fieldset');
+        fs.append(el('legend', '', legend));
+        const grid = el('div', 'ed-grid');
+        others.forEach(e => {
+          const l = el('label', 'ed-check');
+          const c = el('input');
+          c.type = 'checkbox';
+          c.checked = (obj.unlocks || []).includes(e.id);
+          c.addEventListener('change', () => {
+            const rest = (obj.unlocks || []).filter(id => id !== e.id);
+            if (c.checked) rest.push(e.id);
+            if (rest.length) obj.unlocks = rest; else delete obj.unlocks;
+            markDirty(); draw();
+          });
+          l.append(c, stripNotes(e.title));
+          grid.append(l);
+        });
+        fs.append(grid);
+        return [fs];
       }
       function image(img, withCaption) {
         const fs = el('div');
@@ -2218,6 +2358,16 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
           out.append(number(s, 'days', E.days), number(s, 'rentEvery', E.rentEvery), number(s, 'rentCost', E.rentCost),
             choice(s, 'rentResource', E.rentResource, g().resources.map(r => [r.id, stripNotes(r.name)])),
             number(s, 'missedRentAllowed', E.missedRentAllowed));
+        },
+        difficulty(out) {
+          const list = g().difficulties;
+          list.forEach((d, i) => out.append(item(list, i, 'difficulty', 0, (fs, d) => {
+            fs.append(text(d, 'name', E.name), text(d, 'about', E.about, true),
+              changes(d, 'startSupplies', g().resources, E.startSupplies, E.startSuppliesHelp),
+              number(d, 'rentChange', E.rentChange), number(d, 'missedRentChange', E.missedRentChange),
+              changes(d, 'dailyNeeds', g().needs, E.dailyNeeds, E.dailyNeedsHelp));
+          })));
+          out.append(addButton('difficulty', () => list.push({ id: newId('d'), name: '[' + E.kinds.difficulty + ']', about: '[Describe this difficulty]', startSupplies: {}, rentChange: 0, missedRentChange: 0, dailyNeeds: {} })));
         },
         text(out) {
           const t = g().text;
@@ -2281,14 +2431,19 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
         },
         events(out) {
           const list = g().events;
+          const never = neverHappens();
+          if (never.length) out.append(el('p', 'ed-error', E.neverWarning(never.map(e => stripNotes(e.title)).join(', '))));
+          const held = heldBack();
           list.forEach((ev, i) => out.append(item(list, i, 'events', 0, (fs, ev) => {
             ev.image ??= { src: '', alt: '', caption: '' };
             ev.choices ??= [];
+            if (held.has(ev.id)) fs.append(el('p', 'ed-hint', E.heldBack));
             fs.append(text(ev, 'title', E.title), text(ev, 'text', E.text, true), number(ev, 'day', E.day, true), image(ev.image, true),
-              el('h4', '', E.choices));
+              ...links(ev, ev.id, E.linkEvent), el('h4', '', E.choices));
             ev.choices.forEach((c, ci) => fs.append(item(ev.choices, ci, 'choice', 1, (cfs, c) => {
               cfs.append(text(c, 'label', E.choiceLabel), text(c, 'result', E.result, true),
-                choice(c, 'who', E.who, [['all', E.whoAll], ['one', E.whoOne]]), effects(c, 'effects', E.effects));
+                choice(c, 'who', E.who, [['all', E.whoAll], ['one', E.whoOne]]), effects(c, 'effects', E.effects),
+                ...links(c, ev.id, E.linkChoice));
             })));
             fs.append(addButton('choice', () => ev.choices.push({ label: '[Choice]', result: '[What happens next]', who: 'all', effects: blankEffects() })));
           })));
