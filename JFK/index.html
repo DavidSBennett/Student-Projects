@@ -373,7 +373,8 @@ body.is-editing [data-image-box]::after {
          cards          every card. Each has a title, ability and flavor text;
                         "space", "pr" and "invest" (what it does in each drop
                         space); "raises" + "raiseAmount" (the danger track it
-                        moves when played on a race track); "effect" +
+                        moves when played on a race track, or anywhere if it
+                        is the shared track); "effect" +
                         "effectAmount" (what its ability does); "cost";
                         "startCount" (copies in each starting deck) and
                         "marketCount" (copies that can be bought).
@@ -791,7 +792,7 @@ body.is-editing [data-image-box]::after {
       marketSize: 'Cards in the market',
       penalty: 'Weakened cards keep this % of their value',
       cardsHeading: 'Cards',
-      cardsHelp: 'One row per card. The three number columns after the flavor text say how much the card does in each drop space. "Raises" is the danger track that changes when the card is played on a race track. Type a minus number (for example -2) to make a card lower a value instead of raising it.',
+      cardsHelp: 'One row per card. The three number columns after the flavor text say how much the card does in each drop space. "Raises" is the danger track that changes when the card is played on a race track. The shared track changes wherever the card is played. Type a minus number (for example -2) to make a card lower a value instead of raising it.',
       title: 'Title',
       ability: 'Ability text',
       effect: 'Ability effect',
@@ -1108,6 +1109,7 @@ body.is-editing [data-image-box]::after {
                     (less if you are weakened), and push up the danger
                     track the card "raises"
        invest       add the card's invest value to your buying power
+     A card that raises the shared track moves it in ANY drop space.
      Every card's ability effect happens wherever it is played. Buying power
      buys cards from the market; bought cards go to your discard pile.
      At the end of a turn, played cards go to the discard pile and any cards
@@ -1220,6 +1222,13 @@ body.is-editing [data-image-box]::after {
     return Math.floor(base * Math.min(100, num(settings().penaltyPercent)) / 100);
   }
 
+  // Does playing this card in this drop space move the danger track it names?
+  // The shared track moves wherever the card is played; a player's own danger
+  // tracks only move when the card is played on a race track.
+  function movesDanger(card, zone) {
+    return DANGERS.includes(card.raises) && (zone !== 'invest' || card.raises === SHARED);
+  }
+
   function playCard(who, index, zone) {
     const p = match.players[who];
     const card = cardById(p.hand[index]);
@@ -1230,10 +1239,10 @@ body.is-editing [data-image-box]::after {
       p.buy = Math.max(0, p.buy + int(card.invest));
     } else {
       setTrackValue(p, zone, p[zone] + effectiveValue(p, card, zone));
-      // "Raises" with a minus amount lowers that danger track instead.
-      if (DANGERS.includes(card.raises)) {
-        setTrackValue(p, card.raises, trackValue(p, card.raises) + int(card.raiseAmount));
-      }
+    }
+    // "Raises" with a minus amount lowers that danger track instead.
+    if (movesDanger(card, zone)) {
+      setTrackValue(p, card.raises, trackValue(p, card.raises) + int(card.raiseAmount));
     }
     applyAbility(p, match.players[other(who)], card);
     addLog(uiText('logPlayed', { player: playerName(who), card: stripNotes(card.title), zone: zoneName(zone) }));
@@ -1356,16 +1365,16 @@ body.is-editing [data-image-box]::after {
       const gain = effectiveValue(p, card, zone);
       if (gain > 0 && p[zone] + gain >= len) score += 100;        // this move wins
       score += gain * (1 + p[zone] / len);                        // a minus value scores below 0
-      const danger = card.raises, rise = int(card.raiseAmount);
-      if (DANGERS.includes(danger) && rise) {
-        const dlen = trackLength(danger), before = trackValue(p, danger);
-        const after = Math.max(0, Math.min(dlen, before + rise));
-        if (danger === SHARED && after >= dlen) return -1000;     // never start a nuclear war
-        // Raising a danger track costs points; lowering one earns them.
-        // Either matters more the fuller the track is.
-        score -= (after - before) * (Math.max(before, after) / dlen) * 1.5;
-        if (after >= dlen && before < dlen) score -= 4;           // would become weakened
-      }
+    }
+    const danger = card.raises, rise = int(card.raiseAmount);
+    if (movesDanger(card, zone) && rise) {
+      const dlen = trackLength(danger), before = trackValue(p, danger);
+      const after = Math.max(0, Math.min(dlen, before + rise));
+      if (danger === SHARED && after >= dlen) return -1000;       // never start a nuclear war
+      // Raising a danger track costs points; lowering one earns them.
+      // Either matters more the fuller the track is.
+      score -= (after - before) * (Math.max(before, after) / dlen) * 1.5;
+      if (after >= dlen && before < dlen) score -= 4;             // would become weakened
     }
     const n = num(card.effectAmount), t = EFFECT_TRACK[card.effect];
     if (card.effect === 'draw') score += n * 1.2;
@@ -1945,7 +1954,8 @@ body.is-editing [data-image-box]::after {
           <li>The next three numbers say how much the card does in each drop space: the two race tracks
             and investment (buying power).</li>
           <li><b>Raises</b> and <b>By</b>: which danger track changes when the card is played on a
-            race track, and by how much.</li>
+            race track, and by how much. The shared track changes wherever the card is played,
+            even on investment.</li>
           <li>To make a card <b>lower</b> something, type a minus number, for example <code>-2</code>.
             A minus number in <b>By</b> lowers that danger track. A minus number for a race track
             moves the player back. On the card it shows as −2.</li>
