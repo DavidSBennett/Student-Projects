@@ -1110,8 +1110,10 @@ body.is-editing [data-image-box]::after {
        invest       add the card's invest value to your buying power
      Every card's ability effect happens wherever it is played. Buying power
      buys cards from the market; bought cards go to your discard pile.
-     At the end of a turn, every card goes to the discard pile and you draw
-     a new hand (the discard pile is shuffled into a new deck when needed).
+     At the end of a turn, played cards go to the discard pile and any cards
+     still in your hand stay there. You only draw a new hand if you played
+     every card; otherwise the only way to draw is a card's "Draw cards"
+     ability. (The discard pile is shuffled into a new deck when needed.)
      ------------------------------------------------------------------- */
   const RACES = ['space', 'pr'];
   const DANGERS = ['backlash', 'economy', 'military'];
@@ -1275,10 +1277,9 @@ body.is-editing [data-image-box]::after {
   function endTurn(who) {
     const p = match.players[who];
     ZONES.forEach(z => { p.discard.push(...p.played[z]); p.played[z] = []; });
-    p.discard.push(...p.hand);
-    p.hand = [];
+    p.hand = p.hand.filter(cardById);     // a card deleted in the editor can't be played, so it can't block a new hand
     p.buy = 0;
-    drawCards(p, num(settings().handSize));
+    if (!p.hand.length) drawCards(p, num(settings().handSize));
     match.turn = other(who);
     match.selected = null;
   }
