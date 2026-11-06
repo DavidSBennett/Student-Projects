@@ -62,6 +62,17 @@ body {
 .btn-small:hover, .btn-small:focus-visible { border-color: var(--accent); }
 .btn-small:disabled { opacity: .45; cursor: default; border-color: var(--rule); }
 .game-bar .notes-btn { margin-left: 0; }
+.meters { display: grid; gap: 6px; margin: -4px 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--rule); font: 14px/1.3 var(--font-ui); }
+.meters[hidden] { display: none; }
+.meter { display: grid; grid-template-columns: minmax(70px, 110px) 1fr 2.2em 3em; align-items: center; gap: 8px; }
+.meter-track { display: block; height: 12px; border-radius: 6px; background: #e6e0d4; overflow: hidden; }
+.meter-fill { display: block; height: 100%; width: 0; background: var(--meter-color); transition: width .35s ease; }
+.meter[data-meter="money"] { --meter-color: #3f7a4f; }
+.meter[data-meter="morality"] { --meter-color: #2f5f8f; }
+.meter-value { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.meter-change { color: var(--muted); font-variant-numeric: tabular-nums; }
+.meter-ending { margin: 0 0 20px; padding: 10px 14px; border-left: 3px solid var(--accent); background: var(--highlight); white-space: pre-line; }
+@media (prefers-reduced-motion: reduce) { .meter-fill { transition: none; } }
 .scene-title { margin: 0 0 12px; font-size: clamp(22px, 4vw, 30px); line-height: 1.2; font-weight: normal; }
 .scene-image { margin: 0 0 16px; }
 .scene-image img { display: block; width: 100%; max-height: 60vh; object-fit: contain; background: #e6e0d4; border-radius: 6px; }
@@ -133,10 +144,12 @@ body.ed-on .edit-link { display: none; }
 body.ed-on .choice { cursor: text; }
 .ed-scene-info { margin: 0 0 12px; padding: 8px 10px; border-radius: 6px; background: #eef3fc; color: #2c3443; }
 .ed-scene-info select { max-width: 100%; }
-.ed-choice-row { display: grid; gap: 6px; }
+.ed-choice-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
 .ed-choice-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: #4c5566; }
 .ed-choice-tools select { flex: 1 1 180px; min-width: 0; padding: 5px 6px; border: 1px solid #c9ced8; border-radius: 6px; background: #fff; color: #1d2330; }
 .ed-choice-tools select.ed-bad { border-color: #b42318; color: #b42318; }
+.ed-choice-tools label { display: inline-flex; align-items: center; gap: 4px; }
+.ed-choice-tools input { width: 66px; padding: 4px 6px; border: 1px solid #c9ced8; border-radius: 6px; background: #fff; color: #1d2330; }
 .ed-add-choice { justify-self: start; margin-top: 4px; }
 .ed-dialog .ed-scene-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; padding: 8px 0; border-top: 1px solid #e1e4ea; }
 .ed-dialog .ed-badges { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; }
@@ -205,6 +218,21 @@ body.ed-on [data-image] img:not([src]) { display: none; }
       <button type="button" class="btn-small" id="start-over" data-label="ui.startOver"></button>
       <button type="button" class="notes-btn" data-notes-button="game" hidden=""></button>
     </div>
+    <!-- Money and morality meters: only shown once a choice changes a score. -->
+    <div class="meters" id="meters" hidden="">
+      <div class="meter" data-meter="money">
+        <span data-label="meters.money.label"></span>
+        <span class="meter-track" role="meter" aria-valuemin="0" aria-valuemax="100"><span class="meter-fill"></span></span>
+        <span class="meter-value"></span>
+        <span class="meter-change"></span>
+      </div>
+      <div class="meter" data-meter="morality">
+        <span data-label="meters.morality.label"></span>
+        <span class="meter-track" role="meter" aria-valuemin="0" aria-valuemax="100"><span class="meter-fill"></span></span>
+        <span class="meter-value"></span>
+        <span class="meter-change"></span>
+      </div>
+    </div>
     <div id="scene"></div>
   </section>
 </main>
@@ -251,7 +279,16 @@ body.ed-on [data-image] img:not([src]) { display: none; }
                      Each choice has a "label" (the button words) and a "target"
                      (the id of the scene it leads to). Many choices can lead to
                      the same scene. A scene with no choices is an ending.
+                     A choice can also have "money" and "morality": how many
+                     points it adds (or takes away, with a minus sign).
                      In "ui", {n} in "progress" is replaced by the scene count.
+    meters         The money and morality meters. Each has a "label" and a
+                   "start" score from 0 to 100. A score of "highAt" or more
+                   counts as high. "endings" holds the four closing messages:
+                   the first word is money, the second is morality
+                   (highLow = high money, low morality). Leave one empty to
+                   show nothing. The meters stay hidden until a choice has a
+                   money or morality number.
 
   Footnotes: in any text, type {{fn: your citation}} where the note belongs.
     Example: A sentence that needs a source.{{fn: Author, Title, Year, page}}
@@ -614,6 +651,16 @@ body.ed-on [data-image] img:not([src]) { display: none; }
     removeChoiceTip: 'Remove this choice',
     addChoice: '+ Add choice',
     newChoice: '[New choice]',
+    metersButton: 'Meters…',
+    metersTitle: 'Money and morality meters',
+    metersHelp: 'Name the meters, set their starting scores from 0 to 100, and write the message players see at any ending. To change a score, type a number under a choice in the story.',
+    meterName: '{meter}: name',
+    meterStart: '{meter}: starting score',
+    meterHighAt: 'A score counts as high at',
+    meterEndingLabel: '{money} {a}, {morality} {b}: ending message',
+    meterChoiceTip: 'Points this choice adds. Use a minus sign to take points away. 0 means no change.',
+    high: 'high',
+    low: 'low',
     statusNewScene: 'New scene added. Click “Go ›” next to the choice to write it.',
     statusStart: 'Click outlined text to edit it. Use “Go ›” to follow a choice. Changes auto-save in this browser.',
     statusHasChanges: 'Your auto-saved changes are loaded. Changes auto-save in this browser.',
@@ -652,6 +699,17 @@ body.ed-on [data-image] img:not([src]) { display: none; }
       theEnd: '[The end]', playAgain: '[Play again]', missingScene: '[This choice does not lead anywhere yet.]'
     },
     images: { header: { src: '', alt: '[Header image description]' } },
+    meters: {
+      money: { label: 'Money', start: 50 },
+      morality: { label: 'Morality', start: 50 },
+      highAt: 60,
+      endings: {
+        highHigh: '[What it means to finish with high money and high morality.]',
+        highLow: '[What it means to finish with high money and low morality.]',
+        lowHigh: '[What it means to finish with low money and high morality.]',
+        lowLow: '[What it means to finish with low money and low morality.]'
+      }
+    },
     game: {
       start: 's1',
       scenes: [
@@ -838,14 +896,20 @@ body.ed-on [data-image] img:not([src]) { display: none; }
      5b. THE STORY
      The player reads one scene at a time and clicks a choice to move on.
      `trail` is the list of scene ids the player has visited; the last one
-     is the scene on screen. "Back" removes the last one.
+     is the scene on screen. "Back" removes the last one. `picked` holds
+     the choice that led to each scene in the trail. The meter scores are
+     always worked out again from it, so "Back" undoes their points too.
      ===================================================================== */
   let trail = [];
+  let picked = [];
+  const METERS = ['money', 'morality'];
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, Math.round(Number(v)) || 0));
   const sceneIndex = id => data.game.scenes.findIndex(s => s.id === id);
   const firstSceneId = () => (sceneIndex(data.game.start) >= 0 ? data.game.start : (data.game.scenes[0] || {}).id);
 
-  function goToScene(id) {
+  function goToScene(id, choice) {
     trail.push(id);
+    picked[trail.length - 1] = choice;
     render();
     const area = $('#game-area');
     if (area.getBoundingClientRect().top < 0) area.scrollIntoView({ block: 'start' }); // phones: show the top of the new scene
@@ -854,6 +918,42 @@ body.ed-on [data-image] img:not([src]) { display: none; }
   function startOver() { trail = [firstSceneId()]; render(); }
   $('#back').addEventListener('click', goBack);
   $('#start-over').addEventListener('click', startOver);
+
+  // The scores right now, and how much the last choice changed them.
+  function meterScores() {
+    const now = {}, change = {};
+    METERS.forEach(m => { now[m] = clamp(data.meters[m].start, 0, 100); change[m] = 0; });
+    for (let i = 1; i < trail.length; i++) {
+      METERS.forEach(m => {
+        const before = now[m];
+        now[m] = clamp(before + (Number((picked[i] || {})[m]) || 0), 0, 100);
+        change[m] = now[m] - before;
+      });
+    }
+    return { now, change };
+  }
+  const metersInUse = () => data.game.scenes.some(s => s.choices.some(c => METERS.some(m => Number(c[m]))));
+  function showMeters() {
+    const box = $('#meters');
+    box.hidden = !editing && !metersInUse();
+    const { now, change } = meterScores();
+    METERS.forEach(m => {
+      const row = box.querySelector('[data-meter="' + m + '"]');
+      const track = row.querySelector('.meter-track');
+      track.setAttribute('aria-valuenow', now[m]);
+      track.setAttribute('aria-label', plain(data.meters[m].label));
+      row.querySelector('.meter-fill').style.width = now[m] + '%';
+      row.querySelector('.meter-value').textContent = now[m];
+      row.querySelector('.meter-change').textContent = change[m] > 0 ? '+' + change[m] : change[m] < 0 ? '\u2212' + -change[m] : '';
+    });
+  }
+  // Which closing message fits these scores: endings.highLow = high money, low morality.
+  function meterEndingKey() {
+    const { now } = meterScores();
+    const level = m => (now[m] >= data.meters.highAt ? 'high' : 'low');
+    const money = level('money'), morality = level('morality');
+    return money + morality.charAt(0).toUpperCase() + morality.slice(1);
+  }
 
   // Small helper: a new element with a class and (optionally) a data-text path.
   function part(tag, cls, path, multiline) {
@@ -873,6 +973,8 @@ body.ed-on [data-image] img:not([src]) { display: none; }
     const i = sceneIndex(trail[trail.length - 1]);
     $('#progress').dataset.n = trail.length;
     $('#back').disabled = trail.length < 2;
+    picked.length = Math.min(picked.length, trail.length);
+    showMeters();
 
     // A choice that doesn't lead to a scene yet.
     if (i < 0) {
@@ -898,7 +1000,13 @@ body.ed-on [data-image] img:not([src]) { display: none; }
 
     const choices = el('div', 'choices');
     if (!scene.choices.length) {
-      // An ending: "The end" and "Play again".
+      // An ending: the message for the player's scores, "The end" and "Play again".
+      const key = meterEndingKey();
+      if ((editing || metersInUse()) && data.meters.endings[key].trim()) {
+        const msg = el('p', 'meter-ending');
+        msg.dataset.label = 'meters.endings.' + key;
+        box.append(msg);
+      }
       const end = el('p', 'the-end');
       end.dataset.label = 'ui.theEnd';
       box.append(end);
@@ -915,7 +1023,7 @@ body.ed-on [data-image] img:not([src]) { display: none; }
       const b = el('button', 'choice');
       b.type = 'button';
       b.append(label);
-      b.addEventListener('click', () => goToScene(c.target));
+      b.addEventListener('click', () => goToScene(c.target, c));
       choices.append(b);
     });
     if (editing) choices.append(edButton(T.addChoice, () => {
@@ -1185,14 +1293,24 @@ body.ed-on [data-image] img:not([src]) { display: none; }
       <li>Every footnote needs <code>{{</code> at the start and <code>}}</code> at the end, or it won't work.</li>
     </ul>
 
-    <h4>5. Saving your work</h4>
+    <h4>5. The money and morality meters</h4>
+    <p>The meters show what each decision costs the player. They stay hidden from players until a choice has a number.</p>
+    <ol>
+      <li>Under each choice, type how many points it adds to each meter. Use a minus sign to take points away, like <code>-10</code>. Leave <code>0</code> for no change.</li>
+      <li>Click <b>${T.follow}</b> next to a choice, or click <b>${T.done}</b> and play, to see the meters move. <b data-help="back"></b> takes the points away again.</li>
+      <li>Scores stay between 0 and 100.</li>
+      <li>Click <b>${T.metersButton}</b> in the dark bar to rename the meters, set their starting scores and decide what counts as a high score.</li>
+      <li>In <b>${T.metersButton}</b>, write the four ending messages. Players see one at any ending, depending on whether each score is high or low. Leave a message empty to show nothing there.</li>
+    </ol>
+
+    <h4>6. Saving your work</h4>
     <ol>
       <li>Your work saves by itself, but only in this browser on this computer.</li>
       <li>When you're finished, click <b>${T.saveFile}</b>. A file called <b>index.html</b> downloads.</li>
       <li>Turn in that index.html file the way your teacher tells you. That's the only way your work gets onto the real website.</li>
     </ol>
 
-    <h4>6. Tips</h4>
+    <h4>7. Tips</h4>
     <ul>
       <li>Replace everything in <b>[square brackets]</b> with your own research.</li>
       <li>Cite your sources with footnotes. Give a source for every image.</li>
@@ -1374,14 +1492,71 @@ body.ed-on [data-image] img:not([src]) { display: none; }
       }
       changed();
     });
-    const follow = edButton(T.follow, () => goToScene(choice.target));
+    const follow = edButton(T.follow, () => goToScene(choice.target, choice));
     follow.title = T.followTip;
     const remove = edButton(T.removeChoice, () => { scene.choices.splice(ci, 1); render(); changed(); });
     remove.title = T.removeChoiceTip;
     remove.setAttribute('aria-label', T.removeChoiceTip);
     tools.append(el('span', '', T.goesTo), sel, follow, remove);
-    row.append(label, tools);
+    const points = el('div', 'ed-ui ed-choice-tools');
+    METERS.forEach(m => {
+      const box = el('input');
+      box.type = 'number';
+      box.min = -100;
+      box.max = 100;
+      box.value = Number(choice[m]) || 0;
+      box.title = T.meterChoiceTip;
+      box.addEventListener('input', () => {
+        const v = clamp(box.value, -100, 100);
+        if (v) choice[m] = v; else delete choice[m];
+        showMeters();
+        changed();
+      });
+      const name = el('label', '', plain(data.meters[m].label));
+      name.append(box);
+      points.append(name);
+    });
+    row.append(label, tools, points);
     return row;
+  }
+
+  // "Meters…": names, starting scores and the four ending messages.
+  async function editMeters() {
+    const fill = (text, values) => Object.keys(values).reduce((t, k) => t.split('{' + k + '}').join(values[k]), text);
+    const field = (labelText, box) => { const l = el('label', '', labelText); l.append(box); return l; };
+    const number = (value, min, max) => { const b = el('input'); b.type = 'number'; b.min = min; b.max = max; b.value = value; return b; };
+    const text = (value, rows) => { const b = el('textarea'); b.rows = rows; b.value = value; return b; };
+    const body = [el('p', '', T.metersHelp), el('p', 'ed-hint', T.fnHint)];
+    const names = {}, starts = {};
+    METERS.forEach(m => {
+      const meter = plain(data.meters[m].label);
+      names[m] = text(data.meters[m].label, 1);
+      starts[m] = number(data.meters[m].start, 0, 100);
+      body.push(field(fill(T.meterName, { meter }), names[m]), field(fill(T.meterStart, { meter }), starts[m]));
+    });
+    const highAt = number(data.meters.highAt, 0, 100);
+    body.push(field(T.meterHighAt, highAt));
+    const endings = {};
+    ['high', 'low'].forEach(a => ['high', 'low'].forEach(b => {
+      const key = a + b.charAt(0).toUpperCase() + b.slice(1);
+      endings[key] = text(data.meters.endings[key], 2);
+      body.push(field(fill(T.meterEndingLabel, {
+        money: plain(data.meters.money.label), morality: plain(data.meters.morality.label), a: T[a], b: T[b]
+      }), endings[key]));
+    }));
+    const choice = await showDialog(T.metersTitle, body, [
+      { label: T.cancel, value: 'cancel' },
+      { label: T.apply, value: 'apply', primary: true }
+    ]);
+    if (choice !== 'apply') return;
+    METERS.forEach(m => {
+      data.meters[m].label = names[m].value;
+      data.meters[m].start = clamp(starts[m].value, 0, 100);
+    });
+    data.meters.highAt = clamp(highAt.value, 0, 100);
+    Object.keys(endings).forEach(k => { data.meters.endings[k] = endings[k].value; });
+    render();
+    changed();
   }
 
   // Which scenes can a player actually reach from the first scene?
@@ -1431,6 +1606,7 @@ body.ed-on [data-image] img:not([src]) { display: none; }
             data.game.scenes.splice(sceneIndex(s.id), 1);
             if (data.game.start === s.id) data.game.start = data.game.scenes[0].id;
             trail = trail.filter(id => id !== s.id);
+            picked = []; // the trail changed, so the points start again from here
             changed();
             draw();
           });
@@ -1459,7 +1635,7 @@ body.ed-on [data-image] img:not([src]) { display: none; }
 
   // --- "Other text…": every text field that isn't on screen right now ---
   // Settings rather than words: ids, where choices lead, the first scene, images, the password.
-  const NOT_TEXT_KEYS = ['auth', 'schemaVersion', 'src', 'id', 'target', 'start'];
+  const NOT_TEXT_KEYS = ['auth', 'schemaVersion', 'src', 'id', 'target', 'start', 'meters'];
   function hiddenTextFields() {
     const visible = new Set();
     document.querySelectorAll('[data-text]').forEach(n => { if (n.getClientRects().length) visible.add(n.dataset.text); });
@@ -1568,6 +1744,7 @@ body.ed-on [data-image] img:not([src]) { display: none; }
       edButton(T.howToEdit, showHelp),
       edButton(T.scenes, showScenes),
       edButton(T.otherText, editOtherText),
+      edButton(T.metersButton, editMeters),
       edButton(T.discard, discardChanges),
       edButton(T.saveFile, saveFile, 'ed-primary'),
       edButton(T.done, stopEditing)
