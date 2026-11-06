@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Papers Please Redux</title>
+<title>The Jungle: Meat Inspector — Chicago, 1906</title>
 <style>
 /* =====================================================================
    STYLES
@@ -319,6 +319,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
 .ed-help b { font-weight: 700; }
 .ed-help code { font: 13px/1.4 ui-monospace, Consolas, monospace; background: #f1f3f7; border: 1px solid #e1e4ea; border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
 .ed-help .ed-example { display: block; margin: 4px 0; padding: 6px 8px; }
+.historical-sources { flex-basis:100%; display:flex; flex-direction:column; gap:5px; border-top:1px solid #8c9890; padding-top:12px; font:13px/1.5 system-ui,sans-serif; color:#e0e6df; } .historical-sources strong {font-size:14px; letter-spacing:.05em;} .historical-sources a {color:#f8e0a5; text-decoration:underline;} .source-links {display:flex; flex-wrap:wrap; gap:6px 18px;}
 </style>
 </head>
 <body>
@@ -336,6 +337,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
 <div id="app"></div>
 
 <footer class="site-footer">
+  <div class="historical-sources" aria-label="Historical sources"><strong>Historical sources</strong><span>Educational simulation based on Upton Sinclair’s <em>The Jungle</em> and records of the 1906 meat-inspection reforms. Some forms, scores, events, and characters are fictional.</span><div class="source-links"><a href="https://www.gutenberg.org/ebooks/140" target="_blank" rel="noopener noreferrer">Sinclair, <em>The Jungle</em> (1906)</a><a href="https://www.visitthecapitol.gov/artifact/s-6219-bill-provide-inspection-live-cattle-sheep-and-goats-and-food-products-thereof-meat" target="_blank" rel="noopener noreferrer">U.S. Capitol — Meat Inspection Act</a><a href="https://history.house.gov/HouseRecord/Detail/15032448817" target="_blank" rel="noopener noreferrer">U.S. House — 1906 Stock Yards Report</a><a href="https://www.fda.gov/about-fda/changes-science-law-and-regulatory-authorities/part-i-1906-food-and-drugs-act-and-its-enforcement" target="_blank" rel="noopener noreferrer">FDA — 1906 Food and Drugs Act</a></div></div>
   <p class="author" data-text="page.author"></p>
   <a href="#edit" class="edit-link" id="edit-link" data-label="ui.editLink"></a>
   <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden></p>
@@ -432,116 +434,116 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "hash": "ac889189df305a34bf61f329e9a4bd9f3509920075907ef8d3f7db6b4154af23"
   },
   "page": {
-    "mastheadTop": "[An educational inspection game]",
-    "title": "[Game title]",
-    "subtitle": "[Subtitle: place and years]",
-    "intro": "[Introduction: who the player is, what they inspect, who they answer to, and who depends on them at home.]",
-    "howToPlayHeading": "[How to play]",
-    "howToPlay": "[Call each case to your post and read its records.]\n[Press Inspect, then tap two details that disagree to flag a discrepancy.]\n[Check every record against the case, the date and the rulebook.]\n[Stamp a verdict. Right verdicts earn pay; wrong ones earn citations.]\n[Every action costs time. When the time runs out, the round is over.]\n[At the end of each round, pay your expenses and look after your dependants.]",
-    "author": "[Your name and class]"
+    "mastheadTop": "A historical decision-making game · Chicago, 1906",
+    "title": "The Jungle: Meat Inspector",
+    "subtitle": "Chicago Meatpacking Industry, 1906",
+    "intro": "Chicago, summer 1906. Upton Sinclair's novel The Jungle has helped draw national attention to dangerous working conditions and unsanitary practices in the meatpacking industry. On June 30, President Theodore Roosevelt signs the Meat Inspection Act. You are a fictional inspector in the Chicago stockyards, where each shipment tests your judgment. Examine the paperwork, listen to workers, resist pressure from management, and protect consumers while supporting your family. This educational simulation uses simplified, fictional paperwork and inspection scores; federal reforms were not fully implemented in three days. {{fn: Upton Sinclair, The Jungle (1906), https://www.gutenberg.org/ebooks/140; U.S. Capitol Visitor Center, Meat Inspection Act of 1906, https://www.visitthecapitol.gov/artifact/s-6219-bill-provide-inspection-live-cattle-sheep-and-goats-and-food-products-thereof-meat}}",
+    "howToPlayHeading": "HOW TO PLAY",
+    "howToPlay": "- Call the next shipment and compare its details with the inspection records.\n- Open the Meat Inspection Handbook to see the rules for the current day.\n- Choose Inspect, then select two conflicting details to flag a violation. For a missing record, compare the handbook rule with the shipment's paperwork.\n- Approve a compliant shipment or Reject one with a violation. Every action takes time.\n- Respond to worker concerns and management pressure without ignoring public safety.\n- At the end of the day, pay household expenses and decide whether to buy upgrades.\n- The story, paperwork, sanitation scores, and daily deadlines are fictionalized teaching tools.",
+    "author": "Created by Caleb Boamah"
   },
   "ui": {
-    "browserTabTitle": "Papers Please Redux",
-    "editLink": "[Edit]",
-    "localChangesNote": "[This page is showing changes that aren't in the uploaded file yet.]",
-    "footnotesButton": "[Footnotes]",
-    "footnotesTitle": "[Footnotes]",
-    "footnotesBack": "[Back]",
-    "begin": "[Begin]",
-    "soundOn": "[Sound: on]",
-    "soundOff": "[Sound: off]",
-    "roundTitle": "{round} {n}",
-    "roundOf": "{round} {n} [of] {total}",
+    "browserTabTitle": "The Jungle: Meat Inspector — Chicago, 1906",
+    "editLink": "Edit",
+    "localChangesNote": "This game has changes that have not been saved to the final file yet.",
+    "footnotesButton": "Historical Sources",
+    "footnotesTitle": "Historical Sources and Citations",
+    "footnotesBack": "Back",
+    "begin": "BEGIN INSPECTION",
+    "soundOn": "Sound on",
+    "soundOff": "Sound off",
+    "roundTitle": "Day {n}",
+    "roundOf": "Day {n} of {total}",
     "dateChip": "{date} · {day}",
-    "homeNews": "[News from home]",
-    "newRules": "[New in the] {rulebook}",
-    "endedRules": "[No longer in force]",
-    "newRecords": "[New] {records}",
-    "startRound": "[Open the] {post}",
-    "timeLeft": "{left} [of] {total} {time} [left]",
+    "homeNews": "News from Home",
+    "newRules": "New Meat Inspection Rules",
+    "endedRules": "Rules No Longer in Force",
+    "newRecords": "New Required Inspection Records",
+    "startRound": "Begin Day {n}",
+    "timeLeft": "{left} of {total} {time} left",
     "moneyChip": "{money}: {amount}",
-    "earnedChip": "[Earned this] {round}: {amount}",
-    "citationsChip": "[Citations]: {n} [of] {free} [free]",
-    "queueChip": "{n} {cases} [waiting]",
-    "casePanel": "{case}",
-    "caseHeading": "{case} {n} [of] {total}",
-    "noCase": "[No] {case} [at your] {post}.",
-    "callNext": "[Call the next] {case}",
-    "queueEmpty": "[No more] {cases} [are waiting.]",
-    "closePost": "[Close the] {post} [for this] {round}",
-    "costTag": "({cost} {time})",
-    "deskPanel": "[Desk]",
-    "deskEmpty": "[Nothing on the desk.]",
-    "deskTapHint": "[Tap a] {record} [to open it.]",
-    "closeCard": "[Close]",
-    "rulebookPanel": "{rulebook}",
-    "rulebookEmpty": "[The] {rulebook} [is empty.]",
-    "newBadge": "[New]",
-    "toolsPanel": "[Inspection]",
-    "inspectStart": "[Inspect]",
-    "inspectStop": "[Stop inspecting]",
-    "inspectHint": "[Tap two details that disagree. Each try costs] {cost} {time}.",
-    "selectedOne": "[Now tap the detail it disagrees with.]",
-    "flagFound": "[Discrepancy found]: {name}",
-    "flagAlready": "[That discrepancy is already flagged.]",
-    "flagNone": "[Those two details do not disagree.]",
-    "flagsEmpty": "[No discrepancies flagged yet.]",
-    "followUpsLabel": "[Follow up:]",
-    "eventAnswerFirst": "[Respond before you stamp a verdict.]",
-    "verdictPanel": "[Your verdict]",
-    "verdictHint": "[Each verdict costs] {cost} {time}.",
-    "verdictRight": "[Correct.] +{pay}",
-    "verdictWrong": "[Wrong verdict. A citation has been issued.]",
-    "logPanel": "[Record of this] {round}",
-    "logEmpty": "[Nothing yet.]",
-    "logCorrect": "{case} {n}: {verdict} [(correct)]",
-    "logWrong": "{case} {n}: {verdict} [(citation)]",
-    "logUnfinished": "{case} {n}: [sent away when time ran out]",
-    "timeUp": "[Time is up. The] {post} [is closed.]",
-    "ledgerTitle": "[End of] {round} {n}",
-    "ledgerBrought": "{money} [brought forward]",
-    "ledgerPay": "[Pay for correct verdicts]",
-    "ledgerOther": "[Other money]",
-    "ledgerCitations": "[Citations]: {n} ({free} [are warnings only])",
-    "ledgerPenalties": "[Penalties]",
-    "ledgerExpenses": "[Expenses]",
-    "ledgerRequired": "[required]",
-    "ledgerUpgrades": "[Improvements]",
-    "ledgerOwned": "[owned]",
-    "ledgerDependants": "[Dependants]",
-    "ledgerOk": "[All right]",
-    "ledgerLost": "[Gone]",
-    "ledgerStanding": "[Standing]",
-    "ledgerTotal": "{money} [after this] {round}",
-    "ledgerContinue": "[Pay and go home]",
-    "endingStamp": "{role} · {n} {rounds} [completed]",
-    "endRounds": "[Completed]",
-    "endMoney": "{money}",
-    "endCitations": "[Citations]",
-    "endDependants": "[Dependants]",
-    "backToStart": "[Return to the start]",
-    "restart": "[Restart]"
+    "earnedChip": "Earned today: {amount}",
+    "citationsChip": "Citations: {n} ({free} warnings allowed)",
+    "queueChip": "{n} {cases} waiting",
+    "casePanel": "Meat Shipment",
+    "caseHeading": "Shipment {n} of {total}",
+    "noCase": "No meat shipment is currently being inspected.",
+    "callNext": "Call Next Shipment",
+    "queueEmpty": "No more meat shipments are waiting.",
+    "closePost": "End Inspection Day",
+    "costTag": "Costs {cost} {time}",
+    "deskPanel": "Inspection Desk",
+    "deskEmpty": "No records on the desk",
+    "deskTapHint": "Tap a record to examine it.",
+    "closeCard": "Close",
+    "rulebookPanel": "Meat Inspection Handbook",
+    "rulebookEmpty": "No inspection rules are currently in force.",
+    "newBadge": "NEW RULE",
+    "toolsPanel": "Meat Safety Inspection",
+    "inspectStart": "Inspect",
+    "inspectStop": "Stop Inspecting",
+    "inspectHint": "Select two details that disagree. Each attempt costs {cost} {time}.",
+    "selectedOne": "Now tap the detail that disagrees with it.",
+    "flagFound": "Violation found: {name}",
+    "flagAlready": "This violation has already been recorded.",
+    "flagNone": "These details match. No violation found.",
+    "flagsEmpty": "No violations flagged yet.",
+    "followUpsLabel": "Investigate further:",
+    "eventAnswerFirst": "Respond to the situation before making your decision.",
+    "verdictPanel": "Your Inspection Verdict",
+    "verdictHint": "Each verdict costs {cost} {time}.",
+    "verdictRight": "Correct inspection! +{pay}",
+    "verdictWrong": "Incorrect inspection! A citation has been issued.",
+    "logPanel": "Daily Inspection Record",
+    "logEmpty": "No shipments inspected yet.",
+    "logCorrect": "{case} {n}: {verdict} — correct",
+    "logWrong": "{case} {n}: {verdict} — citation issued",
+    "logUnfinished": "{case} {n}: not inspected before closing",
+    "timeUp": "Time is up! The inspection office is closed.",
+    "ledgerTitle": "End of Day {n}",
+    "ledgerBrought": "Previous Savings",
+    "ledgerPay": "Inspection Wages",
+    "ledgerOther": "Additional Money",
+    "ledgerCitations": "Citations: {n} ({free} are warnings only)",
+    "ledgerPenalties": "Inspection Penalties",
+    "ledgerExpenses": "Family Living Expenses",
+    "ledgerRequired": "Required",
+    "ledgerUpgrades": "Inspection Upgrades",
+    "ledgerOwned": "Purchased",
+    "ledgerDependants": "Family Members",
+    "ledgerOk": "Stable",
+    "ledgerLost": "Unable to continue",
+    "ledgerStanding": "Standing",
+    "ledgerTotal": "{money} after this {round}",
+    "ledgerContinue": "Continue to Next Day",
+    "endingStamp": "{role} · {n} {rounds} completed",
+    "endRounds": "Days Completed",
+    "endMoney": "Final Savings",
+    "endCitations": "Total Citations",
+    "endDependants": "Family Members",
+    "backToStart": "Return to Start",
+    "restart": "Restart Game"
   },
   "game": {
     "labels": {
-      "role": "[Inspector]",
-      "post": "[post]",
-      "case": "[Case]",
-      "cases": "[cases]",
-      "record": "[record]",
-      "records": "[Records]",
-      "rulebook": "[Rulebook]",
-      "round": "[Day]",
-      "rounds": "[days]",
-      "time": "[time units]",
-      "money": "[Savings]",
-      "currency": "[$]",
-      "date": "[Date]",
-      "dayFormat": "[day] {n}"
+      "role": "Meat Inspector",
+      "post": "Chicago Stockyards",
+      "case": "Meat Shipment",
+      "cases": "Meat Shipments",
+      "record": "Inspection Record",
+      "records": "Inspection Records",
+      "rulebook": "Meat Inspection Handbook",
+      "round": "Day",
+      "rounds": "Days",
+      "time": "hours",
+      "money": "Savings",
+      "currency": "$",
+      "date": "Date",
+      "dayFormat": "Day {n}"
     },
-    "startMoney": 20,
+    "startMoney": 30,
     "time": {
-      "perRound": 16,
+      "perRound": 20,
       "call": 1,
       "inspect": 1,
       "verdict": 1
@@ -555,7 +557,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "verdicts": [
       {
         "id": "v1",
-        "name": "[Approve]",
+        "name": "Approve",
         "pay": 5,
         "tone": "good",
         "effects": {
@@ -567,8 +569,8 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "v2",
-        "name": "[Reject]",
-        "pay": 5,
+        "name": "Reject",
+        "pay": 7,
         "tone": "bad",
         "effects": {
           "money": 0,
@@ -581,67 +583,71 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "caseAttributes": [
       {
         "id": "a1",
-        "label": "[Name]",
-        "icon": "person",
+        "label": "Meatpacking Company",
+        "icon": "building",
         "values": [
-          "[Name A]",
-          "[Name B]",
-          "[Name C]",
-          "[Name D]",
-          "[Name E]",
-          "[Name F]"
+          "Armour & Company",
+          "Swift & Company",
+          "Morris & Company",
+          "Wilson Packing Company",
+          "Union Stockyards Packing",
+          "Chicago Meat Processing Co."
         ]
       },
       {
         "id": "a2",
-        "label": "[Location]",
+        "label": "Factory Location",
         "icon": "building",
         "values": [
-          "[Location A]",
-          "[Location B]",
-          "[Location C]",
-          "[Location D]",
-          "[Location E]"
+          "Packingtown",
+          "Union Stockyards",
+          "Halsted Street",
+          "Ashland Avenue",
+          "Chicago Industrial District"
         ]
       },
       {
         "id": "a3",
-        "label": "[Trade]",
+        "label": "Meat Product",
         "icon": "box",
         "values": [
-          "[Trade A]",
-          "[Trade B]",
-          "[Trade C]",
-          "[Trade D]"
+          "Beef",
+          "Pork",
+          "Sausage",
+          "Canned Meat",
+          "Ham",
+          "Processed Beef"
         ]
       }
     ],
     "lists": [
       {
         "id": "l1",
-        "name": "[Issuers]",
+        "name": "Approved Inspectors",
         "valid": [
-          "[Issuer A]",
-          "[Issuer B]",
-          "[Issuer C]"
+          "Federal Meat Inspector",
+          "USDA Inspector",
+          "Authorized Government Inspector"
         ],
         "invalid": [
-          "[Issuer X]",
-          "[Issuer Y]"
+          "Factory Owner",
+          "Unlicensed Inspector",
+          "Private Company Agent",
+          "Forged Government Inspector"
         ]
       }
     ],
     "recordTypes": [
       {
         "id": "r1",
-        "name": "[Licence]",
+        "name": "Inspection License",
         "icon": "document",
         "from": 1,
         "until": 0,
         "fields": [
           {
             "id": "f1",
-            "label": "[Name]",
+            "label": "Meatpacking Company",
             "kind": "attr",
             "attr": "a1",
             "list": "",
@@ -651,7 +657,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
           },
           {
             "id": "f2",
-            "label": "[Location]",
+            "label": "Factory Location",
             "kind": "attr",
             "attr": "a2",
             "list": "",
@@ -661,7 +667,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
           },
           {
             "id": "f3",
-            "label": "[Valid until]",
+            "label": "License Expiration",
             "kind": "expiry",
             "attr": "",
             "list": "",
@@ -671,7 +677,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
           },
           {
             "id": "f4",
-            "label": "[Issued by]",
+            "label": "Issued by",
             "kind": "list",
             "attr": "",
             "list": "l1",
@@ -683,14 +689,14 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "r2",
-        "name": "[Certificate]",
+        "name": "Sanitation Certificate",
         "icon": "seal",
         "from": 2,
         "until": 0,
         "fields": [
           {
             "id": "f1",
-            "label": "[Name]",
+            "label": "Meatpacking Company",
             "kind": "attr",
             "attr": "a1",
             "list": "",
@@ -700,7 +706,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
           },
           {
             "id": "f2",
-            "label": "[Trade]",
+            "label": "Meat Product",
             "kind": "attr",
             "attr": "a3",
             "list": "",
@@ -710,7 +716,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
           },
           {
             "id": "f3",
-            "label": "[Measure]",
+            "label": "Sanitation Score",
             "kind": "number",
             "attr": "",
             "list": "",
@@ -720,30 +726,32 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
           },
           {
             "id": "f4",
-            "label": "[Grade]",
+            "label": "Meat Grade",
             "kind": "text",
             "attr": "",
             "list": "",
             "min": 0,
             "max": 0,
             "options": [
-              "[Grade 1]",
-              "[Grade 2]",
-              "[Grade 3]"
+              "Grade A",
+              "Grade B",
+              "Grade C",
+              "Contaminated",
+              "Unsafe"
             ]
           }
         ]
       },
       {
         "id": "r3",
-        "name": "[Permit]",
+        "name": "Shipping Permit",
         "icon": "star",
         "from": 3,
         "until": 0,
         "fields": [
           {
             "id": "f1",
-            "label": "[Name]",
+            "label": "Meatpacking Company",
             "kind": "attr",
             "attr": "a1",
             "list": "",
@@ -753,7 +761,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
           },
           {
             "id": "f2",
-            "label": "[Location]",
+            "label": "Factory Location",
             "kind": "attr",
             "attr": "a2",
             "list": "",
@@ -763,7 +771,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
           },
           {
             "id": "f3",
-            "label": "[Valid until]",
+            "label": "Permit Expiration",
             "kind": "expiry",
             "attr": "",
             "list": "",
@@ -777,65 +785,65 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "rulePages": [
       {
         "id": "p1",
-        "title": "[Basic rules]"
+        "title": "Federal Meat Inspection Rules"
       },
       {
         "id": "p2",
-        "title": "[Issuers]"
+        "title": "Factory Sanitation Standards"
       },
       {
         "id": "p3",
-        "title": "[Limits]"
+        "title": "Shipping Documents"
       }
     ],
     "rules": [
       {
         "id": "u1",
         "page": "p1",
-        "text": "[Every {case} must carry a [Licence].]",
+        "text": "Every shipment must have a valid inspection license (simplified game requirement).",
         "from": 1,
         "until": 0
       },
       {
         "id": "u2",
         "page": "p1",
-        "text": "[Records must not be out of date.]",
+        "text": "Inspection licenses must not be expired.",
         "from": 1,
         "until": 0
       },
       {
         "id": "u3",
-        "page": "p2",
-        "text": "[A [Licence] is only valid from [Issuer A], [Issuer B] or [Issuer C].]",
+        "page": "p1",
+        "text": "An inspection license is only valid when issued by an authorized inspector.",
         "from": 1,
         "until": 0
       },
       {
         "id": "u4",
-        "page": "p1",
-        "text": "[Every {case} must also carry a [Certificate].]",
+        "page": "p2",
+        "text": "Every shipment must have a sanitation certificate (simplified game requirement).",
         "from": 2,
         "until": 0
       },
       {
         "id": "u5",
-        "page": "p3",
-        "text": "[The [Measure] on a [Certificate] must be from 1 to 10.]",
+        "page": "p2",
+        "text": "For this simulation, the sanitation score must be at least 5 out of 10.",
         "from": 2,
         "until": 0
       },
       {
         "id": "u6",
-        "page": "p1",
-        "text": "[Every {case} must also carry a [Permit].]",
+        "page": "p3",
+        "text": "Every shipment must have a shipping permit (simplified game requirement).",
         "from": 3,
         "until": 0
       },
       {
         "id": "u7",
-        "page": "p3",
-        "text": "[No [Permit] may be given for [Location A].]",
-        "from": 3,
+        "page": "p2",
+        "text": "Reject meat marked Contaminated or Unsafe. This is a simplified game rule.",
+        "from": 2,
         "until": 0
       }
     ],
@@ -849,21 +857,21 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         "min": 0,
         "max": 0,
         "forbidden": [],
-        "verdict": "",
+        "verdict": "v2",
         "from": 1,
         "until": 0,
         "followUps": [
           {
             "id": "q1",
-            "name": "[Question]",
+            "name": "Question the clerk",
             "cost": 1,
-            "response": "[What the {case} says when asked about the name.]"
+            "response": "The clerk admits that the company name on the paperwork does not match the shipment."
           }
         ],
         "id": "d1",
-        "name": "[Name does not match the case]",
+        "name": "Company name mismatch",
         "kind": "fieldVsCase",
-        "explain": "[A name on a record is not the name of the {case}.]"
+        "explain": "The company on this inspection record does not match the meat shipment."
       },
       {
         "record": "",
@@ -874,21 +882,21 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         "min": 0,
         "max": 0,
         "forbidden": [],
-        "verdict": "",
+        "verdict": "v2",
         "from": 2,
         "until": 0,
         "followUps": [
           {
             "id": "q1",
-            "name": "[Question]",
+            "name": "Compare company names",
             "cost": 1,
-            "response": "[What the {case} says about the two names.]"
+            "response": "The two records identify different companies. The clerk cannot explain the difference."
           }
         ],
         "id": "d2",
-        "name": "[Names on two records disagree]",
+        "name": "Conflicting company records",
         "kind": "fieldVsField",
-        "explain": "[Two records give different names.]"
+        "explain": "Two inspection records show different company information."
       },
       {
         "record": "r1",
@@ -899,21 +907,21 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         "min": 0,
         "max": 0,
         "forbidden": [],
-        "verdict": "",
+        "verdict": "v2",
         "from": 1,
         "until": 0,
         "followUps": [
           {
             "id": "q1",
-            "name": "[Question]",
+            "name": "Ask about expiration",
             "cost": 1,
-            "response": "[What the {case} says about the old licence.]"
+            "response": "The clerk confirms that the license expired before today."
           }
         ],
         "id": "d3",
-        "name": "[Licence out of date]",
+        "name": "Expired inspection license",
         "kind": "expired",
-        "explain": "[The [Licence] ran out before today.]"
+        "explain": "This inspection license has expired and cannot authorize the shipment."
       },
       {
         "record": "r1",
@@ -924,21 +932,21 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         "min": 0,
         "max": 0,
         "forbidden": [],
-        "verdict": "",
+        "verdict": "v2",
         "from": 1,
         "until": 0,
         "followUps": [
           {
             "id": "q1",
-            "name": "[Request record]",
+            "name": "Request license",
             "cost": 1,
-            "response": "[What the {case} says when asked for the missing record.]"
+            "response": "The shipment manager cannot produce the required inspection license."
           }
         ],
         "id": "d4",
-        "name": "[No licence]",
+        "name": "Missing inspection license",
         "kind": "missingRecord",
-        "explain": "[The {case} has no [Licence].]"
+        "explain": "The shipment is missing a required inspection license."
       },
       {
         "record": "r1",
@@ -949,21 +957,21 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         "min": 0,
         "max": 0,
         "forbidden": [],
-        "verdict": "",
+        "verdict": "v2",
         "from": 1,
         "until": 0,
         "followUps": [
           {
             "id": "q1",
-            "name": "[Examine]",
+            "name": "Examine authorization",
             "cost": 2,
-            "response": "[What a closer look at the seal shows.]"
+            "response": "The document names an issuer who is not authorized to approve inspections."
           }
         ],
         "id": "d5",
-        "name": "[Licence from an invalid issuer]",
+        "name": "Unauthorized inspector",
         "kind": "badList",
-        "explain": "[The issuer is not on the list in the {rulebook}.]"
+        "explain": "The inspection license was issued by someone who is not authorized."
       },
       {
         "record": "r2",
@@ -971,24 +979,24 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         "attr": "",
         "list": "",
         "rule": "u5",
-        "min": 1,
+        "min": 5,
         "max": 10,
         "forbidden": [],
-        "verdict": "",
+        "verdict": "v2",
         "from": 2,
         "until": 0,
         "followUps": [
           {
             "id": "q1",
-            "name": "[Examine]",
+            "name": "Review sanitation report",
             "cost": 2,
-            "response": "[What a closer look shows.]"
+            "response": "The sanitation report confirms that the score is below the minimum required by this simulation."
           }
         ],
         "id": "d6",
-        "name": "[Measure out of range]",
+        "name": "Unsafe sanitation score",
         "kind": "outOfRange",
-        "explain": "[The measure is outside the range the {rulebook} allows.]"
+        "explain": "The factory's sanitation score is below the required minimum."
       },
       {
         "record": "r2",
@@ -999,48 +1007,49 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         "min": 0,
         "max": 0,
         "forbidden": [],
-        "verdict": "",
+        "verdict": "v2",
         "from": 2,
         "until": 0,
         "followUps": [
           {
             "id": "q1",
-            "name": "[Request record]",
+            "name": "Request certificate",
             "cost": 1,
-            "response": "[What the {case} says when asked for the missing record.]"
+            "response": "The manager cannot provide the required sanitation certificate."
           }
         ],
         "id": "d7",
-        "name": "[No certificate]",
+        "name": "Missing sanitation certificate",
         "kind": "missingRecord",
-        "explain": "[The {case} has no [Certificate].]"
+        "explain": "The factory has not provided its required sanitation certificate."
       },
       {
-        "record": "r3",
-        "field": "f2",
+        "record": "r2",
+        "field": "f4",
         "attr": "",
         "list": "",
         "rule": "u7",
         "min": 0,
         "max": 0,
         "forbidden": [
-          "[Location A]"
+          "Contaminated",
+          "Unsafe"
         ],
-        "verdict": "",
-        "from": 3,
+        "verdict": "v2",
+        "from": 2,
         "until": 0,
         "followUps": [
           {
             "id": "q1",
-            "name": "[Question]",
+            "name": "Examine meat grade",
             "cost": 1,
-            "response": "[What the {case} says about the location.]"
+            "response": "The certificate labels this meat as unsafe for shipment."
           }
         ],
         "id": "d8",
-        "name": "[Permit for a forbidden location]",
+        "name": "Unsafe meat grade",
         "kind": "breaksRule",
-        "explain": "[The {rulebook} forbids permits for this location.]"
+        "explain": "The sanitation certificate identifies the meat as contaminated or unsafe."
       },
       {
         "record": "r3",
@@ -1051,14 +1060,14 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         "min": 0,
         "max": 0,
         "forbidden": [],
-        "verdict": "",
+        "verdict": "v2",
         "from": 3,
         "until": 0,
         "followUps": [],
         "id": "d9",
-        "name": "[Permit out of date]",
+        "name": "Expired shipping permit",
         "kind": "expired",
-        "explain": "[The [Permit] ran out before today.]"
+        "explain": "The shipping permit has expired."
       },
       {
         "record": "r3",
@@ -1069,54 +1078,54 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         "min": 0,
         "max": 0,
         "forbidden": [],
-        "verdict": "",
+        "verdict": "v2",
         "from": 3,
         "until": 0,
         "followUps": [],
         "id": "d10",
-        "name": "[No permit]",
+        "name": "Missing shipping permit",
         "kind": "missingRecord",
-        "explain": "[The {case} has no [Permit].]"
+        "explain": "The shipment does not have the required shipping permit."
       }
     ],
     "rounds": [
       {
         "id": "w1",
-        "dateText": "[Date of the first round]",
+        "dateText": "June 30, 1906",
         "day": 1,
-        "time": 16,
-        "seed": "round-1",
-        "cleanVerdict": "",
-        "intro": "[What the player is told on the first morning: who they work for, what they check, and why it matters.]",
+        "time": 20,
+        "seed": "jungle-1906-day1",
+        "cleanVerdict": "v1",
+        "intro": "June 30, 1906 — A New Law. President Theodore Roosevelt signs the Meat Inspection Act today. In this fictionalized scenario, your first shipment is a guided practice case. Review its license, compare the details, and make your decision. {{fn: U.S. Capitol Visitor Center, Meat Inspection Act of 1906, https://www.visitthecapitol.gov/artifact/s-6219-bill-provide-inspection-live-cattle-sheep-and-goats-and-food-products-thereof-meat}}",
         "generate": {
           "count": 5,
           "errorCases": 2,
           "errorsPerCase": 1,
           "errorTypes": [],
-          "descriptions": "[A {case} arrives at your {post}.]\n[The next {case} is waiting.]\n[Another {case} is brought in.]"
+          "descriptions": "A packinghouse shipment arrives with its inspection license. The shipping clerk awaits your decision.\nA wagon arrives at the stockyards inspection desk. Examine the company and license carefully."
         },
         "cases": [
           {
             "id": "c1",
-            "description": "[A hand-written {case}. Describe who or what it is and what they want.]",
+            "description": "TRAINING SHIPMENT: Swift & Company submits a beef shipment. Check that the company and location match the license, the inspector is authorized, and the license has not expired. Then approve this compliant shipment.",
             "attrs": {
-              "a1": "[Name A]",
-              "a2": "[Location B]",
-              "a3": "[Trade A]"
+              "a1": "Swift & Company",
+              "a2": "Union Stockyards",
+              "a3": "Beef"
             },
             "records": [
               {
                 "type": "r1",
                 "values": {
-                  "f1": "[Name A]",
-                  "f2": "[Location B]",
-                  "f3": "0",
-                  "f4": "[Issuer A]"
+                  "f1": "Swift & Company",
+                  "f2": "Union Stockyards",
+                  "f3": "4",
+                  "f4": "Federal Meat Inspector"
                 }
               }
             ],
-            "event": "e1",
-            "correct": ""
+            "event": "",
+            "correct": "v1"
           }
         ],
         "events": [
@@ -1128,18 +1137,18 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "w2",
-        "dateText": "[Date of the second round]",
-        "day": 4,
-        "time": 18,
-        "seed": "round-2",
+        "dateText": "July 1, 1906",
+        "day": 2,
+        "time": 22,
+        "seed": "jungle-1906-day2",
         "cleanVerdict": "",
-        "intro": "[What changes today: a new record is required and a new rule comes in.]",
+        "intro": "July 1, 1906 — Behind the Factory Doors. Public concern about sanitation continues. For this fictional training exercise, sanitation certificates and scores are now part of your inspection checklist. Workers ask you to take their safety seriously. These game documents are not reproductions of actual 1906 federal forms. {{fn: U.S. House of Representatives, Report on Chicago Stock Yards (1906), https://history.house.gov/HouseRecord/Detail/15032448817}}",
         "generate": {
           "count": 6,
           "errorCases": 3,
           "errorsPerCase": 1,
           "errorTypes": [],
-          "descriptions": "[A {case} arrives at your {post}.]\n[The next {case} is waiting.]"
+          "descriptions": "A shipment reaches the inspection desk. Check every document against the rulebook.\nThe factory clerk presents paperwork and waits for your inspection verdict.\nA meat shipment arrives from a busy Chicago packinghouse."
         },
         "cases": [],
         "events": [
@@ -1151,18 +1160,18 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "w3",
-        "dateText": "[Date of the third round]",
-        "day": 7,
-        "time": 20,
-        "seed": "round-3",
+        "dateText": "July 2, 1906",
+        "day": 3,
+        "time": 24,
+        "seed": "jungle-1906-day3",
         "cleanVerdict": "",
-        "intro": "[What changes today, and what the player's superiors expect.]",
+        "intro": "July 2, 1906 — The Cost of Honesty. A busy day of inspections puts your judgment under pressure. Shipping permits are now required within this game, and management wants faster approvals. Protect the public while making choices about workers and your family. The timeline of new paperwork is fictionalized for gameplay.",
         "generate": {
           "count": 6,
           "errorCases": 3,
           "errorsPerCase": 1,
           "errorTypes": [],
-          "descriptions": "[A {case} arrives at your {post}.]\n[The next {case} is waiting.]"
+          "descriptions": "A shipment reaches the inspection desk. Check every document against the rulebook.\nThe factory clerk presents paperwork and waits for your inspection verdict.\nA meat shipment arrives from a busy Chicago packinghouse."
         },
         "cases": [],
         "events": [
@@ -1176,13 +1185,13 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "events": [
       {
         "id": "e1",
-        "kind": "[Plea]",
-        "text": "[The {case} begs you to overlook a problem. Say why.]",
+        "kind": "Worker Plea",
+        "text": "A tired factory worker approaches you. \"Please don't close this shipment. My family depends on my wages. If the factory loses money, I might lose my job.\"",
         "choices": [
           {
             "id": "k1",
-            "label": "[Show mercy]",
-            "result": "[What happens when the player shows mercy.]",
+            "label": "Show mercy",
+            "result": "You listen to the worker and offer to report their concerns.",
             "effects": {
               "money": 0,
               "citations": 0,
@@ -1193,12 +1202,12 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
                 "b2": "on"
               }
             },
-            "correctVerdict": "v1"
+            "correctVerdict": ""
           },
           {
             "id": "k2",
-            "label": "[Follow the rules]",
-            "result": "[What happens when the player refuses.]",
+            "label": "Follow inspection rules",
+            "result": "You explain that worker safety and food safety both matter. You continue the inspection and record the concern.",
             "effects": {
               "money": 0,
               "citations": 0,
@@ -1211,18 +1220,19 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "e2",
-        "kind": "[Bribe]",
-        "text": "[The {case} quietly offers you money. Say how much and why.]",
+        "kind": "Factory Bribe",
+        "text": "A factory owner offers you $10 to approve the shipment without asking questions. \"Everyone needs a little extra money,\" he says. \"Nobody has to know.\"",
         "choices": [
           {
             "id": "k1",
-            "label": "[Take the money]",
-            "result": "[The money is in your pocket. Someone may have seen.]",
+            "label": "Accept the bribe",
+            "result": "You secretly accept the money. Your integrity is compromised.",
             "effects": {
               "money": 10,
               "citations": 0,
               "factions": {
-                "g2": -1
+                "g2": -1,
+                "g1": -1
               },
               "flags": {
                 "b1": "on"
@@ -1232,8 +1242,8 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
           },
           {
             "id": "k2",
-            "label": "[Refuse]",
-            "result": "[You push the money back across the desk.]",
+            "label": "Refuse the bribe",
+            "result": "You refuse the money and continue the inspection.",
             "effects": {
               "money": 0,
               "citations": 0,
@@ -1248,13 +1258,13 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "e3",
-        "kind": "[Request from a group]",
-        "text": "[Someone from [Faction A] asks you for a favour. Say what they want.]",
+        "kind": "Workers' Request",
+        "text": "Workers from the packinghouse ask you to report dangerous conditions to the authorities. They explain that they are afraid of losing their jobs if they complain openly.",
         "choices": [
           {
             "id": "k1",
-            "label": "[Agree to help]",
-            "result": "[They thank you and promise to remember it.]",
+            "label": "Support the workers",
+            "result": "You promise to report their concerns to the proper authorities.",
             "effects": {
               "money": 0,
               "citations": 0,
@@ -1268,8 +1278,8 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
           },
           {
             "id": "k2",
-            "label": "[Say no]",
-            "result": "[They leave unhappy.]",
+            "label": "Ignore their request",
+            "result": "The workers leave disappointed.",
             "effects": {
               "money": 0,
               "citations": 0,
@@ -1284,13 +1294,13 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "e4",
-        "kind": "[Order from a superior]",
-        "text": "[A superior tells you to approve this {case} whatever its records say.]",
+        "kind": "Supervisor's Order",
+        "text": "Your supervisor demands that you approve a shipment immediately. \"We cannot afford to delay production,\" he says. \"Stamp it and move on.\"",
         "choices": [
           {
             "id": "k1",
-            "label": "[Obey the order]",
-            "result": "[Approving this one counts as correct today.]",
+            "label": "Obey the order",
+            "result": "You follow the supervisor's instructions despite your concerns.",
             "effects": {
               "money": 0,
               "citations": 0,
@@ -1299,17 +1309,18 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
               },
               "flags": {}
             },
-            "correctVerdict": "v1"
+            "correctVerdict": ""
           },
           {
             "id": "k2",
-            "label": "[Go by the rules]",
-            "result": "[Your superior is not pleased.]",
+            "label": "Inspect carefully",
+            "result": "You refuse to rush and continue checking the records.",
             "effects": {
               "money": 0,
-              "citations": 1,
+              "citations": 0,
               "factions": {
-                "g2": -1
+                "g2": -1,
+                "g1": 1
               },
               "flags": {}
             },
@@ -1321,83 +1332,83 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "factions": [
       {
         "id": "g1",
-        "name": "[Faction A]",
+        "name": "Packinghouse Workers",
         "start": 0
       },
       {
         "id": "g2",
-        "name": "[Your superiors]",
+        "name": "Factory Management",
         "start": 0
       }
     ],
     "flags": [
       {
         "id": "b1",
-        "name": "[Took a bribe]",
+        "name": "Accepted a Bribe",
         "start": false
       },
       {
         "id": "b2",
-        "name": "[Showed mercy]",
+        "name": "Showed Mercy",
         "start": false
       }
     ],
     "dependants": [
       {
         "id": "h1",
-        "name": "[Dependant 1]",
+        "name": "Your Family",
         "needs": [
           {
             "id": "n1",
-            "name": "[Food]",
-            "status": "[Hungry]",
+            "name": "Food",
+            "status": "Hungry",
             "limit": 2,
-            "consequence": "[What happens to {name} when this need goes unmet too long]",
+            "consequence": "Your family has gone without enough food. They are struggling, and you must find a way to support them.",
             "lost": true
           },
           {
             "id": "n2",
-            "name": "[Heat]",
-            "status": "[Cold]",
+            "name": "Heat",
+            "status": "Cold",
             "limit": 3,
-            "consequence": "[What happens to {name} when this need goes unmet too long]",
+            "consequence": "Your household is struggling to pay for fuel and basic utilities.",
             "lost": false
           }
         ]
       },
       {
         "id": "h2",
-        "name": "[Dependant 2]",
+        "name": "Younger Sibling",
         "needs": [
           {
             "id": "n1",
-            "name": "[Food]",
-            "status": "[Hungry]",
+            "name": "Food",
+            "status": "Hungry",
             "limit": 2,
-            "consequence": "[What happens to {name} when this need goes unmet too long]",
+            "consequence": "Your younger sibling is struggling because there is not enough food at home.",
             "lost": true
           },
           {
             "id": "n2",
-            "name": "[Medicine]",
-            "status": "[Sick]",
+            "name": "Medicine",
+            "status": "Sick",
             "limit": 2,
-            "consequence": "[What happens to {name} when this need goes unmet too long]",
-            "lost": true
+            "consequence": "Your younger sibling needs medical care. Without medicine, their condition becomes more serious.",
+            "lost": false
           }
         ]
       },
       {
         "id": "h3",
-        "name": "[Dependant 3]",
+        "name": "Elderly Parent",
         "needs": [
           {
             "id": "n1",
-            "name": "[Food]",
-            "status": "[Hungry]",
+            "name": "Food",
+            "status": "Hungry",
             "limit": 2,
-            "consequence": "[What happens to {name} when this need goes unmet too long]",
-            "lost": true
+            "consequence": "Your elderly parent is struggling because the family cannot afford enough food.",
+            "lost": false
           }
         ]
       }
@@ -1405,14 +1416,14 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "expenses": [
       {
         "id": "x1",
-        "name": "[Rent]",
-        "cost": 15,
+        "name": "Rent",
+        "cost": 5,
         "mandatory": true,
         "covers": []
       },
       {
         "id": "x2",
-        "name": "[Food]",
+        "name": "Food",
         "cost": 10,
         "mandatory": false,
         "covers": [
@@ -1423,7 +1434,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "x3",
-        "name": "[Heat]",
+        "name": "Heat",
         "cost": 5,
         "mandatory": false,
         "covers": [
@@ -1432,7 +1443,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "x4",
-        "name": "[Medicine]",
+        "name": "Medicine",
         "cost": 8,
         "mandatory": false,
         "covers": [
@@ -1443,17 +1454,17 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "upgrades": [
       {
         "id": "m1",
-        "name": "[Better lamp]",
-        "description": "[More time each round]",
+        "name": "Better Inspection Tools",
+        "description": "Calling shipments takes less time, leaving more time for inspections.",
         "cost": 30,
-        "kind": "time",
+        "kind": "cheaper",
         "action": "call",
-        "amount": 2
+        "amount": 1
       },
       {
         "id": "m2",
-        "name": "[Faster stamp]",
-        "description": "[Verdicts cost less time]",
+        "name": "Faster Stamp",
+        "description": "Stamp verdicts faster.",
         "cost": 25,
         "kind": "cheaper",
         "action": "verdict",
@@ -1461,8 +1472,8 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "m3",
-        "name": "[A friend in the office]",
-        "description": "[One more warning each round]",
+        "name": "Trusted Assistant",
+        "description": "Receive one additional citation warning each day.",
         "cost": 20,
         "kind": "warning",
         "action": "call",
@@ -1470,8 +1481,8 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "m4",
-        "name": "[A raise]",
-        "description": "[More pay for each correct verdict]",
+        "name": "Government Raise",
+        "description": "Earn more money for correct inspections.",
         "cost": 40,
         "kind": "pay",
         "action": "call",
@@ -1481,9 +1492,9 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "endings": [
       {
         "id": "z1",
-        "title": "[Removed from the post]",
-        "verdict": "[Dismissed]",
-        "text": "[Too many citations: the player is removed from the post. Say what happens next.]",
+        "title": "Fired from the Stockyards",
+        "verdict": "Dismissed",
+        "text": "Your repeated inspection mistakes have cost you your position. The government removes you from your job. You leave the stockyards knowing that every inspection decision has consequences.",
         "tone": "lose",
         "when": "any",
         "conditions": [
@@ -1496,9 +1507,9 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "z2",
-        "title": "[Bankrupt]",
-        "verdict": "[In debt]",
-        "text": "[The player's savings have run out. Say what happens to the family.]",
+        "title": "A Family in Crisis",
+        "verdict": "In Debt",
+        "text": "You could not earn enough money to cover your family's needs. The financial pressure has become overwhelming, showing how difficult life could be for working families in the early 1900s.",
         "tone": "lose",
         "when": "any",
         "conditions": [
@@ -1511,9 +1522,9 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "z3",
-        "title": "[Alone]",
-        "verdict": "[Lost everyone]",
-        "text": "[Every dependant is gone. Say what that means.]",
+        "title": "The Cost of Poverty",
+        "verdict": "Family Emergency",
+        "text": "Your family has been separated by hardship. This ending highlights the difficult choices families faced when wages were low and basic necessities were expensive.",
         "tone": "lose",
         "when": "any",
         "conditions": [
@@ -1526,9 +1537,9 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "z4",
-        "title": "[Friend of a faction]",
-        "verdict": "[Faction ending]",
-        "text": "[The player's loyalty to [Faction A] changes their future. Say how.]",
+        "title": "Defender of the Workers",
+        "verdict": "Workers' Ally",
+        "text": "Your decisions have earned the trust of the packinghouse workers. You have shown that an inspector can protect consumers while also listening to workers. Your actions contribute to growing demands for safer conditions and reform.",
         "tone": "mixed",
         "when": "final",
         "conditions": [
@@ -1541,9 +1552,9 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "z5",
-        "title": "[The work is done]",
-        "verdict": "[Completed every round]",
-        "text": "[The player finished every round. Say what became of them.]",
+        "title": "A New Era of Meat Inspection",
+        "verdict": "Inspection Complete",
+        "text": "You have completed your inspection assignment in Chicago's meatpacking district. Your work shows why government oversight and food safety standards became important during the Progressive Era. Upton Sinclair's The Jungle helped expose problems in the meatpacking industry and increased public support for reform.",
         "tone": "win",
         "when": "final",
         "conditions": []

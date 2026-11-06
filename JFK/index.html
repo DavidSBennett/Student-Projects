@@ -428,7 +428,8 @@ body.is-editing [data-image-box]::after {
     "winText": "[{player} reached the end of {track}.]",
     "nuclearTitle": "[Nuclear war]",
     "nuclearText": "[{player} reached the end of {track}. Both players lose.]",
-    "playAgain": "[Play again]"
+    "playAgain": "[Play again]",
+    "cardValueMinus": "{name} −{n}"
   },
   "images": {
     "header": {
@@ -526,8 +527,8 @@ body.is-editing [data-image-box]::after {
         "pr": 3,
         "invest": 0,
         "raises": "military",
-        "raiseAmount": 0,
-        "effect": "lowerMilitary",
+        "raiseAmount": -3,
+        "effect": "lowerBacklash",
         "effectAmount": 3,
         "cost": 5,
         "startCount": 0,

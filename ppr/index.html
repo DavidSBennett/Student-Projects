@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Papers Please Redux</title>
@@ -308,14 +307,14 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
        data-text="page.author"  text that is edited by clicking on it
        data-label="ui.editLink" text that is edited in the "Other text…" window
      ===================================================================== -->
-<button type="button" class="notes-fab" id="notes-btn" hidden></button>
+<button type="button" class="notes-fab" id="notes-btn" hidden=""></button>
 
 <div id="app"></div>
 
 <footer class="site-footer">
   <p class="author" data-text="page.author"></p>
   <a href="#edit" class="edit-link" id="edit-link" data-label="ui.editLink"></a>
-  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden></p>
+  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden=""></p>
 </footer>
 
 <!-- The footnotes pop-up. Opens on top of whatever screen the player is on. -->
@@ -323,7 +322,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
   <div class="notes-inner">
     <h2 id="notes-title"></h2>
     <ol class="notes-list" id="notes-list"></ol>
-    <div class="notes-actions"><button type="button" class="btn-primary" id="notes-back" autofocus></button></div>
+    <div class="notes-actions"><button type="button" class="btn-primary" id="notes-back" autofocus=""></button></div>
   </div>
 </dialog>
 
@@ -410,12 +409,12 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
   },
   "page": {
     "mastheadTop": "[An educational inspection game]",
-    "title": "[Game title]",
-    "subtitle": "[Subtitle: place and years]",
+    "title": "Thats not my Progressive",
+    "subtitle": "The Progressive Era (1900–1920)",
     "intro": "[Introduction: who the player is, what they inspect, who they answer to, and who depends on them at home.]",
     "howToPlayHeading": "[How to play]",
     "howToPlay": "[Call each case to your post and read its records.]\n[Press Inspect, then tap two details that disagree to flag a discrepancy.]\n[Check every record against the case, the date and the rulebook.]\n[Stamp a verdict. Right verdicts earn pay; wrong ones earn citations.]\n[Every action costs time. When the time runs out, the round is over.]\n[At the end of each round, pay your expenses and look after your dependants.]",
-    "author": "[Your name and class]"
+    "author": " Group 5: Jared Mathes, Nicole Lin, Jenny Luu, Haylie Vicente"
   },
   "ui": {
     "browserTabTitle": "Papers Please Redux",
@@ -427,11 +426,11 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "begin": "[Begin]",
     "soundOn": "[Sound: on]",
     "soundOff": "[Sound: off]",
-    "roundTitle": "{round} {n}",
+    "roundTitle": "{round} {1}",
     "roundOf": "{round} {n} [of] {total}",
-    "dateChip": "{date} · {day}",
+    "dateChip": "{5/1/1900} · {Day 1}",
     "homeNews": "[News from home]",
-    "newRules": "[New in the] {rulebook}",
+    "newRules": "[NEW IN THE NATIONAL REFORM CONVENTION] {RULEBOOK}",
     "endedRules": "[No longer in force]",
     "newRecords": "[New] {records}",
     "startRound": "[Open the] {post}",
@@ -439,7 +438,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "moneyChip": "{money}: {amount}",
     "earnedChip": "[Earned this] {round}: {amount}",
     "citationsChip": "[Citations]: {n} [of] {free} [free]",
-    "queueChip": "{n} {cases} [waiting]",
+    "queueChip": "{3} {cases} [waiting]",
     "casePanel": "{case}",
     "caseHeading": "{case} {n} [of] {total}",
     "noCase": "[No] {case} [at your] {post}.",
@@ -536,9 +535,12 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         "pay": 5,
         "tone": "good",
         "effects": {
-          "money": 0,
-          "citations": 0,
-          "factions": {},
+          "money": 3,
+          "citations": -3,
+          "factions": {
+            "g1": 0,
+            "g2": 0
+          },
           "flags": {}
         }
       },
@@ -548,8 +550,8 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         "pay": 5,
         "tone": "bad",
         "effects": {
-          "money": 0,
-          "citations": 0,
+          "money": 3,
+          "citations": -3,
           "factions": {},
           "flags": {}
         }
@@ -558,10 +560,10 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "caseAttributes": [
       {
         "id": "a1",
-        "label": "[Name]",
+        "label": "[W.E.B Du Bois]",
         "icon": "person",
         "values": [
-          "[Name A]",
+          "[]",
           "[Name B]",
           "[Name C]",
           "[Name D]",
@@ -571,10 +573,10 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "a2",
-        "label": "[Location]",
-        "icon": "building",
+        "label": "[Theodore Roosevelt]",
+        "icon": "person",
         "values": [
-          "[Location A]",
+          "[]",
           "[Location B]",
           "[Location C]",
           "[Location D]",
@@ -583,10 +585,10 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "a3",
-        "label": "[Trade]",
-        "icon": "box",
+        "label": "[Jane Addams]",
+        "icon": "person",
         "values": [
-          "[Trade A]",
+          "[]",
           "[Trade B]",
           "[Trade C]",
           "[Trade D]"
@@ -1059,12 +1061,12 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "rounds": [
       {
         "id": "w1",
-        "dateText": "[Date of the first round]",
+        "dateText": "[Day 1]",
         "day": 1,
         "time": 16,
         "seed": "round-1",
         "cleanVerdict": "",
-        "intro": "[What the player is told on the first morning: who they work for, what they check, and why it matters.]",
+        "intro": "Good morning! It's nice to finally have you work here. You will be our new inspector for the National Reform Convention. Your job consists of checking files and making sure all the information aligns to the person that arrived. We don't want any imposters so please be careful with who you approve and deny entry. Goodluck!!! ",
         "generate": {
           "count": 5,
           "errorCases": 2,
@@ -1153,16 +1155,16 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "events": [
       {
         "id": "e1",
-        "kind": "[Plea]",
-        "text": "[The {case} begs you to overlook a problem. Say why.]",
+        "kind": "[PLEA]",
+        "text": "[The {case} begs you to overlook Theodore Roosevelt. \"Hello there. I served as President from 1912 to 1920 under the Democratic ticket. My main policy was total non-interference in corporate monopolies, leaving big business completely unregulated.\"]",
         "choices": [
           {
             "id": "k1",
             "label": "[Show mercy]",
             "result": "[What happens when the player shows mercy.]",
             "effects": {
-              "money": 0,
-              "citations": 0,
+              "money": 3,
+              "citations": -2,
               "factions": {
                 "g1": 1
               },
@@ -1170,7 +1172,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
                 "b2": "on"
               }
             },
-            "correctVerdict": "v1"
+            "correctVerdict": "v2"
           },
           {
             "id": "k2",
@@ -1189,7 +1191,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       {
         "id": "e2",
         "kind": "[Bribe]",
-        "text": "[The {case} quietly offers you money. Say how much and why.]",
+        "text": "[The {case} quietly offers you money. \"I am W.E.B. Du Bois. I'm here to discuss my 1903 book in todays meeting, The Souls of Black Folk, and through our work in the NAACP, we demand immediate political equality and full civil rights for African Americans.\" I'll give you $10 for my entry, I'm running late already.",
         "choices": [
           {
             "id": "k1",
@@ -1197,7 +1199,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
             "result": "[The money is in your pocket. Someone may have seen.]",
             "effects": {
               "money": 10,
-              "citations": 0,
+              "citations": -2,
               "factions": {
                 "g2": -1
               },
@@ -1205,7 +1207,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
                 "b1": "on"
               }
             },
-            "correctVerdict": ""
+            "correctVerdict": "v1"
           },
           {
             "id": "k2",
@@ -1219,7 +1221,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
               },
               "flags": {}
             },
-            "correctVerdict": ""
+            "correctVerdict": "v1"
           }
         ]
       },
@@ -1322,14 +1324,14 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "dependants": [
       {
         "id": "h1",
-        "name": "[Dependant 1]",
+        "name": "[Wife]",
         "needs": [
           {
             "id": "n1",
             "name": "[Food]",
             "status": "[Hungry]",
             "limit": 2,
-            "consequence": "[What happens to {name} when this need goes unmet too long]",
+            "consequence": "[What happens to {Your Health} when this need goes unmet too long]",
             "lost": true
           },
           {
@@ -1344,14 +1346,14 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "h2",
-        "name": "[Dependant 2]",
+        "name": "[Pet Dog]",
         "needs": [
           {
             "id": "n1",
             "name": "[Food]",
             "status": "[Hungry]",
             "limit": 2,
-            "consequence": "[What happens to {name} when this need goes unmet too long]",
+            "consequence": "[What happens to {Pet Dog} when this need goes unmet too long]",
             "lost": true
           },
           {
@@ -4640,6 +4642,4 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
 
   loadAutoSave().finally(() => { if (location.hash === '#edit') startEditing(); });
 })();
-</script>
-</body>
-</html>
+</script></body></html>
