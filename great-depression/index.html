@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Great Depression</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&amp;family=EB+Garamond:ital,wght@0,400;0,500;1,400&amp;display=swap">
 <style>
 /* =====================================================================
    STYLES
@@ -361,14 +360,14 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
        data-text="page.author"  text that is edited by clicking on it
        data-label="ui.editLink" text that is edited in the "Other text…" window
      ===================================================================== -->
-<button type="button" class="notes-fab" id="notes-btn" hidden></button>
+<button type="button" class="notes-fab" id="notes-btn" hidden=""></button>
 
 <div id="app"></div>
 
 <footer class="site-footer">
   <p class="author" data-text="page.author"></p>
   <a href="#edit" class="edit-link" id="edit-link" data-label="ui.editLink"></a>
-  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden></p>
+  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden=""></p>
 </footer>
 
 <!-- The footnotes pop-up. Opens on top of whatever screen the player is on. -->
@@ -376,7 +375,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
   <div class="notes-inner">
     <h2 id="notes-title"></h2>
     <ol class="notes-list" id="notes-list"></ol>
-    <div class="notes-actions"><button type="button" class="btn-primary" id="notes-back" autofocus></button></div>
+    <div class="notes-actions"><button type="button" class="btn-primary" id="notes-back" autofocus=""></button></div>
   </div>
 </dialog>
 
@@ -433,13 +432,13 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
   },
   "page": {
     "mastheadTop": "[An educational strategy game]",
-    "title": "[Game title]",
-    "subtitle": "[Subtitle — years]",
+    "title": "[The Dust Bowl Farmer]",
+    "subtitle": "[ (1929–1939)— ]",
     "intro": "[Introduction: who the player is, what they are responsible for, and what pressures they will face.]",
     "howToPlayHeading": "[How to play]",
-    "howToPlay": "[Rule 1]\n[Rule 2]\n[Rule 3]\n[Rule 4]\n[Rule 5]\n[Rule 6]",
-    "gameSubtitle": "[Game subtitle · years]",
-    "author": "[Your name and class]"
+    "howToPlay": "1. Manage Your Money Players begin with $100. You must carefully spend your money on food, housing, transportation, and other necessities. If you run out of money, your chances of survival decrease.                                                                                                                                                                          2. Find Food and Shelter You must make sure your character has enough food and a safe place to sleep. You can use soup kitchens, shelters, or community assistance when necessary.                                                                                                                                                                                                                 3. Complete Challenges to Earn Money  Players must complete different challenges to earn money. Factory workers can search for jobs, while farmers can work on their land or look for agricultural opportunities.                                                                                                                                                                                                                                      4. Make Decisions That Affect Your Future\nEvery decision has consequences. Spending money on one necessity may mean going without another. Your choices determine whether your character succeeds or struggles.\n5. Take Advantage of Available Assistance\nPlayers can seek government assistance and employment opportunities. Programs introduced through President Franklin D. Roosevelt's New Deal, beginning in 1933, can help characters find work and improve their situations.\n6. Survive Until the End of the Game\nYour objective is to survive the Great Depression. You must keep your family safe, maintain your health, and make enough progress to reach a more stable future. Your ending depends on the decisions you make.\n",
+    "gameSubtitle": "[1930–1939]",
+    "author": "Justin Trotman, Caleb Ferrara, Matthew Ashley"
   },
   "ui": {
     "browserTabTitle": "Great Depression",
@@ -448,7 +447,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "footnotesButton": "[Footnotes]",
     "footnotesTitle": "[Footnotes]",
     "footnotesBack": "[Back]",
-    "moneyStart": "[Starting amount]",
+    "moneyStart": "[10,000]",
     "moneyLastTurn": "[Last turn: {change}]",
     "timelinePanel": "[Timeline]",
     "turnCounter": "[Turn {n} of {total}]",
@@ -457,9 +456,9 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "tagCrisis": "[Crisis]",
     "tagWarn": "[Developing situation]",
     "tagGood": "[Good news]",
-    "eventDateline": "[{year} — Dispatches]",
+    "eventDateline": "1930: . WHAT HAPPENS? SEVERE DROUGHT CONDITIONS BEGIN AFFECTING THE GREAT PLAINS. FARMERS STRUGGLE TO GROW CROPS BECAUSE OF THE LACK OF RAINFALL. YOUR FARMLAND BECOMES INCREASINGLY DRY, AND YOUR HARVEST BEGINS PRODUCING LESS FOOD AND INCOME.",
     "effectsPrefix": "[Immediate effects:]",
-    "decisionsPanel": "[Decisions]",
+    "decisionsPanel": "YOUR SITUATION: YOU NOTICE THAT YOUR CROPS ARE NOT GROWING PROPERLY. YOU MUST DECIDE HOW TO PROTECT YOUR FARM AND FAMILY. DECISION: WHAT WILL YOU DO?",
     "decisionsPrompt": "[Select your course:]",
     "advance": "[Advance →]",
     "restart": "[Restart]",
@@ -474,7 +473,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
   "game": {
     "startYear": 1929,
     "yearStep": 1,
-    "turns": 10,
+    "turns": 5,
     "choicesPerTurn": 3,
     "eventChance": 65,
     "money": {
@@ -493,21 +492,8 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     },
     "stats": [
       {
-        "id": "s1",
-        "name": "[Stat 1]",
-        "start": 60,
-        "lowerIsBetter": false,
-        "canLose": false,
-        "loseAt": 0,
-        "ending": {
-          "title": "[Stat 1 ending title]",
-          "verdict": "[Stat 1 ending verdict]",
-          "text": "[Stat 1 ending text]"
-        }
-      },
-      {
         "id": "s2",
-        "name": "[Stat 2]",
+        "name": "Health",
         "start": 45,
         "lowerIsBetter": false,
         "canLose": false,
@@ -520,7 +506,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "s3",
-        "name": "[Stat 3]",
+        "name": "Hunger",
         "start": 55,
         "lowerIsBetter": false,
         "canLose": true,
@@ -533,7 +519,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "s4",
-        "name": "[Stat 4]",
+        "name": "Housing",
         "start": 60,
         "lowerIsBetter": false,
         "canLose": true,
@@ -546,7 +532,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       },
       {
         "id": "s5",
-        "name": "[Stat 5]",
+        "name": "Hope",
         "start": 20,
         "lowerIsBetter": true,
         "canLose": true,
@@ -562,95 +548,56 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       {
         "id": "p1",
         "icon": "✦",
-        "name": "[Path 1]",
-        "era": "[Era · years]",
-        "description": "[Describe who the player is on this path and what they will face.]",
+        "name": "The Unemployed Factory Worker",
+        "era": " ERA/YEARS: 1929-1933",
+        "description": "You are a 28-year-old factory worker residing in Chicago, Illinois. Prior to the Great Depression, you were employed, earning enough money to sustain you and your family, and lived in an apartment. After the 1929 stock market crash, the factory at which you worked starts to go out of business and shut down.  You become unemployed and suddenly have no source of income. You need to come up with ways of sustaining you and your family while looking for work.   ",
         "button": "[Begin as path 1]",
         "label": "[Path 1 label]",
         "decisions": [
           {
             "id": "p1d1",
-            "category": "[Category]",
-            "label": "[Decision 1]",
-            "description": "[What this decision means]",
-            "hint": "[Hint about its effects]",
+            "category": "[Choice ]",
+            "label": "A",
+            "description": "A. Keep all your savings in the bank.  You believe the economy will recover soon, so you leave your entire $10,000 in the bank. Effect -",
+            "hint": "Effect - Effect - Money: +$500 - Health: -5 - Hunger: -5 - Housing: +5 - Hope: +10",
             "effects": {
-              "money": 0,
-              "s1": 0,
-              "s2": 0,
-              "s3": 0,
-              "s4": 0,
-              "s5": 0
+              "money": 500,
+              "s2": -5,
+              "s3": -5,
+              "s4": 5,
+              "s5": 10
             }
           },
           {
             "id": "p1d2",
-            "category": "[Category]",
-            "label": "[Decision 2]",
-            "description": "[What this decision means]",
-            "hint": "[Hint about its effects]",
+            "category": "[Choice ]",
+            "label": "[C]",
+            "description": "C. C. Spend $2,000 on food and emergency supplies. You decide to prepare for difficult times by purchasing food and household necessities. ",
+            "hint": "Effect - - Money: -$2,000 - Health: +5 - Hunger: -10 - Housing: +0 - Hope: +5",
             "effects": {
-              "money": 0,
-              "s1": 0,
-              "s2": 0,
-              "s3": 0,
+              "money": -2000,
+              "s2": 5,
+              "s3": -10,
               "s4": 0,
-              "s5": 0
+              "s5": 5
             }
           },
           {
             "id": "p1d3",
-            "category": "[Category]",
-            "label": "[Decision 3]",
-            "description": "[What this decision means]",
-            "hint": "[Hint about its effects]",
+            "category": "[Choice ]",
+            "label": "[B -",
+            "description": "B. Withdraw $5,000 and keep it somewhere safe.  You become concerned about the economy and withdraw half your savings to protect yourself against possible bank problems.",
+            "hint": "Effect   - Money: $10,000 (no change) - Health: +0 - Hunger: +0 - Housing: +0 - Hope: +10",
             "effects": {
               "money": 0,
-              "s1": 0,
               "s2": 0,
               "s3": 0,
               "s4": 0,
-              "s5": 0
-            }
-          },
-          {
-            "id": "p1d4",
-            "category": "[Category]",
-            "label": "[Decision 4]",
-            "description": "[What this decision means]",
-            "hint": "[Hint about its effects]",
-            "effects": {
-              "money": 0,
-              "s1": 0,
-              "s2": 0,
-              "s3": 0,
-              "s4": 0,
-              "s5": 0
+              "s5": 10
             }
           }
         ],
         "events": [
-          {
-            "id": "p1e1",
-            "tag": "crisis",
-            "headline": "[Event 1 headline]",
-            "body": "[What happened]",
-            "image": {
-              "src": "",
-              "alt": "[Image description]",
-              "caption": "[Image caption and credit]"
-            },
-            "effects": {
-              "money": 0,
-              "s1": 0,
-              "s2": 0,
-              "s3": 0,
-              "s4": 0,
-              "s5": 0
-            },
-            "chance": 30,
-            "conditions": []
-          },
           {
             "id": "p1e2",
             "tag": "warn",
@@ -663,7 +610,6 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
             },
             "effects": {
               "money": 0,
-              "s1": 0,
               "s2": 0,
               "s3": 0,
               "s4": 0,
@@ -690,7 +636,6 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
             },
             "effects": {
               "money": 0,
-              "s1": 0,
               "s2": 0,
               "s3": 0,
               "s4": 0,
@@ -698,97 +643,12 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
             },
             "chance": 30,
             "conditions": []
-          }
-        ],
-        "notes": [
-          {
-            "id": "p1n1",
-            "title": "[Historical note 1 title]",
-            "body": "[Historical note text]"
           },
           {
-            "id": "p1n2",
-            "title": "[Historical note 2 title]",
-            "body": "[Historical note text]"
-          }
-        ]
-      },
-      {
-        "id": "p2",
-        "icon": "✦",
-        "name": "[Path 2]",
-        "era": "[Era · years]",
-        "description": "[Describe who the player is on this path and what they will face.]",
-        "button": "[Begin as path 2]",
-        "label": "[Path 2 label]",
-        "decisions": [
-          {
-            "id": "p2d1",
-            "category": "[Category]",
-            "label": "[Decision 1]",
-            "description": "[What this decision means]",
-            "hint": "[Hint about its effects]",
-            "effects": {
-              "money": 0,
-              "s1": 0,
-              "s2": 0,
-              "s3": 0,
-              "s4": 0,
-              "s5": 0
-            }
-          },
-          {
-            "id": "p2d2",
-            "category": "[Category]",
-            "label": "[Decision 2]",
-            "description": "[What this decision means]",
-            "hint": "[Hint about its effects]",
-            "effects": {
-              "money": 0,
-              "s1": 0,
-              "s2": 0,
-              "s3": 0,
-              "s4": 0,
-              "s5": 0
-            }
-          },
-          {
-            "id": "p2d3",
-            "category": "[Category]",
-            "label": "[Decision 3]",
-            "description": "[What this decision means]",
-            "hint": "[Hint about its effects]",
-            "effects": {
-              "money": 0,
-              "s1": 0,
-              "s2": 0,
-              "s3": 0,
-              "s4": 0,
-              "s5": 0
-            }
-          },
-          {
-            "id": "p2d4",
-            "category": "[Category]",
-            "label": "[Decision 4]",
-            "description": "[What this decision means]",
-            "hint": "[Hint about its effects]",
-            "effects": {
-              "money": 0,
-              "s1": 0,
-              "s2": 0,
-              "s3": 0,
-              "s4": 0,
-              "s5": 0
-            }
-          }
-        ],
-        "events": [
-          {
-            "id": "p2e1",
-            "tag": "crisis",
-            "headline": "[Event 1 headline]",
-            "body": "[What happened]",
+            "id": "ewkfnoq",
+            "tag": "warn",
+            "headline": "[Every Dollar Counts]",
+            "body": "\nThe headlines are quiet today, but the daily grind doesn't stop. You spend the morning hunting for work, trying to stretch your remaining coins to cover rent and put food on the table. Every single decision counts right now—make sure you're ready for whatever comes next.\n",
             "image": {
               "src": "",
               "alt": "[Image description]",
@@ -796,7 +656,93 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
             },
             "effects": {
               "money": 0,
-              "s1": 0,
+              "s2": 0,
+              "s3": 0,
+              "s4": 0,
+              "s5": 0
+            },
+            "chance": 100,
+            "conditions": []
+          }
+        ],
+        "notes": [
+          {
+            "id": "p1n1",
+            "title": "Unemployment",
+            "body": "Unemployment became quite high during the Great Depression era and stood at around 25% for the American labor force in 1933. This is the reason why looking for employment has been identified as one of the biggest problems in Path 1. FDR Presidential Library & Museum+1 "
+          },
+          {
+            "id": "p1n2",
+            "title": "The New Deal",
+            "body": "     The New Deal was introduced by President Franklin D. Roosevelt in 1933. These programs were aimed at providing job opportunities and financial assistance. Some of the programs under the New Deal included the Civilian Conservation Corps (CCC).  Library of Congress+1"
+          }
+        ]
+      },
+      {
+        "id": "p2",
+        "icon": "✦",
+        "name": "The Dust Bowl Farmer",
+        "era": "[1930-1939",
+        "description": "You are a 35-year-old farmer residing in Oklahoma, along with your wife and two children. Your farm used to provide you with all the food and money necessary before the Great Depression started. The economy starts to collapse, and drought becomes an additional problem in farming.\n\nDust storms are destroying your farmlands, crops do not succeed, and your family is barely surviving. Now you need to choose whether to try to reconstruct your farm or move away from Oklahoma.\n",
+        "button": "[Begin as path 2]",
+        "label": "[Path 2 label]",
+        "decisions": [
+          {
+            "id": "p2d2",
+            "category": "[Choice]",
+            "label": "[A]",
+            "description": "A. Spend money on new seeds and farming supplies. You purchase new seeds and supplies, hoping that conditions improve and your next harvest is successful.",
+            "hint": "Money: -$1,000 Health: +0 Hunger: -5 Housing: +0 Hope: +10",
+            "effects": {
+              "money": -1000,
+              "s2": 0,
+              "s3": -5,
+              "s4": 0,
+              "s5": 10
+            }
+          },
+          {
+            "id": "p2d3",
+            "category": "[Choice ",
+            "label": "[B]",
+            "description": "B. Save your money and wait for rainfall. You decide not to spend money on farming supplies. You hope the weather improves, but your crops continue struggling.",
+            "hint": "Money: $0 change Health: +0 Hunger: +10 Housing: +0 Hope: -10",
+            "effects": {
+              "money": 0,
+              "s2": 0,
+              "s3": 10,
+              "s4": 0,
+              "s5": -10
+            }
+          },
+          {
+            "id": "p2d4",
+            "category": "[Choice]",
+            "label": "[C]",
+            "description": "C. Sell some livestock to support your family. You sell some of your animals to earn money and purchase food for your family.",
+            "hint": "Money: +$1,000 Health: +5 Hunger: -15 Housing: +0 Hope: -5",
+            "effects": {
+              "money": 1000,
+              "s2": 5,
+              "s3": -15,
+              "s4": 0,
+              "s5": -5
+            }
+          }
+        ],
+        "events": [
+          {
+            "id": "p2e1",
+            "tag": "crisis",
+            "headline": "Preparing for the Drought ",
+            "body": "The weather has been unusually dry, and your crops are beginning to struggle. You must manage your farm savings, protect your supplies, and prepare your family for difficult conditions.\n",
+            "image": {
+              "src": "",
+              "alt": "[Image description]",
+              "caption": "[Image caption and credit]"
+            },
+            "effects": {
+              "money": 0,
               "s2": 0,
               "s3": 0,
               "s4": 0,
@@ -817,7 +763,6 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
             },
             "effects": {
               "money": 0,
-              "s1": 0,
               "s2": 0,
               "s3": 0,
               "s4": 0,
@@ -844,7 +789,6 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
             },
             "effects": {
               "money": 0,
-              "s1": 0,
               "s2": 0,
               "s3": 0,
               "s4": 0,
@@ -869,9 +813,9 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       }
     ],
     "noEvent": {
-      "dateline": "[{year} — No major event]",
-      "headline": "[Headline for a quiet turn]",
-      "body": "[Text shown when no event happens this turn]"
+      "dateline": "1929: STOCK MARKET CRASH HEADLINE: AMERICA'S ECONOMY BEGINS TO COLLAPSE THE STOCK MARKET CRASH OF OCTOBER 1929 CAUSES FINANCIAL PANIC ACROSS THE COUNTRY. BUSINESSES BEGIN STRUGGLING, INVESTORS LOSE MONEY, AND WORKERS BECOME CONCERNED ABOUT THEIR JOBS. ",
+      "headline": "Every Penny Counts ",
+      "body": "Every Penny Counts\n\nThere have been no big happenings for the day, yet life has remained tough. You are still looking for employment while at the same time struggling to save money to make ends meet.\n"
     },
     "finalEndings": {
       "winAbove": 70,
@@ -2846,6 +2790,4 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
 
   loadAutoSave().finally(() => { if (location.hash === '#edit') startEditing(); });
 })();
-</script>
-</body>
-</html>
+</script></body></html>

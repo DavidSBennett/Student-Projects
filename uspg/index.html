@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>U.S. Propaganda in Germany</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Special+Elite&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&amp;family=Special+Elite&amp;family=Source+Serif+4:ital,wght@0,400;0,600;1,400&amp;display=swap">
 <style>
 /* =====================================================================
    STYLES
@@ -367,14 +366,14 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
        data-text="page.author"  text that is edited by clicking on it
        data-label="ui.editLink" text that is edited in the "Other text…" window
      ===================================================================== -->
-<button type="button" class="notes-fab" id="notes-btn" hidden></button>
+<button type="button" class="notes-fab" id="notes-btn" hidden=""></button>
 
 <div id="app"></div>
 
 <footer class="site-footer">
   <p class="author" data-text="page.author"></p>
   <a href="#edit" class="edit-link" id="edit-link" data-label="ui.editLink"></a>
-  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden></p>
+  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden=""></p>
 </footer>
 
 <!-- The footnotes pop-up. Opens on top of whatever screen the player is on. -->
@@ -382,7 +381,7 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
   <div class="notes-inner">
     <h2 id="notes-title"></h2>
     <ol class="notes-list" id="notes-list"></ol>
-    <div class="notes-actions"><button type="button" class="btn-primary" id="notes-back" autofocus></button></div>
+    <div class="notes-actions"><button type="button" class="btn-primary" id="notes-back" autofocus=""></button></div>
   </div>
 </dialog>
 
@@ -449,11 +448,11 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
   },
   "page": {
     "mastheadTop": "[An educational card game]",
-    "title": "[Game title]",
-    "subtitle": "[Subtitle — years]",
-    "intro": "[Introduction: who the player is, what they are trying to do, and what could go wrong.]",
-    "howToPlayHeading": "[How to play]",
-    "howToPlay": "[Rule 1]\n[Rule 2]\n[Rule 3]\n[Rule 4]\n[Rule 5]\n[Rule 6]",
+    "title": "WORDS OVER BERLIN",
+    "subtitle": "[U.S. Intelligence — 1941-45]",
+    "intro": "You are part of the United States' counter-intelligence force during the second world war. You are tasked with gaining and dispatching intel to increase German citizens media exposure, and their will to fight back against their own regime.",
+    "howToPlayHeading": "RULES:",
+    "howToPlay": "1. Read the briefing. See what’s happening in the war this year.\n2. Look at your story cards. You’ll have 4 to choose from.\n3. Pick a card to smuggle into Germany.\n4. Meters will update and you can read the report on how the German people reacted.\n5. Move to the next year.",
     "gameSubtitle": "[Game subtitle · years]",
     "author": "[Your name and class]"
   },
@@ -464,11 +463,11 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "footnotesButton": "[Footnotes]",
     "footnotesTitle": "[Footnotes]",
     "footnotesBack": "[Back]",
-    "begin": "[Begin the campaign]",
-    "cardTypesHeading": "[Kinds of propaganda]",
+    "begin": "BEGIN",
+    "cardTypesHeading": "CATEGORIES OF PROPAGANDA",
     "timelinePanel": "[Timeline]",
     "turnCounter": "[Turn {n} of {total}]",
-    "tracksPanel": "[The two tracks]",
+    "tracksPanel": "GERMAN ATTRIBUTES",
     "deckPanel": "[Your deck]",
     "deckCount": "[Deck: {deck} · Discard pile: {discard}]",
     "eventsPanel": "[Dispatches]",
@@ -495,26 +494,26 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     "backToStart": "[Return to the start]"
   },
   "game": {
-    "turns": 12,
-    "dates": "[Date 1]\n[Date 2]\n[Date 3]\n[Date 4]\n[Date 5]\n[Date 6]\n[Date 7]\n[Date 8]\n[Date 9]\n[Date 10]\n[Date 11]\n[Date 12]",
+    "turns": 8,
+    "dates": "1941 - Winter\n1942 - Summer\n1942 - Winter\n1943 - Summer\n1943 - Winter\n1944 - Summer\n1944 - Winter\n1945 - Summer\n[Date 6]\n[Date 7]\n[Date 8]\n[Date 9]\n[Date 10]\n[Date 11]\n[Date 12]",
     "handSize": 4,
     "eventChance": 50,
     "tracks": {
       "will": {
-        "name": "[Will to fight]",
-        "description": "[What this bar means. Push it down.]",
+        "name": "WILL TO FIGHT",
+        "description": "[German desire to fight. Push it down.]",
         "start": 80,
         "perTurn": 1,
-        "endAt": 25,
+        "endAt": 10,
         "ending": {
-          "title": "[Will broken ending title]",
-          "verdict": "[Will broken ending verdict]",
-          "text": "[Will broken ending text]"
+          "title": "GERMANS SURRENDER",
+          "verdict": "Mission Success",
+          "text": "The Germans refuse to fight under Hitlers flag and have surrendered. Well done."
         }
       },
       "exposure": {
-        "name": "[Network exposure]",
-        "description": "[What this bar means. Keep it down.]",
+        "name": "MEDIA EXPOSURE",
+        "description": "German access to your media. Push it up.",
         "start": 10,
         "perTurn": -1,
         "endAt": 85,
@@ -527,131 +526,150 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     },
     "cardTypes": {
       "white": {
-        "name": "[White propaganda]",
-        "description": "[What white propaganda is]"
+        "name": "Pro-U.S.",
+        "description": "The United States is strong and trustworthy. With us, you will have peace."
       },
       "grey": {
-        "name": "[Grey propaganda]",
-        "description": "[What grey propaganda is]"
+        "name": "Anti-Nazi",
+        "description": "The regime is failing, lying, and cannot protect you."
       },
       "black": {
-        "name": "[Black propaganda]",
-        "description": "[What black propaganda is]"
+        "name": "Anti-war",
+        "description": "Resistance is pointless. Surrender "
       }
     },
     "lieLow": {
       "show": true,
-      "label": "[Lie low]",
-      "description": "[Play no card this turn and let the network go quiet]",
-      "result": "[What happened while the network lay low]",
+      "label": "Lie Low",
+      "description": "No card will be played this turn. Consequences may follow.",
+      "result": "Lack of counterintelligence has allowed the Germans to harbor greater local support. Less people have access to our intel, and are unwilling to fight.",
       "effects": {
-        "will": 0,
-        "exposure": -15
+        "will": 15,
+        "exposure": 15
       }
     },
     "cards": [
       {
         "id": "c1",
         "type": "white",
-        "name": "[Card 1]",
-        "description": "[What this leaflet, broadcast or rumour says]",
-        "hint": "[A hint about how risky it is]",
-        "result": "[What happened when it was used]",
+        "name": "Safe Conduct",
+        "description": "Leaflets promise humane treatment to surrendering German soldiers.",
+        "hint": "Some soldiers keep fighting because they fear capture.",
+        "result": "German soldiers surrender to U.S. troops after realizing they will not be killed or mistreated.",
         "image": {
           "src": "",
           "alt": "[Image description]",
           "caption": "[Image caption and credit]"
         },
         "effects": {
-          "will": -3,
-          "exposure": 2
+          "will": -5,
+          "exposure": 10
         },
-        "spread": 3,
-        "copies": 2
+        "spread": 5,
+        "copies": 1
       },
       {
         "id": "c2",
         "type": "white",
-        "name": "[Card 2]",
-        "description": "[What this leaflet, broadcast or rumour says]",
-        "hint": "[A hint about how risky it is]",
-        "result": "[What happened when it was used]",
+        "name": "Allied Airborne Newspaper (Fondren)",
+        "description": "News drops report real Allied battlefield vivtories.",
+        "hint": "Newspapers are more trustworthy than propaganda leaflets.",
+        "result": "German Citizens and soldiers alike are discouraged by their failing war effort.",
         "image": {
           "src": "",
           "alt": "[Image description]",
           "caption": "[Image caption and credit]"
         },
         "effects": {
-          "will": -3,
-          "exposure": 2
+          "will": -5,
+          "exposure": 10
         },
-        "spread": 3,
-        "copies": 2
+        "spread": 5,
+        "copies": 1
       },
       {
         "id": "c3",
-        "type": "grey",
-        "name": "[Card 3]",
-        "description": "[What this leaflet, broadcast or rumour says]",
-        "hint": "[A hint about how risky it is]",
-        "result": "[What happened when it was used]",
+        "type": "white",
+        "name": "Coordinated Leaflet Campaign (Laurie)",
+        "description": "The OWI, OSS, and ARMY combine their propaganda efforts.",
+        "hint": "Many agencies, one message.",
+        "result": "A large influx of allied sponsored messages has given Germans a new lens into their losing war",
         "image": {
           "src": "",
           "alt": "[Image description]",
           "caption": "[Image caption and credit]"
         },
         "effects": {
-          "will": -6,
-          "exposure": 8
+          "will": -5,
+          "exposure": 10
         },
-        "spread": 3,
-        "copies": 2
+        "spread": 5,
+        "copies": 1
       },
       {
         "id": "c4",
         "type": "grey",
-        "name": "[Card 4]",
-        "description": "[What this leaflet, broadcast or rumour says]",
-        "hint": "[A hint about how risky it is]",
-        "result": "[What happened when it was used]",
+        "name": "Censorship Exposed (Fondren)",
+        "description": "An accurate report reveals what the regime has been hiding.",
+        "hint": "Truth works better when it contradicts the official line.",
+        "result": "Germans discover the lies Hitler feeds ",
         "image": {
           "src": "",
           "alt": "[Image description]",
           "caption": "[Image caption and credit]"
         },
         "effects": {
-          "will": -6,
+          "will": -13,
           "exposure": 8
         },
-        "spread": 3,
-        "copies": 2
+        "spread": 5,
+        "copies": 1
       },
       {
         "id": "c5",
-        "type": "black",
-        "name": "[Card 5]",
-        "description": "[What this leaflet, broadcast or rumour says]",
-        "hint": "[A hint about how risky it is]",
-        "result": "[What happened when it was used]",
+        "type": "grey",
+        "name": "Cities Left Undefended (bombing survey)\t",
+        "description": "Civilians see bombed cities the government cannot protect.",
+        "hint": "People lose faith in leaders who can’t keep them safe.",
+        "result": "Widespread destruction has caused fear and unrest in the German People.",
         "image": {
           "src": "",
           "alt": "[Image description]",
           "caption": "[Image caption and credit]"
         },
         "effects": {
-          "will": -10,
-          "exposure": 14
+          "will": -16,
+          "exposure": 9
         },
-        "spread": 3,
-        "copies": 2
+        "spread": 5,
+        "copies": 1
       },
       {
         "id": "c6",
-        "type": "black",
-        "name": "[Card 6]",
-        "description": "[What this leaflet, broadcast or rumour says]",
-        "hint": "[A hint about how risky it is]",
-        "result": "[What happened when it was used]",
+        "type": "grey",
+        "name": "Leadership Discontent Leaflet (Nietzel)",
+        "description": "Intelligence reports reveal frustration with Nazi leaders, and the leaflets exploit it.",
+        "hint": "Know what your audience is already angry about.",
+        "result": "Frustration in the Reich's ranks has descended into the lay peoples.",
+        "image": {
+          "src": "",
+          "alt": "[Image description]",
+          "caption": "[Image caption and credit]"
+        },
+        "effects": {
+          "will": -13,
+          "exposure": 8
+        },
+        "spread": 5,
+        "copies": 1
+      },
+      {
+        "id": "crxt6do",
+        "type": "grey",
+        "name": "Facing Responsibility (Rauch)",
+        "description": "A leaflet confronts civilians with Nazi crimes.",
+        "hint": "Many Germans know they’re losing but refuse to accept blame.",
+        "result": "Some civilians have lost sentiment towards the war effort.",
         "image": {
           "src": "",
           "alt": "[Image description]",
@@ -659,41 +677,98 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         },
         "effects": {
           "will": -10,
-          "exposure": 14
+          "exposure": 5
         },
-        "spread": 3,
-        "copies": 2
+        "spread": 5,
+        "copies": 1
+      },
+      {
+        "id": "cpbr9o0",
+        "type": "black",
+        "name": "Proclamation No. 1 (Eisenhower",
+        "description": "Allies announce they are entering Germany as conquerors.",
+        "hint": "When defeat is certain, resistance looks pointless.",
+        "result": "Germans will see the might of the Allies and fall to their knees.",
+        "image": {
+          "src": "",
+          "alt": "[Image description]",
+          "caption": "[Image caption and credit]"
+        },
+        "effects": {
+          "will": -20,
+          "exposure": 5
+        },
+        "spread": 5,
+        "copies": 1
+      },
+      {
+        "id": "ctk86jf",
+        "type": "black",
+        "name": "War Weariness (Overy)",
+        "description": "Bombing leaves civilians exhausted and displaced.",
+        "hint": "Hardship wears people down, but not as fast as planners hoped.",
+        "result": "They are low on resources, they cannot last much longer.",
+        "image": {
+          "src": "",
+          "alt": "[Image description]",
+          "caption": "[Image caption and credit]"
+        },
+        "effects": {
+          "will": -13,
+          "exposure": 5
+        },
+        "spread": 5,
+        "copies": 1
+      },
+      {
+        "id": "cqqaicn",
+        "type": "black",
+        "name": "Fear of Defeat Leaflet (Whyte)",
+        "description": "Psychological warfare targets civilian emotions and fear.",
+        "hint": "Early in the war, fear doesn’t land well.",
+        "result": "Should the Germans continue, they will face grave consequences. Now they know.",
+        "image": {
+          "src": "",
+          "alt": "[Image description]",
+          "caption": "[Image caption and credit]"
+        },
+        "effects": {
+          "will": -10,
+          "exposure": 3
+        },
+        "spread": 5,
+        "copies": 1
       }
     ],
     "events": [
       {
         "id": "e1",
         "tag": "crisis",
-        "headline": "[Event 1 headline]",
-        "body": "[What happened]",
+        "headline": "The German situation is dire.",
+        "body": "The Nazis have just demonstrated their new weapons to their public. Many can see their raw power and feel called to fight.",
         "image": {
           "src": "",
           "alt": "[Image description]",
           "caption": "[Image caption and credit]"
         },
         "effects": {
-          "will": 0,
+          "will": 15,
           "exposure": 8
         },
         "chance": 60,
         "conditions": [
           {
-            "stat": "exposure",
+            "stat": "will",
             "op": "above",
-            "value": 50
+            "value": 75
           }
         ]
       },
       {
         "id": "e2",
         "tag": "warn",
-        "headline": "[Event 2 headline]",
-        "body": "[What happened]",
+        "headline": "Remember your mission.",
+        "body": "You were called here to dismantle German morale, you understand that. Right?",
         "image": {
           "src": "",
           "alt": "[Image description]",
@@ -709,8 +784,8 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
       {
         "id": "e3",
         "tag": "good",
-        "headline": "[Event 3 headline]",
-        "body": "[What happened]",
+        "headline": "Great Work",
+        "body": "Your efforts have not gone unnoticed. Continue and victory will come soon.",
         "image": {
           "src": "",
           "alt": "[Image description]",
@@ -718,10 +793,16 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
         },
         "effects": {
           "will": -5,
-          "exposure": 0
+          "exposure": 5
         },
         "chance": 40,
-        "conditions": []
+        "conditions": [
+          {
+            "stat": "will",
+            "op": "below",
+            "value": 30
+          }
+        ]
       }
     ],
     "notes": [
@@ -738,20 +819,20 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
     ],
     "noEvent": {
       "dateline": "[{date} — No major event]",
-      "headline": "[Headline for a quiet turn]",
-      "body": "[Text shown when no event happens this turn]"
+      "headline": "No new intel from our internal sources.",
+      "body": "Nothing has changed in Europe."
     },
     "finalEndings": {
       "mixedAt": 50,
       "mixed": {
-        "title": "[Middle ending title]",
-        "verdict": "[Middle ending verdict]",
-        "text": "[Middle ending text]"
+        "title": "Perhaps this effort was unnecessary...",
+        "verdict": "The war is over.",
+        "text": "We have seen victory in Europe, but it was not by your hands."
       },
       "lose": {
-        "title": "[Worst ending title]",
-        "verdict": "[Worst ending verdict]",
-        "text": "[Worst ending text]"
+        "title": "Defeat",
+        "verdict": "Europe has fallen.",
+        "text": "Hitler has rallied his people behind him in a way we cannot compete with. It's over."
       }
     }
   }
@@ -2772,6 +2853,4 @@ body.is-editing [data-text]:focus { outline: 2px solid var(--edit-outline); back
 
   loadAutoSave().finally(() => { if (location.hash === '#edit') startEditing(); });
 })();
-</script>
-</body>
-</html>
+</script></body></html>

@@ -376,10 +376,10 @@ body.is-editing [data-image-box]::after {
     "hash": "7a04ee6c47742582de83e4149a8d75aff5a2e07b81ce5b10083eb93989eb036f"
   },
   "page": {
-    "title": "[Game title]",
-    "introduction": "[Introduction]",
-    "gameAreaHeading": "[Game area]",
-    "author": "[Your name and class]"
+    "title": "[Southside Sacrifice]",
+    "introduction": "The southern town smell of dust and smoke. The Civil War decades in the past, but a new era has taken place. All around you, segregation and discrimination are on the rise. Laws are dictating where you can walk, sit, and what kind of future you have. \nAs an African American building a life under the weight of segregation and white supremacy prove to be a challenge. Your survival depends on community strength and protecting your hard earned independence.\nAs a Chinese Immigrant, you find yourself caught in the uneasy space between white supremacy and the Black community. You're expected to accept second-class status, forced into isolated neighborhoods, and blocked by exclusionary laws. Both of you face the same wall, just from different sides.\n\nEvery coin saved, every trade negotiated, and every challenge raised against an unjust ordinance will test what you are willing to risk. The system was built to keep you boxed in.\n\n\nWhat will you give to life your life?",
+    "gameAreaHeading": "Southern United States",
+    "author": "Amara Forts "
   },
   "ui": {
     "footnotesButton": "[Footnotes]",
@@ -389,7 +389,7 @@ body.is-editing [data-image-box]::after {
     "editLink": "[Edit]",
     "localChangesNote": "[Note: this page is showing changes that are not in the uploaded file yet]",
     "setupHeading": "[Start a new life]",
-    "nameLabel": "[Your name]",
+    "nameLabel": "Amara Forts",
     "randomName": "[Random name]",
     "backgroundHeading": "[Choose a background]",
     "startLife": "[Start life]",
@@ -434,61 +434,67 @@ body.is-editing [data-image-box]::after {
     "stats": [
       {
         "id": "s1",
-        "name": "[Stat 1]",
+        "name": "Money",
         "start": 50
       },
       {
         "id": "s2",
-        "name": "[Stat 2]",
+        "name": "Community",
         "start": 50
       },
       {
         "id": "s3",
-        "name": "[Stat 3]",
+        "name": "Standing",
         "start": 50
       },
       {
         "id": "s4",
-        "name": "[Stat 4]",
+        "name": "Heat",
         "start": 50
       }
     ],
     "names": [
-      "[Name 1]",
-      "[Name 2]",
-      "[Name 3]"
+      "Bill",
+      "Joel",
+      "Ana"
     ],
     "backgrounds": [
       {
         "id": "b1",
-        "name": "[Background 1]",
-        "description": "[Background 1 description]",
+        "name": "African American in Jim Crow South",
+        "description": "You returned to your hometown with an education and a mission. You want to teach, build a school, and help your community stand on its own feet. But the ground is shifting beneath you.\nNew segregation laws dictate every public space. Local merchants trap your neighbors in endless debt. You have a small handful of savings, a sharp mind, and deep ties to the local church.\nStaying quiet keeps you safe, but standing up risks everything you've built.",
         "effects": []
       },
       {
         "id": "b2",
-        "name": "[Background 2]",
-        "description": "[Background 2 description]",
+        "name": "The Immigrant Merchant",
+        "description": "You arrived with a suitcase and a trade, opening a small grocery store to serve working-class families. But you quickly found yourself caught in a rigid racial divide.\nShut out of white society by exclusive laws, you built your business by serving Black neighbors whom white merchants turned away. Your shelves are stocked, but the local authorities watch you closely.\nEvery choice tests where you fit in a town built on hard lines.",
+        "effects": []
+      },
+      {
+        "id": "bnwvqbb",
+        "name": "[Background]",
+        "description": "[Background description]",
         "effects": []
       }
     ],
     "people": [
       {
         "id": "p1",
-        "name": "[Person 1]",
-        "role": "[Role]",
-        "description": "[Person 1 description]",
+        "name": "Thomas Miller",
+        "role": "Church Deacon",
+        "description": "A silver-haired, African American, deacon of the local church. Thomas has lived through the shifting tides of Reconstruction and knows every whispered warning in town. He fiercely wants to protect the community and keep the schoolhouse open, but years of survival have taught him caution. He advocates for quiet resilience over risky defiance.",
         "start": 50,
-        "fromAge": 0,
+        "fromAge": 30,
         "conditions": []
       },
       {
         "id": "p2",
-        "name": "[Person 2]",
-        "role": "[Role]",
-        "description": "[Person 2 description]",
+        "name": "Sheriff Silas Vance",
+        "role": "Local Sheriff",
+        "description": "A sharp lawman with a star pinned to his vest and a permanent scowl. Silas sees the town as his personal domain and views anyone trying to build independence or challenge the racial hierarchy as a threat to his authority. He enforces poll taxes and segregation ordinances with a heavy hand, showing up at your door whenever he wants to remind you who is in charge.",
         "start": 50,
-        "fromAge": 6,
+        "fromAge": 35,
         "conditions": []
       }
     ],
@@ -496,11 +502,11 @@ body.is-editing [data-image-box]::after {
       {
         "id": "e1",
         "type": "fixed",
-        "age": 5,
+        "age": 25,
         "minAge": 0,
         "maxAge": 80,
-        "title": "[Fixed event title]",
-        "text": "[What happens]",
+        "title": "The First Bell",
+        "text": "You return home with your education and open the doors of the local schoolhouse, determined to teach the next generation and uplift the community. Deacon Thomas Miller helps you secure your first batch of donated books.",
         "image": {
           "src": "",
           "alt": "[Image description]"
@@ -509,21 +515,21 @@ body.is-editing [data-image-box]::after {
         "choices": [
           {
             "id": "c1",
-            "label": "[Choice 1]",
-            "result": "[What happens after choice 1]",
+            "label": "Build Alliances",
+            "result": " Focus on community trust. Spend your time visiting families, leaning on Deacon Thomas Miller, and making the school a welcoming hub for everyone",
             "effects": [
               {
                 "kind": "stat",
-                "ref": "s1",
-                "change": 5
+                "ref": "s2",
+                "change": 20
               }
             ],
             "conditions": []
           },
           {
             "id": "c2",
-            "label": "[Choice 2]",
-            "result": "[What happens after choice 2]",
+            "label": "More Work",
+            "result": " Take on extra side labor and strictly manage every penny to buy better supplies and books",
             "effects": [
               {
                 "kind": "stat",

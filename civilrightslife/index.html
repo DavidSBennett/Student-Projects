@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Civil Rights Life</title>
@@ -310,9 +309,9 @@ body.is-editing [data-image-box]::after {
      edited in the "Other text" dialog instead. data-image="..." shows an image.
      ===================================================================== -->
 <header class="site-header">
-  <figure class="header-image" data-image-box="header" hidden><img data-image="header" alt=""></figure>
+  <figure class="header-image" data-image-box="header" hidden=""><img data-image="header" alt=""></figure>
   <h1 data-text="page.title"></h1>
-  <p class="intro" data-text="page.introduction" data-multiline></p>
+  <p class="intro" data-text="page.introduction" data-multiline=""></p>
 </header>
 
 <main>
@@ -325,7 +324,7 @@ body.is-editing [data-image-box]::after {
 
 <footer class="site-footer">
   <p class="author" data-text="page.author"></p>
-  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden></p>
+  <p class="local-note" id="local-note" data-label="ui.localChangesNote" hidden=""></p>
   <a href="#edit" class="edit-link" id="edit-link" data-label="ui.editLink"></a>
 </footer>
 
@@ -383,6 +382,9 @@ body.is-editing [data-image-box]::after {
     "author": "[Your name and class]"
   },
   "ui": {
+    "footnotesButton": "[Footnotes]",
+    "footnotesTitle": "[Footnotes]",
+    "footnotesBack": "[Back]",
     "browserTabTitle": "Civil Rights Life",
     "editLink": "[Edit]",
     "localChangesNote": "[Note: this page is showing changes that are not in the uploaded file yet]",
@@ -414,13 +416,13 @@ body.is-editing [data-image-box]::after {
     "relationship": "[Relationship]",
     "endingHeading": "[The end]",
     "finalStats": "[Final stats]",
-    "playAgain": "[Play again]",
-    "footnotesButton": "[Footnotes]",
-    "footnotesTitle": "[Footnotes]",
-    "footnotesBack": "[Back]"
+    "playAgain": "[Play again]"
   },
   "images": {
-    "header": { "src": "", "alt": "[Header image description]" }
+    "header": {
+      "src": "",
+      "alt": "[Header image description]"
+    }
   },
   "game": {
     "settings": {
@@ -430,50 +432,264 @@ body.is-editing [data-image-box]::after {
       "endStat": ""
     },
     "stats": [
-      { "id": "s1", "name": "[Stat 1]", "start": 50 },
-      { "id": "s2", "name": "[Stat 2]", "start": 50 },
-      { "id": "s3", "name": "[Stat 3]", "start": 50 },
-      { "id": "s4", "name": "[Stat 4]", "start": 50 }
+      {
+        "id": "s1",
+        "name": "[Stat 1]",
+        "start": 50
+      },
+      {
+        "id": "s2",
+        "name": "[Stat 2]",
+        "start": 50
+      },
+      {
+        "id": "s3",
+        "name": "[Stat 3]",
+        "start": 50
+      },
+      {
+        "id": "s4",
+        "name": "[Stat 4]",
+        "start": 50
+      }
     ],
-    "names": ["[Name 1]", "[Name 2]", "[Name 3]"],
+    "names": [
+      "[Name 1]",
+      "[Name 2]",
+      "[Name 3]"
+    ],
     "backgrounds": [
-      { "id": "b1", "name": "[Background 1]", "description": "[Background 1 description]", "effects": [] },
-      { "id": "b2", "name": "[Background 2]", "description": "[Background 2 description]", "effects": [] }
+      {
+        "id": "b1",
+        "name": "[Background 1]",
+        "description": "[Background 1 description]",
+        "effects": []
+      },
+      {
+        "id": "b2",
+        "name": "[Background 2]",
+        "description": "[Background 2 description]",
+        "effects": []
+      }
     ],
     "people": [
-      { "id": "p1", "name": "[Person 1]", "role": "[Role]", "description": "[Person 1 description]", "start": 50, "fromAge": 0, "conditions": [] },
-      { "id": "p2", "name": "[Person 2]", "role": "[Role]", "description": "[Person 2 description]", "start": 50, "fromAge": 6, "conditions": [] }
+      {
+        "id": "p1",
+        "name": "[Person 1]",
+        "role": "[Role]",
+        "description": "[Person 1 description]",
+        "start": 50,
+        "fromAge": 0,
+        "conditions": []
+      },
+      {
+        "id": "p2",
+        "name": "[Person 2]",
+        "role": "[Role]",
+        "description": "[Person 2 description]",
+        "start": 50,
+        "fromAge": 6,
+        "conditions": []
+      }
     ],
     "events": [
       {
-        "id": "e1", "type": "fixed", "age": 5, "minAge": 0, "maxAge": 80,
-        "title": "[Fixed event title]",
-        "text": "[What happens]",
-        "image": { "src": "", "alt": "[Image description]" },
+        "id": "e1",
+        "type": "fixed",
+        "age": 0,
+        "minAge": 0,
+        "maxAge": 80,
+        "title": "Babies First Steps",
+        "text": "You try to take your first steps and you fall down on your face.",
+        "image": {
+          "src": "",
+          "alt": "[Image description]"
+        },
         "conditions": [],
         "choices": [
-          { "id": "c1", "label": "[Choice 1]", "result": "[What happens after choice 1]", "effects": [{ "kind": "stat", "ref": "s1", "change": 5 }], "conditions": [] },
-          { "id": "c2", "label": "[Choice 2]", "result": "[What happens after choice 2]", "effects": [{ "kind": "stat", "ref": "s1", "change": -5 }], "conditions": [] }
+          {
+            "id": "c1",
+            "label": "Attempt to stand back up again ",
+            "result": "You stand back up for 5 seconds before you wobble back down on your butt. Your WW2 veteran father picks you up and is proud of your attempts at trying again.",
+            "effects": [
+              {
+                "kind": "stat",
+                "ref": "s1",
+                "change": 5
+              }
+            ],
+            "conditions": []
+          },
+          {
+            "id": "c2",
+            "label": "Cry",
+            "result": "Your WW2 veteran father picks you up from the floor and soothes you.",
+            "effects": [
+              {
+                "kind": "stat",
+                "ref": "s1",
+                "change": -5
+              }
+            ],
+            "conditions": []
+          }
         ]
       },
       {
-        "id": "e2", "type": "random", "age": 10, "minAge": 1, "maxAge": 80,
-        "title": "[Random event title]",
-        "text": "[What happens]",
-        "image": { "src": "", "alt": "[Image description]" },
+        "id": "e3ev5gq",
+        "type": "random",
+        "age": 1,
+        "minAge": 0,
+        "maxAge": 80,
+        "title": "Elementary School ",
+        "text": "As a kid in elementary school, you walk an hour from and to school every day. Your dad worked a manufacturing laboring job and cannot take you to school.",
+        "image": {
+          "src": "",
+          "alt": "[Image description]"
+        },
         "conditions": [],
         "choices": [
-          { "id": "c3", "label": "[Choice 1]", "result": "[What happens after choice 1]", "effects": [{ "kind": "stat", "ref": "s2", "change": 5 }], "conditions": [] },
-          { "id": "c4", "label": "[Choice 2]", "result": "[What happens after choice 2]", "effects": [{ "kind": "person", "ref": "p1", "change": -5 }], "conditions": [] }
+          {
+            "id": "cl4a74g",
+            "label": "Stand up for yourself ",
+            "result": "You learn to embrace your identity as an African American and develop the courage to stand against discrimination.",
+            "effects": [
+              {
+                "kind": "stat",
+                "ref": "s1",
+                "change": 5
+              }
+            ],
+            "conditions": []
+          },
+          {
+            "id": "c9cw8qc",
+            "label": " Focus on Your Education",
+            "result": "You concentrate on learning and working toward a better future despite the discrimination you face.",
+            "effects": [
+              {
+                "kind": "stat",
+                "ref": "s1",
+                "change": 5
+              }
+            ],
+            "conditions": []
+          }
         ]
+      },
+      {
+        "id": "evl52gk",
+        "type": "random",
+        "age": 1,
+        "minAge": 0,
+        "maxAge": 80,
+        "title": "Segregated High School",
+        "text": "During school, your teachers did not let you read any of the books because they spread hate, according to your teachers. Your teacher wanted you to know that you are an African American, not a colored person, not a Negro, and not anything else. They tell you to stand up for yourself and never let anything step over you.",
+        "image": {
+          "src": "",
+          "alt": "[Image description]"
+        },
+        "conditions": [],
+        "choices": [
+          {
+            "id": "cfttx04",
+            "label": " Accept Segregation",
+            "result": "You continue attending your segregated school while hoping things will change.",
+            "effects": [],
+            "conditions": []
+          },
+          {
+            "id": "c7frz0h",
+            "label": "Fight for Equal Education",
+            "result": "You become determined to challenge segregation and support equal educational opportunities.",
+            "effects": [],
+            "conditions": []
+          }
+        ]
+      },
+      {
+        "id": "epdlilr",
+        "type": "random",
+        "age": 1,
+        "minAge": 0,
+        "maxAge": 80,
+        "title": "The Protest",
+        "text": " You hear about a planned protest happening near your school from other kids in the hallway. People planning this protest want to challenge racial segregation. Do you want to participate in the protest?",
+        "image": {
+          "src": "",
+          "alt": "[Image description]"
+        },
+        "conditions": [],
+        "choices": [
+          {
+            "id": "c3s5tn4",
+            "label": "Join the Protest",
+            "result": "You approach the students and ask to participate. They welcome you and explain the protest.",
+            "effects": [],
+            "conditions": []
+          },
+          {
+            "id": "c9pydtz",
+            "label": " Stay Out of It ",
+            "result": "You ignore the students and head to your next class.",
+            "effects": [],
+            "conditions": []
+          }
+        ]
+      },
+      {
+        "id": "easehed",
+        "type": "random",
+        "age": 1,
+        "minAge": 0,
+        "maxAge": 80,
+        "title": "Malcolm X Path",
+        "text": "You protested on May 2, 1963, after school, but whenever you get faced with retaliation from the police, you get aggravated and attack back.",
+        "image": {
+          "src": "",
+          "alt": "[Image description]"
+        },
+        "conditions": [],
+        "choices": []
       }
     ],
     "activities": [
-      { "id": "a1", "name": "[Activity 1]", "result": "[What happens]", "minAge": 5, "maxAge": 80, "effects": [{ "kind": "stat", "ref": "s3", "change": 3 }], "conditions": [] }
+      {
+        "id": "a1",
+        "name": "[Activity 1]",
+        "result": "[What happens]",
+        "minAge": 5,
+        "maxAge": 80,
+        "effects": [
+          {
+            "kind": "stat",
+            "ref": "s3",
+            "change": 3
+          }
+        ],
+        "conditions": []
+      }
     ],
     "endings": [
-      { "id": "end1", "title": "[Ending 1 title]", "text": "[Ending 1 text]", "conditions": [{ "kind": "stat", "ref": "s1", "op": "min", "value": 70 }] },
-      { "id": "end2", "title": "[Ending 2 title]", "text": "[Ending 2 text]", "conditions": [] }
+      {
+        "id": "end1",
+        "title": "[Ending 1 title]",
+        "text": "[Ending 1 text]",
+        "conditions": [
+          {
+            "kind": "stat",
+            "ref": "s1",
+            "op": "min",
+            "value": 70
+          }
+        ]
+      },
+      {
+        "id": "end2",
+        "title": "[Ending 2 title]",
+        "text": "[Ending 2 text]",
+        "conditions": []
+      }
     ]
   }
 }
@@ -2479,6 +2695,4 @@ body.is-editing [data-image-box]::after {
     if (location.hash === '#edit') startEditing();
   });
 })();
-</script>
-</body>
-</html>
+</script></body></html>

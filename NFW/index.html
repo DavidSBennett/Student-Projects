@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Northern Factory Work</title>
@@ -203,23 +202,23 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
     <figcaption data-text="images.header.caption"></figcaption>
   </figure>
   <h1 data-text="page.title"></h1>
-  <p class="intro" data-text="page.intro" data-multiline></p>
+  <p class="intro" data-text="page.intro" data-multiline=""></p>
 </header>
 
 <!-- ===== GAME AREA: the game draws each screen inside #game-screen ===== -->
 <main class="wrap">
   <section class="game-area" id="game-area" data-group="game" aria-live="polite">
     <div id="game-screen"></div>
-    <button type="button" class="notes-btn" data-notes-for="game" hidden></button>
+    <button type="button" class="notes-btn" data-notes-for="game" hidden=""></button>
   </section>
 </main>
 
 <!-- ===== FOOTER: author line, footnotes for the header and footer, and the Edit link ===== -->
 <footer class="wrap" data-group="page">
   <span class="author" data-text="page.footer"></span>
-  <button type="button" class="notes-btn" data-notes-for="page" hidden></button>
+  <button type="button" class="notes-btn" data-notes-for="page" hidden=""></button>
   <a href="#edit" class="edit-link" id="edit-link"></a>
-  <span class="local-note" id="local-note" hidden></span>
+  <span class="local-note" id="local-note" hidden=""></span>
 </footer>
 
 <!-- ===== FOOTNOTES POP-UP (opens on top of whatever screen is showing) ===== -->
@@ -278,9 +277,9 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
     "hash": "06eb656d7f20b30b53c9b25ee02b6ce392e9103d466ab588a7cf34be46bddb0d"
   },
   "page": {
-    "title": "[Game title]",
-    "intro": "[Introduction]",
-    "footer": "[Your name and class]"
+    "title": "Tenement",
+    "intro": "",
+    "footer": "Aiden Augestad"
   },
   "ui": {
     "footnotesButton": "[Footnotes]",
@@ -288,88 +287,621 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
     "footnotesClose": "[Back]"
   },
   "images": {
-    "header": { "src": "", "alt": "[Image description]", "caption": "[Image caption]" }
+    "header": {
+      "src": "",
+      "alt": "[Image description]",
+      "caption": "[Image caption]"
+    }
   },
   "game": {
-    "settings": { "days": 14, "rentEvery": 7, "rentCost": 6, "rentResource": "money", "missedRentAllowed": 0 },
+    "settings": {
+      "days": 14,
+      "rentEvery": 7,
+      "rentCost": 5,
+      "rentResource": "money",
+      "missedRentAllowed": 1
+    },
     "text": {
-      "startTitle": "[Game start title]",
-      "startText": "[Explain the family's situation and what the player has to do]",
-      "startButton": "[Begin]",
-      "familyHeading": "[The family]",
-      "dayCounter": "[Day {day} of {days}]",
-      "rentDue": "[Rent: {cost} {resource}, due in {days} days]",
-      "rentDueToday": "[Rent: {cost} {resource}, due tonight]",
-      "dayTitle": "[Daytime]",
-      "dayHelp": "[Choose a task for each family member]",
-      "endDay": "[End the day]",
-      "eveningTitle": "[Evening]",
-      "eveningHelp": "[Decide how to take care of the family tonight]",
-      "householdHeading": "[For the whole household]",
-      "goToSleep": "[Go to sleep]",
-      "nightTitle": "[Night]",
-      "quietNight": "[Nothing happens tonight]",
-      "continueButton": "[Continue]",
-      "morningTitle": "[Morning]",
-      "nothingChanged": "[Nothing changed]",
-      "stateChange": "[{name} is now {state}]",
-      "rentPaid": "[The rent was paid: {cost} {resource}]",
-      "rentMissed": "[The rent could not be paid]",
-      "notEnough": "[There isn't enough for that]",
-      "lostLabel": "[Gone]",
-      "survivedLabel": "[Survived]",
-      "winTitle": "[Ending title: the family survived]",
-      "winText": "[Ending text: the family survived]",
-      "lostTitle": "[Ending title: no one is left]",
-      "lostText": "[Ending text: no one is left]",
-      "evictedTitle": "[Ending title: evicted]",
-      "evictedText": "[Ending text: evicted]",
-      "playAgain": "[Play again]"
+      "startTitle": "November 12, 1889",
+      "startText": "Winter has begun, can you manage the family's needs? ",
+      "startButton": "Begin",
+      "familyHeading": "The family",
+      "dayCounter": "Day {day} of {days}",
+      "rentDue": "Rent: {cost} {resource}, due in {days} days",
+      "rentDueToday": "Rent: {cost} {resource}, due tonight",
+      "dayTitle": "Daytime",
+      "dayHelp": "Choose a task for each family member",
+      "endDay": "End the day",
+      "eveningTitle": "Evening",
+      "eveningHelp": "Decide how to take care of the family tonight",
+      "householdHeading": "For the whole household",
+      "goToSleep": "Go to sleep",
+      "nightTitle": "Night",
+      "quietNight": "Nothing happens tonight",
+      "continueButton": "Continue",
+      "morningTitle": "Morning",
+      "nothingChanged": "Nothing changed",
+      "stateChange": "{name} is now {state}",
+      "rentPaid": "The rent was paid: {cost} {resource}",
+      "rentMissed": "The rent could not be paid",
+      "notEnough": "There isn't enough for that",
+      "lostLabel": "Gone",
+      "survivedLabel": "Survived",
+      "winTitle": "Ending title: the family survived",
+      "winText": "Ending text: the family survived",
+      "lostTitle": "Ending title: no one is left",
+      "lostText": "Ending text: no one is left",
+      "evictedTitle": "Ending title: evicted",
+      "evictedText": "Ending text: evicted",
+      "playAgain": "Play again"
     },
     "resources": [
-      { "id": "money", "name": "[Money]", "start": 4 },
-      { "id": "food", "name": "[Food]", "start": 3 },
-      { "id": "fuel", "name": "[Fuel]", "start": 2 },
-      { "id": "medicine", "name": "[Medicine]", "start": 0 }
+      {
+        "id": "money",
+        "name": "Money",
+        "start": 4
+      },
+      {
+        "id": "food",
+        "name": "Food",
+        "start": 3
+      },
+      {
+        "id": "fuel",
+        "name": "Fuel",
+        "start": 2
+      },
+      {
+        "id": "medicine",
+        "name": "Medicine",
+        "start": 0
+      }
     ],
     "needs": [
-      { "id": "hunger", "name": "[Hunger]", "levels": ["[Fed]", "[Hungry]", "[Very hungry]", "[Starving]"], "daily": 1, "overflowTo": "health", "lostText": "[What happens to {name} when hunger goes past the last step]" },
-      { "id": "health", "name": "[Health]", "levels": ["[Healthy]", "[Sick]", "[Very sick]", "[Gravely ill]"], "daily": 0, "overflowTo": "", "lostText": "[What happens to {name} when health goes past the last step]" },
-      { "id": "mood", "name": "[Mood]", "levels": ["[Hopeful]", "[Sad]", "[Very sad]", "[Broken]"], "daily": 0, "overflowTo": "health", "lostText": "[What happens to {name} when mood goes past the last step]" },
-      { "id": "tired", "name": "[Tiredness]", "levels": ["[Rested]", "[Tired]", "[Very tired]", "[Exhausted]"], "daily": 0, "overflowTo": "health", "lostText": "[What happens to {name} when tiredness goes past the last step]" }
+      {
+        "id": "hunger",
+        "name": "Hunger",
+        "levels": [
+          "Fed",
+          "Hungry",
+          "Very hungry",
+          "Starving"
+        ],
+        "daily": 1,
+        "overflowTo": "health",
+        "lostText": "[What happens to {name} when hunger goes past the last step]"
+      },
+      {
+        "id": "health",
+        "name": "Health",
+        "levels": [
+          "Healthy",
+          "Sick",
+          "Very sick",
+          "Gravely ill"
+        ],
+        "daily": 0,
+        "overflowTo": "",
+        "lostText": "[What happens to {name} when health goes past the last step]"
+      },
+      {
+        "id": "mood",
+        "name": "Mood",
+        "levels": [
+          "Very Happy",
+          "Hopeful",
+          "Sad",
+          "Very sad",
+          "Broken"
+        ],
+        "daily": 0,
+        "overflowTo": "health",
+        "lostText": "[What happens to {name} when mood goes past the last step]"
+      },
+      {
+        "id": "tired",
+        "name": "Tiredness",
+        "levels": [
+          "Rested",
+          "Tired",
+          "Very tired",
+          "Exhausted"
+        ],
+        "daily": 0,
+        "overflowTo": "health",
+        "lostText": "[What happens to {name} when tiredness goes past the last step]"
+      }
     ],
     "family": [
-      { "id": "m1", "name": "[Family member 1]", "about": "[Who is this person?]", "image": { "src": "", "alt": "[Portrait description]" }, "start": {} },
-      { "id": "m2", "name": "[Family member 2]", "about": "[Who is this person?]", "image": { "src": "", "alt": "[Portrait description]" }, "start": {} },
-      { "id": "m3", "name": "[Family member 3]", "about": "[Who is this person?]", "image": { "src": "", "alt": "[Portrait description]" }, "start": {} },
-      { "id": "m4", "name": "[Family member 4]", "about": "[Who is this person?]", "image": { "src": "", "alt": "[Portrait description]" }, "start": {} }
+      {
+        "id": "m1",
+        "name": "James",
+        "about": "Father, 32",
+        "image": {
+          "src": "",
+          "alt": "[Portrait description]"
+        },
+        "start": {
+          "hunger": 0,
+          "health": 0,
+          "mood": 1,
+          "tired": 0
+        }
+      },
+      {
+        "id": "m2",
+        "name": "Mary",
+        "about": "Mother, 29",
+        "image": {
+          "src": "",
+          "alt": "[Portrait description]"
+        },
+        "start": {
+          "hunger": 0,
+          "health": 0,
+          "mood": 1,
+          "tired": 0
+        }
+      },
+      {
+        "id": "m3",
+        "name": "David",
+        "about": "Eldest son, 16",
+        "image": {
+          "src": "",
+          "alt": "[Portrait description]"
+        },
+        "start": {
+          "hunger": 0,
+          "health": 0,
+          "mood": 1,
+          "tired": 0
+        }
+      },
+      {
+        "id": "m4",
+        "name": "Thomas",
+        "about": "Youngest son, 14",
+        "image": {
+          "src": "",
+          "alt": "[Portrait description]"
+        },
+        "start": {
+          "hunger": 0,
+          "health": 0,
+          "mood": 1,
+          "tired": 0
+        }
+      }
     ],
     "tasks": [
-      { "id": "rest", "name": "[Rest]", "about": "[Describe this task]", "effects": { "resources": {}, "needs": { "tired": -1 } } },
-      { "id": "work-out", "name": "[Work outside the home]", "about": "[Describe this task]", "effects": { "resources": { "money": 2 }, "needs": { "tired": 1 } } },
-      { "id": "work-in", "name": "[Work at home]", "about": "[Describe this task]", "effects": { "resources": { "money": 1 }, "needs": { "tired": 1 } } },
-      { "id": "gather", "name": "[Gather fuel]", "about": "[Describe this task]", "effects": { "resources": { "fuel": 1 }, "needs": { "tired": 1 } } }
+      {
+        "id": "rest",
+        "name": "Rest",
+        "about": "Stay home and take some much needed time off",
+        "effects": {
+          "resources": {},
+          "needs": {
+            "tired": -2,
+            "mood": -1
+          }
+        }
+      },
+      {
+        "id": "work-out",
+        "name": "Go to work",
+        "about": "",
+        "effects": {
+          "resources": {
+            "money": 1
+          },
+          "needs": {
+            "tired": 1
+          }
+        }
+      },
+      {
+        "id": "work-in",
+        "name": "Pick up an extra shift ",
+        "about": "",
+        "effects": {
+          "resources": {
+            "money": 3
+          },
+          "needs": {
+            "tired": 2,
+            "mood": 1
+          }
+        }
+      },
+      {
+        "id": "gather",
+        "name": "Gather fuel",
+        "about": "Head out to the woods and find anything that looks flammable",
+        "effects": {
+          "resources": {
+            "fuel": 1
+          },
+          "needs": {
+            "tired": 1
+          }
+        }
+      }
     ],
     "evening": [
-      { "id": "meal", "name": "[Give a meal]", "about": "[Describe this choice]", "perMember": true, "effects": { "resources": { "food": -1 }, "needs": { "hunger": -1 } }, "skipEffects": { "resources": {}, "needs": {} } },
-      { "id": "give-medicine", "name": "[Give medicine]", "about": "[Describe this choice]", "perMember": true, "effects": { "resources": { "medicine": -1 }, "needs": { "health": -1 } }, "skipEffects": { "resources": {}, "needs": {} } },
-      { "id": "heat", "name": "[Heat the home]", "about": "[Describe this choice]", "perMember": false, "effects": { "resources": { "fuel": -1 }, "needs": {} }, "skipEffects": { "resources": {}, "needs": { "mood": 1 } } },
-      { "id": "buy-food", "name": "[Buy food]", "about": "[Describe this choice]", "perMember": false, "effects": { "resources": { "money": -2, "food": 2 }, "needs": {} }, "skipEffects": { "resources": {}, "needs": {} } },
-      { "id": "buy-medicine", "name": "[Buy medicine]", "about": "[Describe this choice]", "perMember": false, "effects": { "resources": { "money": -3, "medicine": 1 }, "needs": {} }, "skipEffects": { "resources": {}, "needs": {} } }
+      {
+        "id": "meal",
+        "name": "Give a meal",
+        "about": "",
+        "perMember": true,
+        "effects": {
+          "resources": {
+            "food": -1
+          },
+          "needs": {
+            "hunger": -2
+          }
+        },
+        "skipEffects": {
+          "resources": {},
+          "needs": {}
+        }
+      },
+      {
+        "id": "give-medicine",
+        "name": "Give medicine",
+        "about": "",
+        "perMember": true,
+        "effects": {
+          "resources": {
+            "medicine": -1
+          },
+          "needs": {
+            "health": -1
+          }
+        },
+        "skipEffects": {
+          "resources": {},
+          "needs": {}
+        }
+      },
+      {
+        "id": "heat",
+        "name": "Heat the home",
+        "about": "",
+        "perMember": false,
+        "effects": {
+          "resources": {
+            "fuel": -1
+          },
+          "needs": {}
+        },
+        "skipEffects": {
+          "resources": {},
+          "needs": {
+            "mood": 1
+          }
+        }
+      },
+      {
+        "id": "buy-food",
+        "name": "Buy food",
+        "about": "",
+        "perMember": false,
+        "effects": {
+          "resources": {
+            "money": -2,
+            "food": 2
+          },
+          "needs": {}
+        },
+        "skipEffects": {
+          "resources": {},
+          "needs": {}
+        }
+      },
+      {
+        "id": "buy-medicine",
+        "name": "Buy medicine",
+        "about": "",
+        "perMember": false,
+        "effects": {
+          "resources": {
+            "money": -3,
+            "medicine": 1
+          },
+          "needs": {}
+        },
+        "skipEffects": {
+          "resources": {},
+          "needs": {}
+        }
+      }
     ],
     "events": [
-      { "id": "e1", "title": "[Night event 1 title]", "text": "[Describe what happens tonight]", "day": null, "image": { "src": "", "alt": "[Image description]", "caption": "[Image caption]" }, "choices": [
-        { "label": "[Choice A]", "result": "[What happens after choice A]", "who": "all", "effects": { "resources": { "money": -1 }, "needs": { "mood": -1 } } },
-        { "label": "[Choice B]", "result": "[What happens to {name} after choice B]", "who": "one", "effects": { "resources": {}, "needs": { "mood": 1 } } }
-      ] },
-      { "id": "e2", "title": "[Night event 2 title]", "text": "[Describe what happens tonight]", "day": null, "image": { "src": "", "alt": "[Image description]", "caption": "[Image caption]" }, "choices": [
-        { "label": "[Choice A]", "result": "[What happens after choice A]", "who": "all", "effects": { "resources": { "food": -1 }, "needs": {} } },
-        { "label": "[Choice B]", "result": "[What happens to {name} after choice B]", "who": "one", "effects": { "resources": {}, "needs": { "health": 1 } } }
-      ] },
-      { "id": "e3", "title": "[Night event 3 title (always on day 3)]", "text": "[Describe what happens tonight]", "day": 3, "image": { "src": "", "alt": "[Image description]", "caption": "[Image caption]" }, "choices": [
-        { "label": "[Choice A]", "result": "[What happens after choice A]", "who": "all", "effects": { "resources": { "money": 1 }, "needs": { "tired": 1 } } },
-        { "label": "[Choice B]", "result": "[What happens after choice B]", "who": "all", "effects": { "resources": {}, "needs": { "mood": 1 } } }
-      ] }
+      {
+        "id": "e1",
+        "title": "Leaky Roof",
+        "text": "First you hear it - tap, tap, tap. Then you notice the wet spot forming on the floor. ",
+        "day": null,
+        "image": {
+          "src": "",
+          "alt": "",
+          "caption": ""
+        },
+        "choices": [
+          {
+            "label": "Fix the leak",
+            "result": "",
+            "who": "one",
+            "effects": {
+              "resources": {
+                "money": -2
+              },
+              "needs": {
+                "tired": 1
+              }
+            }
+          },
+          {
+            "label": "Leave it",
+            "result": "",
+            "who": "all",
+            "effects": {
+              "resources": {},
+              "needs": {
+                "mood": 1,
+                "health": 1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "e2",
+        "title": "Unwanted Visitor",
+        "text": "You hear a squeak coming from the pantry, when you open the door, it's too late...",
+        "day": null,
+        "image": {
+          "src": "",
+          "alt": "",
+          "caption": ""
+        },
+        "choices": [
+          {
+            "label": "Throw away the nibbled on food",
+            "result": "",
+            "who": "all",
+            "effects": {
+              "resources": {
+                "food": -1
+              },
+              "needs": {}
+            }
+          },
+          {
+            "label": "Try and keep the food",
+            "result": "[What happens to {name} after choice B]",
+            "who": "one",
+            "effects": {
+              "resources": {},
+              "needs": {
+                "health": 1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "e3",
+        "title": "A chilly night",
+        "text": "The window blows open, subjecting you to the cold breeze from outside.",
+        "day": 3,
+        "image": {
+          "src": "",
+          "alt": "",
+          "caption": ""
+        },
+        "choices": [
+          {
+            "label": "Stoke the fire to try and warm up",
+            "result": "",
+            "who": "all",
+            "effects": {
+              "resources": {
+                "fuel": -1
+              },
+              "needs": {}
+            }
+          },
+          {
+            "label": "Bundle up",
+            "result": "[What happens after choice B]",
+            "who": "all",
+            "effects": {
+              "resources": {},
+              "needs": {
+                "health": 1,
+                "mood": 1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "e50aqev",
+        "title": "Needy neighbor",
+        "text": "Your neighbor comes knocking on the door, their child is sick and they are asking for help. ",
+        "day": null,
+        "image": {
+          "src": "",
+          "alt": "",
+          "caption": ""
+        },
+        "choices": [
+          {
+            "label": "I don't have medicine, but we can spare some food.",
+            "result": "",
+            "who": "all",
+            "effects": {
+              "resources": {
+                "food": -1
+              },
+              "needs": {
+                "mood": -1
+              }
+            }
+          },
+          {
+            "label": "Here, take this",
+            "result": "",
+            "who": "all",
+            "effects": {
+              "resources": {
+                "medicine": -1
+              },
+              "needs": {
+                "mood": -2
+              }
+            }
+          },
+          {
+            "label": "Sorry, we can't spare anything",
+            "result": "",
+            "who": "one",
+            "effects": {
+              "resources": {},
+              "needs": {
+                "mood": 1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "ec27nbn",
+        "title": "Torn jacket ",
+        "text": "You notice a tear in your jacket after coming home from work. ",
+        "day": null,
+        "image": {
+          "src": "",
+          "alt": "",
+          "caption": ""
+        },
+        "choices": [
+          {
+            "label": "Fix it",
+            "result": "",
+            "who": "one",
+            "effects": {
+              "resources": {
+                "money": -1
+              },
+              "needs": {
+                "mood": -1
+              }
+            }
+          },
+          {
+            "label": "Leave it ",
+            "result": "",
+            "who": "one",
+            "effects": {
+              "resources": {},
+              "needs": {
+                "health": 1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "emb7gds",
+        "title": "Sick!",
+        "text": "Someone comes home with a fever. ",
+        "day": null,
+        "image": {
+          "src": "",
+          "alt": "",
+          "caption": ""
+        },
+        "choices": [
+          {
+            "label": "Treat them with medicine",
+            "result": "",
+            "who": "one",
+            "effects": {
+              "resources": {
+                "medicine": -1
+              },
+              "needs": {
+                "mood": 1
+              }
+            }
+          },
+          {
+            "label": "Give them extra food",
+            "result": "",
+            "who": "one",
+            "effects": {
+              "resources": {
+                "food": -1
+              },
+              "needs": {
+                "mood": 1,
+                "tired": 1
+              }
+            }
+          },
+          {
+            "label": "Do nothing",
+            "result": "",
+            "who": "one",
+            "effects": {
+              "resources": {},
+              "needs": {
+                "health": 1,
+                "mood": 1,
+                "tired": 1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "erfmpot",
+        "title": "Friendly neighbor",
+        "text": "Your neighbor knocks on the door and offers to have you over for dinner.",
+        "day": null,
+        "image": {
+          "src": "",
+          "alt": "[Image description]",
+          "caption": "[Image caption]"
+        },
+        "choices": [
+          {
+            "label": "See you soon!",
+            "result": "[What happens next]",
+            "who": "all",
+            "effects": {
+              "resources": {},
+              "needs": {
+                "hunger": -1,
+                "mood": -1
+              }
+            }
+          },
+          {
+            "label": "No thanks. ",
+            "result": "[What happens next]",
+            "who": "all",
+            "effects": {
+              "resources": {},
+              "needs": {}
+            }
+          }
+        ]
+      }
     ]
   }
 }
@@ -1861,6 +2393,4 @@ body.ed-on [data-text]:focus { outline: 2px solid #2a6edc; background: rgba(42,1
     if (session.get(EDITING_KEY) && session.get(UNLOCK_KEY) === data.auth.hash) unlock(); // still editing after a reload
   });
 })();
-</script>
-</body>
-</html>
+</script></body></html>
