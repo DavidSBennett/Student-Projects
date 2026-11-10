@@ -1113,9 +1113,10 @@ body.is-editing [data-image-box]::after {
      Every card's ability effect happens wherever it is played. Buying power
      buys cards from the market; bought cards go to your discard pile.
      At the end of a turn, played cards go to the discard pile and any cards
-     still in your hand stay there. You only draw a new hand if you played
-     every card; otherwise the only way to draw is a card's "Draw cards"
-     ability. (The discard pile is shuffled into a new deck when needed.)
+     still in your hand stay there; then you draw back up to a full hand.
+     If you played no cards at all, your whole hand is discarded first and
+     you draw a fresh one, so cards that can't be played safely never leave
+     a player stuck. (The discard pile is shuffled into a new deck when needed.)
      ------------------------------------------------------------------- */
   const RACES = ['space', 'pr'];
   const DANGERS = ['backlash', 'economy', 'military'];
@@ -1285,10 +1286,14 @@ body.is-editing [data-image-box]::after {
 
   function endTurn(who) {
     const p = match.players[who];
+    const playedAny = ZONES.some(z => p.played[z].length);
     ZONES.forEach(z => { p.discard.push(...p.played[z]); p.played[z] = []; });
     p.hand = p.hand.filter(cardById);     // a card deleted in the editor can't be played, so it can't block a new hand
     p.buy = 0;
-    if (!p.hand.length) drawCards(p, num(settings().handSize));
+    // Passing with nothing played swaps the whole hand, so a hand that can
+    // only start a nuclear war can't block a player (or the computer) forever.
+    if (!playedAny) { p.discard.push(...p.hand); p.hand = []; }
+    drawCards(p, num(settings().handSize) - p.hand.length);
     match.turn = other(who);
     match.selected = null;
   }
